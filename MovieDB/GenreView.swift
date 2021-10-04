@@ -5,17 +5,19 @@
 //  Created by Emmanuel Flores on 5/19/21.
 //
 
-import Foundation
 import SwiftUI
 import URLImage
-
+import AlertToast
 
 struct GenreView: View {
-    @EnvironmentObject var user: User
+    @EnvironmentObject var user: UserData
+    @EnvironmentObject var viewModel: AlertViewModel
 
-    @State var genre: Genre
+    var genre: Genre
+    
     @State var movies = [Movie]()
-
+    @State var qty = 0
+    
     @StateObject var dataSource = ContentDataSource()
     
     @State var HomeActive = false
@@ -33,7 +35,7 @@ struct GenreView: View {
                         MovieRow(movie: movie)
                             .frame(width: (UIScreen.main.bounds.width - 33), height: 80)
                             .onAppear {
-                                dataSource.loadMoreContent()
+                                dataSource.loadMoreContent(user: user)
                             }
                     }
                     else {
@@ -49,7 +51,11 @@ struct GenreView: View {
                 
             } .onAppear {
                 dataSource.query = "genre"
-                dataSource.setText(text: String(genre.genreId))}
+                dataSource.setText(text: genre.name, user: user)
+                self.getCartQtyData()
+                
+            }
+            
         
             if dataSource.isLoadingPage {
                 ProgressView() //A view that shows the progress towards completion of a task.
@@ -109,26 +115,35 @@ struct GenreView: View {
                     self.CartActive = true
                 })
                 {
-                    let count = user.getCartCount()
                     
-                    if(count == 0) {
-                        Image(systemName: "cart").imageScale(.large)
-                    }
-                    
-                    else{
-                        ZStack {
-                            Image(systemName: "cart").imageScale(.large)
-                            Text("\(user.getCartCountStr())")
-                                .foregroundColor(Color.black)
-                                .background(Capsule().fill(Color.orange).frame(width:30, height:20))
-                                .offset(x:20, y:-10)
+                 ZStack {
+                     Image(systemName: "cart").imageScale(.large)
+                     
+                     if(self.qty > 0) {
+                         Text("\(self.qty)")
+                             .foregroundColor(Color.black)
+                             .background(Capsule().fill(Color.orange).frame(width:30, height:20))
+                             .offset(x:20, y:-10)
+                         
+                     }
 
-                        }
-                        
                     }
                 }
             }
           }
+        }
+    }
+    
+    func getCartQtyData() {
+        API(user: user).getCartQty(){ (result) in
+            switch result {
+            case .success(let qty):
+                DispatchQueue.main.async {
+                    self.qty = qty
+                }
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
         }
     }
 }

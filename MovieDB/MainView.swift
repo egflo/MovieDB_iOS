@@ -9,265 +9,270 @@ import SwiftUI
 import Combine
 import SDWebImageSwiftUI
 
+extension Color {
+    static var random: Color {
+        return Color(red: .random(in: 0...1),
+                     green: .random(in: 0...1),
+                     blue: .random(in: 0...1))
+    }
+}
+
+struct GenreMainRow: View {
+    var genre: MovieMeta
+    @State var isActive = false
+
+    var body: some View {
+        
+        let genre_data = Genre(id: genre.id!, genreId: genre.id!, name: genre.name!)
+            
+        ZStack{
+            Image("background")
+                .renderingMode(.original)
+                .resizable()
+                .scaledToFill()
+                .clipped()
+                .cornerRadius(8)
+                .frame(width: 200, height: 100)
+
+            
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(Color.random)
+                .frame(width: 200, height: 100)
+                .opacity(0.6)
+
+            Text(genre.name!).font(.system(size: 30)).bold().foregroundColor(.white).shadow(radius: 5)
+            
+        }
+        .onTapGesture {
+            self.isActive = true
+        }
+        .frame(height: 100)
+        .background(
+             NavigationLink(destination: GenreView(genre: genre_data), isActive: $isActive) {
+                EmptyView()
+            }
+       )
+    }
+    
+}
+
 struct GenreMain: View {
+    @EnvironmentObject var user: UserData
+
+    var path: String
     @State private var genres = [MovieMeta]()
-    
-    
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack {
-                ForEach(genres, id: \.name) { genre in
-                        let genre_data = Genre(genreId: genre.id!, name: genre.name!)
-                        NavigationLink(destination: GenreView(genre: genre_data)){
-                            ZStack{
-                                
-                                Image("background")
-                                    .resizable()
-                                    .scaledToFill()
-                                    .clipped()
-                                    .cornerRadius(8)
-
-                                
-                                Text(genre.name!).font(.system(size: 30)).bold().foregroundColor(.white).shadow(radius: 5)
-                                
-                            }
-                            .frame(height: 100)
-                        }
+            HStack (spacing: 10) {
+                ForEach(genres, id: \.id) { genre in
                     
-                    }
-                }.onAppear{loadGenres()}
-            }
-        }
-        
-    func loadGenres() {
-        
-        let url = "\(MyVariables.API_IP)/genre/all"
-        let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
-
-        guard let url = URL(string: encoded_url!) else {
-            let status = "Invalid URL"
-            print(status)
-            return
-        }
-        
-        let request = URLRequest(url: url)
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let data = data {
-                if let decodedResponse = try? JSONDecoder().decode([MovieMeta].self, from: data) {
-                    // we have good data – go back to the main thread
-                    DispatchQueue.main.async {
-                        // update our UI
-                        self.genres = decodedResponse
-                    }
+                    GenreMainRow(genre: genre)
                     
-                    // everything is good, so we can exit
-                    return
                 }
             }
-        
-            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
             
-        }.resume()
+        }.onAppear{getGenresData()}
+    }
+    
+    
+    func getGenresData() {
+        API(user: user).getMetaMovie(path: path) {(result) in
+            switch result {
+            case .success(let genres):
+                DispatchQueue.main.async {
+                    self.genres = genres
+                }
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
+        }
     }
     
 }
 
 
-struct ImageCarouselView: View {
-    //@EnvironmentObject var movie_api: MovieDB_API
-    @EnvironmentObject var user: User
+struct MovieRowView: View {
+    @EnvironmentObject var user: UserData
 
-    @State private var currentIndex: Int = 0
-    @State var movies = [Movie]()
+    var meta: MovieMeta
+    @State var isActive = false;
+    @State var movie = Movie()
     
-    private var type: Int
-    private var number_of_images = 5
-    
-    
-    @State var width = (UIScreen.main.bounds.width - 15)
-    @State var height = (UIScreen.main.bounds.height - 33)
-    
-    private let timer = Timer.publish(every: 3, on: .main, in: .common).autoconnect()
+    var body: some View {
+        let m = MovieDecode(movie:movie)
+        
+        VStack{
+            NavigationLink(destination: MovieView(movie: movie), isActive: $isActive){
+                ZStack (alignment: .bottomLeading){
+                        WebImage(url: URL(string: m.background()))
+                                .resizable()
+                                .placeholder(
+                                    Image("background")
+                                )
+                                .scaledToFill()
+                                .clipped()
+                                .transition(.fade(duration: 0.5)) // Fade Transition with duration
+                        
+                        VStack(alignment: .leading) {
+                            Text(m.title()).font(.system(size: 28)).bold().foregroundColor(.white).shadow(radius: 5)
+                                .padding(.trailing, 4)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.1)
 
-    init(type: Int, number_of_images: Int ) {
-        self.type = type
-        self.number_of_images = number_of_images
+                            Text(m.subString()).font(.subheadline).bold().foregroundColor(.white).shadow(radius: 5)
+
+                        }
+                        .padding(.bottom,20)
+                        .padding(.leading,20)
+                }
+                
+            }
+            .onTapGesture{self.isActive = true}
+            .onAppear(perform: {
+                self.getMovieData()
+            })
+        }.cornerRadius(8)
+
     }
+     
+    func getMovieData() {
+        API(user: user).getMovie(id: meta.movieId!) { (result) in
+            switch result {
+            case .success(let movie):
+                DispatchQueue.main.async {
+                    self.movie = movie
+                }
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
+        }
+    }
+}
+
+struct MovieMainView: View {
+    @EnvironmentObject var user: UserData
+    @EnvironmentObject var viewModel: AlertViewModel
+
+    @StateObject var dataSource = ContentDataSourceMain()
+
+    @State var metas = [MovieMeta]()
+
+    let title: String
+    let path: String
+    let width = (UIScreen.main.bounds.width)
+
+
+    @Environment(\.verticalSizeClass) var verticalSizeClass: UserInterfaceSizeClass?
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass: UserInterfaceSizeClass?
 
     var body: some View {
-        
-        ScrollView(.horizontal, showsIndicators: false){
-            if UIDevice.current.userInterfaceIdiom == .pad {
-                // Available Idioms - .pad, .phone, .tv, .carPlay, .unspecified
-                // Implement your logic here
-                HStack {
-                    ForEach(movies, id: \.uuid) { movie in
-                        let m = MovieDecode(movie:movie)
-                        NavigationLink(destination: MovieView(movie: movie)){
-                            ZStack (alignment: .bottomLeading){
-                                WebImage(url: URL(string: m.background()))
-                                        .placeholder(Image(systemName: "livephoto.slash"))
-                                        .resizable()
-                                        .frame(width: 400, height: 220, alignment: .center)
-                                        .scaledToFill()
-                                        .clipped()
-                                        .cornerRadius(8)
-                                  
+        /* Disabled for IPhone (Portrait Mode Only)*/
+        VStack {
+            Text(title).font(.title).bold()
+                .frame(width: width, alignment:.leading)
+            
+            ScrollView(.horizontal, showsIndicators: false){
+
+                LazyHStack (spacing: 10){
+                    ForEach(dataSource.items, id: \.uuid) { meta in
+                        
+                        if(dataSource.items.last! == meta){
+                            
+                            VStack {
                                 
-                                VStack(alignment: .leading) {
-                                    Text(m.title()).font(.system(size: 30)).bold().foregroundColor(.white).shadow(radius: 5)
-                                    Text(m.subString()).font(.subheadline).bold().foregroundColor(.white).shadow(radius: 5)
+                                if horizontalSizeClass == .compact && verticalSizeClass == .regular {
+                                        MovieRowView(meta: meta)
+                                            .frame(width: 330, height: 180, alignment: .center)
+                                    
 
                                 }
-                                .padding(.bottom,15)
-                                .padding(.leading,10)
+                                else if horizontalSizeClass == .regular && verticalSizeClass == .compact {
+                                    
+                                        MovieRowView(meta: meta)
+                                            .frame(width: 400, height: 220, alignment: .center)
+                                    
+
+                                }
+                                else if horizontalSizeClass == .regular && verticalSizeClass == .regular {
+                                    
+                                        MovieRowView(meta: meta)
+                                            .frame(width: 400, height: 220, alignment: .center)
+                                    
+
+                                }
                                 
-                            }.frame(width: 400, height: 220, alignment: .center)
+                            }.onAppear {
+                                print("Load More")
+                                dataSource.loadMoreContent(user: user, path: path)
+                            }
+
 
                         }
-                    }
-
-                }
-                
-            }
-            
-            else {
-                
-                HStack {
-                    ForEach(movies, id: \.uuid) { movie in
-                        let m = MovieDecode(movie:movie)
-                        NavigationLink(destination: MovieView(movie: movie)){
-                            ZStack (alignment: .bottomLeading){
-                                WebImage(url: URL(string: m.background()))
-                                        .placeholder(Image(systemName: "livephoto.slash"))
-                                        .resizable()
-                                        .frame(width: (UIScreen.main.bounds.width - 40), height: 200, alignment: .center)
-                                        .scaledToFill()
-                                        .clipped()
-                                        .cornerRadius(8)
-                                  
+                        else {
+                            
+                            if horizontalSizeClass == .compact && verticalSizeClass == .regular {
+                                    MovieRowView(meta: meta)
+                                        .frame(width: 330, height: 180, alignment: .center)
                                 
-                                VStack(alignment: .leading) {
-                                    Text(m.title()).font(.system(size: 30)).bold().foregroundColor(.white).shadow(radius: 5)
-                                    Text(m.subString()).font(.subheadline).bold().foregroundColor(.white).shadow(radius: 5)
 
-                                }
-                                .padding(.bottom,15)
-                                .padding(.leading,10)
+                            }
+                            else if horizontalSizeClass == .regular && verticalSizeClass == .compact {
                                 
-                            }.frame(width: (UIScreen.main.bounds.width - 40), height: 200, alignment: .center)
+                                    MovieRowView(meta: meta)
+                                        .frame(width: 400, height: 220, alignment: .center)
+                                
+
+                            }
+                            else if horizontalSizeClass == .regular && verticalSizeClass == .regular {
+                                
+                                    MovieRowView(meta: meta)
+                                        .frame(width: 400, height: 220, alignment: .center)
+                                
+
+                            }
                             
                         }
+
+                    
                     }
 
+                    if dataSource.isLoadingPage {
+                        ProgressView() //A view that shows the progress towards completion of a task.
+                    }
+                    
                 }
                 
             }
-
-        }.onAppear{self.loadMetaData()}
-    }
-    func loadMetaMovie(id: String) {
-        
-        let url = "\(MyVariables.API_IP)/movie/\(id)"
-        let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
-
-        guard let url = URL(string: encoded_url!) else {
-            let status = "Invalid URL"
-            print(status)
-            return
-        }
-        
-        let request = URLRequest(url: url)
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let data = data {
-                if let decodedResponse = try? JSONDecoder().decode(Movie.self, from: data) {
-                    // we have good data – go back to the main thread
-                    DispatchQueue.main.async {
-                        // update our UI
-                        self.movies.append(decodedResponse)
-
-                    }
-                    
-                    // everything is good, so we can exit
-                    return
-                }
-            }
-        
-            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
             
-        }.resume()
+        }.padding(.leading, 20)
+       //  .onAppear{self.getMetaData()}
+            .onAppear {
+                print("Initial Load")
+                dataSource.loadMoreContent(user: user, path: path)
+            }
+
+
     }
     
-    func loadMetaData() {
-        
-        var url = ""
-        
-        if(type == 0) {
-            
-            url = "\(MyVariables.API_IP)/order/sellers?limit=\(number_of_images)"
-
-        }
-        
-        else if(type == 1) {
-            url = "\(MyVariables.API_IP)/rating/rated?limit=\(number_of_images)"
-        }
-        
-        else if(type == 2) {
-            url = "\(MyVariables.API_IP)/rating/critic?limit=\(number_of_images)"
-        }
-        
-        else if(type == 3) {
-            for movie in user.watchlist {
-                self.loadMetaMovie(id: movie.id)
-            }
-            return
-        }
-        
-        else {
-            url = "\(MyVariables.API_IP)/order/sellers?limit=\(number_of_images)"
-
-        }
-        
-
-        let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
-
-        guard let url = URL(string: encoded_url!) else {
-            let status = "Invalid URL"
-            print(status)
-            return
-        }
-        
-        let request = URLRequest(url: url)
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let data = data {
-                if let decodedResponse = try? JSONDecoder().decode(ResponseMeta.self, from: data) {
-                    // we have good data – go back to the main thread
-                    DispatchQueue.main.async {
-                        // update our UI
-                        let content = decodedResponse.content
-                        for data in content {
-                            self.loadMetaMovie(id: data.movieId!)
-                        }
-
-                    }
-                    
-                    // everything is good, so we can exit
-                    return
+    /**
+    func getMetaData() {
+        API(user: user).getMetaMovie(path: self.path) { (result) in
+            switch result {
+            case .success(let metas):
+                DispatchQueue.main.async {
+                    self.metas = metas
                 }
+            case .failure(let error):
+                print(error.localizedDescription)
             }
-        
-            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-            
-        }.resume()
+        }
     }
+    **/
 }
 
 struct MainView: View {
-    @EnvironmentObject var user: User
+    @EnvironmentObject var user: UserData
 
     @State var HomeActive = false
     @State var SearchActive = false
@@ -275,41 +280,34 @@ struct MainView: View {
     @State var OrderActive = false
     @State var CartActive = false
     
+    
+    @State var qty = 0
+    
     var body: some View {
         
         ScrollView
         {
-
+            //MovieMainView(title: "Your Watchlist", path: "/bookmark/?limit=\(5)")
+            MovieMainView(title: "Your Watchlist", path: "bookmark/")
             
-            if(user.watchlist.count > 0){
-                Text("Your Watchlist").font(.title).bold().padding(.leading,15).frame(width: UIScreen.main.bounds.width, alignment:.leading)
-                ImageCarouselView(type:3, number_of_images: user.watchlist.count).padding(.leading,15)
-                let _ = print("\(user.watchlist.count)")
-
-            }
-            
-            Text("Top Sellers").font(.title).bold().padding(.leading,15).frame(width: UIScreen.main.bounds.width, alignment:.leading)
-            
-            ImageCarouselView(type: 0, number_of_images: 5).padding(.leading,15)
+            //MovieMainView(title: "Top Sellers", path: "/order/sellers?limit=\(5)"
+            MovieMainView(title: "Top Sellers", path: "order/sellers")
            
-            Text("Top Rated").font(.title).bold().padding(.leading,15).frame(width: UIScreen.main.bounds.width, alignment:.leading)
-            
-            ImageCarouselView(type: 1, number_of_images: 5).padding(.leading,15)
-
-            
-            Text("Critically Acclaimed").font(.title).bold().padding(.leading,15).frame(width: UIScreen.main.bounds.width, alignment:.leading)
-            
-            ImageCarouselView(type: 2, number_of_images: 5).padding(.leading,15)
-
-            
+           //MovieMainView(title: "Top Rated", path:"/rating/rated?limit=\(5)")
+            MovieMainView(title: "Top Rated", path: "rating/rated")
+                        
             Text("Genres").font(.title).bold().padding(.leading,15).frame(width: UIScreen.main.bounds.width, alignment:.leading)
+
+            GenreMain(path: "/genre/all?limit=25")
+                .padding(.leading,15)
+                .padding(.bottom, 15)
             
-            GenreMain().padding(.leading,15)
-            
-        }.offset(y: 15)
+        }
+        .onAppear(perform: {getCartQtyData()})
+        .offset(y: 15)
         
         .navigationBarHidden(true)
-
+        
         .background(
             HStack {
                 NavigationLink(destination: MainView(), isActive: $HomeActive) {EmptyView()}
@@ -321,11 +319,10 @@ struct MainView: View {
                     EmptyView()
                 }
             }
-
         )
         
         .toolbar {
-          ToolbarItem(placement: .bottomBar) {
+          ToolbarItemGroup(placement: .bottomBar) {
             HStack{
                 Button(action: {
                     self.HomeActive = true
@@ -359,30 +356,37 @@ struct MainView: View {
 
                 })
                 {
-                     let count = user.getCartCount()
-                     
-                     if(count == 0) {
-                         
-                         Image(systemName: "cart").imageScale(.large)
-
-                     }
-                     else{
-                         ZStack {
-                             Image(systemName: "cart").imageScale(.large)
-                             Text("\(user.getCartCountStr())")
-                                 .foregroundColor(Color.black)
-                                 .background(Capsule().fill(Color.orange).frame(width:30, height:20))
-                                 .offset(x:20, y:-10)
-
-                         }
-                         
-                     }
                     
+                 ZStack {
+                     Image(systemName: "cart").imageScale(.large)
+                     
+                     if(self.qty > 0) {
+                         Text("\(self.qty)")
+                             .foregroundColor(Color.black)
+                             .background(Capsule().fill(Color.orange).frame(width:30, height:20))
+                             .offset(x:20, y:-10)
+                         
+                     }
+
+                    }
                 }
-            }
+             }
           }
         }
 
+    }
+    
+    func getCartQtyData() {
+        API(user: user).getCartQty(){ (result) in
+            switch result {
+            case .success(let qty):
+                DispatchQueue.main.async {
+                    self.qty = qty
+                }
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
+        }
     }
 
 }

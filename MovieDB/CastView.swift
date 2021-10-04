@@ -5,10 +5,10 @@
 //  Created by Emmanuel Flores on 5/16/21.
 //
 
-import Foundation
 import SwiftUI
 import URLImage
 import SDWebImageSwiftUI
+import AlertToast
 
 struct DropDown: View {
     var headline: String
@@ -46,200 +46,254 @@ struct DropDown: View {
 }
 
 struct CastMovieRow: View {
-    @Binding var cast: Cast
-    @State var movies = [Movie]()
-    
-    @EnvironmentObject var movie_api: MovieDB_API
+    @EnvironmentObject var user: UserData
+    @EnvironmentObject var viewModel: AlertViewModel
 
+    @Binding var cast: Cast
+    @State var movies: [Movie]?
     
     var body: some View {
-        
+        VStack {
             
-        VStack { //geometry in
+            HStack {
+                Text("Filmography").font(.subheadline).bold()
+            }
+            .frame(width: (UIScreen.main.bounds.width), height: 40)
+            .background(Color(.systemGray6))
+            .foregroundColor(Color.blue)
+            
+            if let movies = movies {
+                
+                List(movies, id: \.uuid) { movie in
+                    let m = MovieDecode(movie:movie)
 
-            List {
-                    Section(header:
-                        VStack(alignment: .center) {
-                            Text("Cast & Crew")
-                                .font(.subheadline).bold()
-                                .foregroundColor(Color.blue)
-                                .textCase(.none)
-
-                        })
-                    {
-                    
-                    ForEach(movies, id: \.uuid) { movie in
-                        let m = MovieDecode(movie:movie)
-
-                        NavigationLink(destination: MovieView(movie: movie)) {
-                            HStack {
-                                VStack {
-                                    WebImage(url: URL(string: m.poster()))
-                                            .resizable()
-                                            .renderingMode(.original)
-                                            .placeholder(Image("no_image"))
-                                            .aspectRatio(contentMode: .fit)
-                                            .cornerRadius(8)
-                                    
-                                }
-                                .frame(width: 30, height: 60)
+                    NavigationLink(destination: MovieView(movie: movie)) {
+                        HStack {
+                            VStack {
+                                WebImage(url: URL(string: m.poster()))
+                                        .resizable()
+                                        .renderingMode(.original)
+                                        .placeholder(Image("no_image"))
+                                        .aspectRatio(contentMode: .fit)
+                                        .cornerRadius(8)
                                 
-                                VStack(alignment: .leading) {
-                                    
-                                    Text(m.title())
-                                    Text(m.subString()).font(.subheadline).foregroundColor(.gray)
-
-
-                                }
-                                Spacer()
-                                Text("Details")
                             }
-                        }
+                            .frame(width: 30, height: 60)
+                            
+                            VStack(alignment: .leading) {
+                                
+                                Text(m.title())
+                                    .foregroundColor(Color.blue)
 
+                                Text(m.subString()).font(.subheadline).foregroundColor(.gray)
+
+
+                            }
+                            Spacer()
+                            Text("Details")
+                                .foregroundColor(Color.blue)
+
+                        }
                     }
 
-                }//.frame(width: (geometry.size.width) - 33)//.background(Color.blue)
+                }
+                .frame(height: UIScreen.main.bounds.height)
+                //.listStyle(GroupedListStyle())
+                .listStyle(PlainListStyle())
 
-
+                .onAppear(perform: {
+                    UITableView.appearance().isScrollEnabled = false
+                })
+                
+                .frame(height: (UIScreen.main.bounds.height))
+                
             }
-            .listStyle(GroupedListStyle())
-
-            .onAppear(perform: {
-                self.loadMoviesByCast(id: cast.starId)
-                UITableView.appearance().isScrollEnabled = false
-            })
             
-        }.frame(height: (UIScreen.main.bounds.height - 33))
+            else {
+                ProgressView()
+                Spacer()
+            }
+
+        }
+        .onAppear(perform: {self.getStarMovieData()})
+
     }
     
-    func loadMoviesByCast(id: String) {
-
-        let url = "\(MyVariables.API_IP)/movie/star/\(id)"
-        print(url)
-
-        let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
-
-        guard let url = URL(string: encoded_url!) else {
-            let status = "Invalid URL"
-            print(status)
-            return
-        }
-        
-        let request = URLRequest(url: url)
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let data = data {
-                if let decodedResponse = try? JSONDecoder().decode(Response.self, from: data) {
-                    // we have good data – go back to the main thread
-                    DispatchQueue.main.async {
-                        // update our UI
-                        
-                        self.movies = decodedResponse.content
-
-                    }
-                    
-                    // everything is good, so we can exit
-                    return
+    func getStarMovieData() {
+        API(user: user).getMovies(path: "/movie/star/\(cast.starId)?limit=50") { (result) in
+            switch result {
+            case .success(let movies):
+                DispatchQueue.main.async {
+                    self.movies = movies
                 }
+            case .failure(let error):
+                viewModel.subtitle = error.localizedDescription
+                viewModel.show = true
             }
-        
-            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-            
-        }.resume()
+        }
     }
-
 }
 
 struct iPhoneCastView: View {
-    @Binding var cast: Cast
-    
-    var body: some View {
-        let c = CastDecode(cast: cast)
-        
-        VStack {
+    @EnvironmentObject var user: UserData
+    @EnvironmentObject var viewModel: AlertViewModel
 
-            WebImage(url: URL(string: c.photo()))
-                .resizable()
-                .renderingMode(.original)
-                .placeholder(Image("no_image"))
-                .aspectRatio(contentMode: .fit)
-                .cornerRadius(8)
-    
-        }.frame(width: (UIScreen.main.bounds.width - 33), height: 250)
+    @Binding var cast: Cast
+    @State var star: Star?
+
+    var body: some View {
+        VStack {
+            
+            if let star = star {
+                
+                let c = StarDecode(cast: star)
+                
+                VStack {
+
+                    WebImage(url: URL(string: c.photo()))
+                        .resizable()
+                        .renderingMode(.original)
+                        .placeholder(Image("no_image"))
+                        .aspectRatio(contentMode: .fit)
+                        .cornerRadius(8)
+            
+                }.frame(width: (UIScreen.main.bounds.width - 33), height: 250)
+                
+                Text(c.name()).font(.title).bold()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.1)
+            
+                Text(c.subString()).font(.subheadline).foregroundColor(.gray)//.padding(.bottom,10)
+         
+                Text(c.birthDetails()).padding(.bottom,5).frame(width: (UIScreen.main.bounds.width - 33), height: 70)
+            
+                DropDown(headline: "Biography", text: c.bio())//.padding(.bottom,10)
+                
+            }
+            
+            else {
+                ProgressView()
+            }
+
+        }
         
-        Text(cast.name).font(.title)
+        .onAppear{self.getStarData()}
+            
+    }
     
-        Text(c.subString()).font(.subheadline).foregroundColor(.gray)//.padding(.bottom,10)
- 
-        Text(c.birthDetails()).padding(.bottom,5).frame(width: (UIScreen.main.bounds.width - 33), height: 70)
-    
-        DropDown(headline: "Biography", text: c.bio())//.padding(.bottom,10)
-    
-        //CastMovieRow(cast: cast).frame(width: (UIScreen.main.bounds.width - 33), height: 175)
-        
+    func getStarData() {
+        API(user: user).getCast(id: cast.starId) { (result) in
+            switch result {
+            case .success(let star):
+                DispatchQueue.main.async {
+                    self.star = star
+                }
+            case .failure(let error):
+                viewModel.subtitle = error.localizedDescription
+                viewModel.show = true
+            }
+        }
     }
 }
 
 struct iPadCastView: View {
+    @EnvironmentObject var user: UserData
+    @EnvironmentObject var viewModel: AlertViewModel
+
     @Binding var cast: Cast
-    
+    @State var star: Star?
+
     var body: some View {
-        let c = CastDecode(cast: cast)
-
-        HStack(alignment: .top){
-            WebImage(url: URL(string: c.photo()))
-                .resizable()
-                //.renderingMode(.original)
-                .placeholder(Image("no_image"))
-                .aspectRatio(contentMode: .fill)
-                .frame(width: 290, height: 400)
-                .clipped()
-                //.aspectRatio(contentMode: .fit)
-                .cornerRadius(8)
-                //.border(Color.red)
+        
+        VStack {
             
-            ScrollView {
-                VStack(alignment: .leading){
-                    
-                    HStack {
-                        Text("\(c.name()) \(c.subString())")
-                            .font(.system(size: 30.0))
-                            .bold()
-            
-                        
-                    }.padding(.bottom,5)
+            if let star = star {
+                
+                let c = StarDecode(cast: star)
 
-                    let birth_details = c.birthDetails()
+                HStack(alignment: .top){
+                    WebImage(url: URL(string: c.photo()))
+                        .resizable()
+                        //.renderingMode(.original)
+                        .placeholder(Image("no_image"))
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 290, height: 400)
+                        .clipped()
+                        //.aspectRatio(contentMode: .fit)
+                        .cornerRadius(8)
                     
-                    if(birth_details.count != 0) {
-                        
-                        Text(c.birthDetails())
-                            .font(.system(size: 20.0))
-                            .foregroundColor(.gray)
-                            .padding(.bottom,5)
+                    ScrollView {
+                        VStack(alignment: .leading){
+                            
+                            HStack {
+                                Text("\(c.name()) \(c.subString())")
+                                    .font(.system(size: 30.0)).bold()
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.1)
+                    
+                                
+                            }.padding(.bottom,5)
+
+                            let birth_details = c.birthDetails()
+                            
+                            if(birth_details.count != 0) {
+                                
+                                Text(c.birthDetails())
+                                    .font(.system(size: 20.0))
+                                    .foregroundColor(.gray)
+                                    .padding(.bottom,5)
+                                
+                            }
+
+                            Text(c.bio())
+                                .font(.system(size: 20.0))
+                                .foregroundColor(.gray)
+                                .padding(.bottom,5)
+
+
+                            
+                        }.frame(width: (UIScreen.main.bounds.width-350), alignment: .leading)
                         
                     }
-
-                    Text(c.bio())
-                        .font(.system(size: 20.0))
-                        .foregroundColor(.gray)
-                        .padding(.bottom,5)
-                        //.frame(width: (UIScreen.main.bounds.width-300), alignment: .leading)
-
-
                     
-                }.frame(width: (UIScreen.main.bounds.width-350), alignment: .leading)//.border(Color.red)
+                }.frame(width: (UIScreen.main.bounds.width-33), height: 400)
+                    .padding(.bottom, 5)
+                
                 
             }
             
-        }.frame(width: (UIScreen.main.bounds.width-33), height: 400)//.border(Color.blue)
+            else {
+                ProgressView()
+            }
+            
+        }
+        .onAppear{self.getStarData()}
+        
+    }
+    
+    func getStarData() {
+        API(user: user).getCast(id: cast.starId) { (result) in
+            switch result {
+            case .success(let star):
+                DispatchQueue.main.async {
+                    self.star = star
+                }
+            case .failure(let error):
+                viewModel.subtitle = error.localizedDescription
+                viewModel.show = true
+            }
+        }
     }
 }
 
 struct CastView: View {
-    @EnvironmentObject var user: User
-    @EnvironmentObject var movie_api: MovieDB_API
+    @EnvironmentObject var user: UserData
+    @EnvironmentObject var api: API
+    @EnvironmentObject var viewModel: AlertViewModel
 
+    @Environment(\.verticalSizeClass) var verticalSizeClass: UserInterfaceSizeClass?
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass: UserInterfaceSizeClass?
+    
     @State var cast: Cast
     
     @State var HomeActive = false
@@ -248,32 +302,40 @@ struct CastView: View {
     @State var OrderActive = false
     @State var CartActive = false
     
+    @State var qty = 0
+    
     var body: some View {
         VStack {
-            ScrollView{
-                
-                if UIDevice.current.userInterfaceIdiom == .pad {
-                    
-                        iPadCastView(cast: $cast)
-                        CastMovieRow(cast: $cast)
-            
+            ScrollView(.vertical, showsIndicators: false) {
+              if horizontalSizeClass == .compact && verticalSizeClass == .regular {
+                  iPhoneCastView(cast: $cast)
+                   CastMovieRow(cast: $cast)
 
-                }
-                else {
+              }
+              else if horizontalSizeClass == .regular && verticalSizeClass == .compact {
+                  
+                  iPhoneCastView(cast: $cast)
+                   CastMovieRow(cast: $cast)
+              }
+              else if horizontalSizeClass == .regular && verticalSizeClass == .regular {
+                  
+                  iPadCastView(cast: $cast)
+                  CastMovieRow(cast: $cast)
 
-                        iPhoneCastView(cast: $cast)
-                        CastMovieRow(cast: $cast)
-                        //CastMovieRow(cast: cast).frame(width: (UIScreen.main.bounds.width - 33), height: 175)
-                        
-                
-                }
-            }
+              }
+              
+          }
             
         }
-        .onAppear{self.loadCast(id: cast.starId)}
-       
+        .onAppear(perform: {self.getCartQtyData()})
+        .toast(isPresenting: $viewModel.show){
+
+            //Choose .hud to toast alert from the top of the screen
+            AlertToast(displayMode: .hud, type: .error(Color.red), title: viewModel.title, subTitle: viewModel.subtitle)
+
+        }
         .navigationBarHidden(false)
-        .navigationBarTitle(Text("\(cast.name)"), displayMode: .inline)
+        .navigationBarTitle(Text("\(cast.name!)"), displayMode: .inline)
 
         .background(
             HStack {
@@ -324,24 +386,17 @@ struct CastView: View {
 
                 })
                 {
-                     let count = user.getCartCount()
-                     
-                     if(count == 0) {
-                         
-                         Image(systemName: "cart").imageScale(.large)
+                    ZStack {
+                        Image(systemName: "cart").imageScale(.large)
+                        
+                        if(self.qty > 0) {
+                            Text("\(self.qty)")
+                                .foregroundColor(Color.black)
+                                .background(Capsule().fill(Color.orange).frame(width:30, height:20))
+                                .offset(x:20, y:-10)
+                        }
 
-                     }
-                     else{
-                         ZStack {
-                             Image(systemName: "cart").imageScale(.large)
-                             Text("\(user.getCartCountStr())")
-                                 .foregroundColor(Color.black)
-                                 .background(Capsule().fill(Color.orange).frame(width:30, height:20))
-                                 .offset(x:20, y:-10)
-
-                         }
-                         
-                     }
+                    }
                     
                 }
             }
@@ -349,34 +404,17 @@ struct CastView: View {
         }
     }
     
-    func loadCast(id: String) {
-        let url = "\(MyVariables.API_IP)/star/\(id)"
-        let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
-
-        guard let url = URL(string: encoded_url!) else {
-            let status = "Invalid URL"
-            print(status)
-            return
-        }
-        
-        let request = URLRequest(url: url)
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let data = data {
-                if let decodedResponse = try? JSONDecoder().decode(Cast.self, from: data) {
-                    // we have good data – go back to the main thread
-                    DispatchQueue.main.async {
-                        // update our UI
-                        self.cast = decodedResponse
-                    }
-                    
-                    // everything is good, so we can exit
-                    return
+    func getCartQtyData() {
+        API(user: user).getCartQty(){ (result) in
+            switch result {
+            case .success(let qty):
+                DispatchQueue.main.async {
+                    self.qty = qty
                 }
+            case .failure(let error):
+                print(error.localizedDescription)
             }
-        
-            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-            
-        }.resume()
+        }
     }
+
 }

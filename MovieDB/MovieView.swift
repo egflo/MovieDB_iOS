@@ -5,16 +5,82 @@
 //  Created by Emmanuel Flores on 5/16/21.
 //
 
-import Foundation
 import SwiftUI
 import URLImage
 import SDWebImageSwiftUI
 import SPAlert
+import AlertToast
+
+struct BookmarkView: View {
+    @EnvironmentObject var user: UserData
+
+    @Binding var movie: Movie
+    @State var bookmark: Bookmark?
+
+    var body: some View {
+        VStack {
+            
+            if let bookmark = bookmark {
+                
+                Button(action: {
+                    print("Bookmark button pressed...")
+                    updateBookmark()
+                    
+                })
+                {
+                    Image(systemName:(bookmark.id == 0) ? "bookmark" : "bookmark.fill")
+                            .font(.system(size: 25.0))
+                            .foregroundColor(Color.blue)
+                  
+                }
+            }
+            
+            else {
+                
+                Image(systemName: "bookmark.slash")
+                     .font(.system(size: 25.0))
+                     .foregroundColor(Color.blue)
+                
+            }
+            
+            
+        }.onAppear(perform: {getBookmarkData()})
+
+    }
+    
+    func getBookmarkData() {
+        API(user: user).getBookmark(id: movie.id) { (result) in
+            switch result {
+            case .success(let bookmark):
+                DispatchQueue.main.async {
+                    self.bookmark = bookmark
+                }
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
+        }
+    }
+    
+    func updateBookmark() {
+        API(user: user).updateBookmark(id: movie.id) { (result) in
+            switch result {
+            case .success(let bookmark):
+                DispatchQueue.main.async {
+                    self.bookmark = bookmark
+                }
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
+        }
+    }
+}
 
 struct DropDownMovie: View {
     @Binding var movie: Movie
 
     @State var expand = false
+    
+    let width = (UIScreen.main.bounds.width - 33)
 
     var body: some View {
         VStack {
@@ -26,68 +92,87 @@ struct DropDownMovie: View {
                     Image(systemName: expand ? "chevron.up" : "chevron.down")
                         .font(.system(size: 20))
                 }
-                .onTapGesture {
-                    self.expand.toggle()
-                }
             })
             .frame(width: (UIScreen.main.bounds.width), height: 40)
             .background(Color(.systemGray6))
             .foregroundColor(Color.blue)
+            .onTapGesture {
+                self.expand.toggle()
+            }
+
             
             if expand {
                 VStack{
-                    
                     if let unwrapped = movie.language {
                         
-                        Text("Language(s): " + unwrapped)
-                            .padding(.bottom, 10)
-                            .frame(width: (UIScreen.main.bounds.width - 50), alignment: .topLeading)
-                        
+                        Group {
+                            Text("Language(s): ").bold() + Text(unwrapped)
+                        }
+                        .padding(.bottom, 10)
+                        .frame(width: width, alignment: .topLeading)
+
+                        Divider()
                     }
                     
                     if let unwrapped = movie.writer {
                         
-                        Text("Writer(s): " + unwrapped)
-                            .padding(.bottom, 10)
-                            .frame(width: (UIScreen.main.bounds.width - 50), alignment: .topLeading)
-                        
+                        Group {
+                            Text("Writer(s): ").bold() + Text(unwrapped)
+                        }
+                        .padding(.bottom, 10)
+                        .frame(width: width, alignment: .topLeading)
+
+                        Divider()
+
                     }
                     
                     if let unwrapped = movie.awards {
-                        
-                        Text("Awards(s): " + unwrapped)
-                            .padding(.bottom, 10)
-                            .frame(width: (UIScreen.main.bounds.width - 50), alignment: .topLeading)
-                        
+
+                        Group {
+                            Text("Awards(s): ").bold() + Text(unwrapped)
+                        }
+                        .padding(.bottom, 10)
+                        .frame(width: width, alignment: .topLeading)
+
+                        Divider()
                     }
                     
                     if let unwrapped = movie.boxOffice {
                         
-                        Text("Box Office: " + unwrapped)
-                            .padding(.bottom, 10)
-                            .frame(width: (UIScreen.main.bounds.width - 50), alignment: .topLeading)
-                        
+                        Group {
+                            Text("Box Office: ").bold() + Text(unwrapped)
+                        }
+                        .padding(.bottom, 10)
+                        .frame(width: width, alignment: .topLeading)
+
+                        Divider()
+
                     }
                     
                     if let unwrapped = movie.production {
                         
-                        Text("Production: " + unwrapped)
-                            .padding(.bottom, 10)
-                            .frame(width: (UIScreen.main.bounds.width - 50), alignment: .topLeading)
-                        
+                        Group {
+                            Text("Production: ").bold() + Text(unwrapped)
+                        }
+                        .padding(.bottom, 10)
+                        .frame(width: width, alignment: .topLeading)
+
+                        Divider()
+
                     }
                     
                     if let unwrapped = movie.country {
                         
-                        Text("Country: " + unwrapped)
-                            .padding(.bottom, 10)
-                            .frame(width: (UIScreen.main.bounds.width - 50), alignment: .topLeading)
-                        
+                        Group {
+                            Text("Country: ").bold() + Text(unwrapped)
+                        }
+                        .padding(.bottom, 10)
+                        .frame(width: width, alignment: .topLeading)
+
+                        Divider()
                     }
                     
                 }.padding(.top, 10)
-               // .transition(.move(edge: .top))
-              //  .animation(Animation.linear(duration: 2))
                     
             }
         }.frame(width: UIScreen.main.bounds.width)
@@ -119,7 +204,7 @@ struct RatingRow: View {
                     .foregroundColor(number > rate() ? self.offColor : self.onColor)
             }
             
-            Text(numVotes())
+            Text(numVotes()).bold().foregroundColor(.white).shadow(radius: 5)
             
         }
     }
@@ -130,7 +215,7 @@ struct RatingRow: View {
         
         if let unwrapped = self.movie.ratings {
             
-            let number = unwrapped.rating * 0.5
+            let number = unwrapped.rating! * 0.5
             return Int(number)
         } else {
             return 0
@@ -156,10 +241,10 @@ struct RatingRow: View {
         
         if let unwrapped = self.movie.ratings {
             
-            let number = Int(unwrapped.numVotes)
+            let number = Int(unwrapped.numVotes!)
             let num_format = numberFormat(number: number)
             
-            return "(\(num_format) Votes)"
+            return "(\(num_format))"
             
         } else {
             return ""
@@ -180,329 +265,455 @@ struct GenreRow: View {
     @State var isLinkActive = false    
     
     var body: some View {
-        HStack {
-            ForEach(movie.genres ?? [Genre](), id: \.name) { genre in
-                    VStack{
-                        NavigationLink(destination: GenreView(genre: genre)){
-                            Text(genre.name)
-                                .padding(.trailing, 10)
-                                .padding(.leading, 10)
-                                //.font(.system(size: 25, weight: .bold, design: .default))
-                                .font(.system(size: 25, design: .default))
-                                .foregroundColor(.white)
-                                .background(Color.blue)
-                                .cornerRadius(8)
-                        }.frame(height: 25)
-                            .padding(.trailing, 5)
-                            .padding(.leading, 5)
-
-                    }
-               }
+        VStack {
+            HStack {
+                ForEach(movie.genres, id: \.name) { genre in
+                        VStack{
+                            NavigationLink(destination: GenreView(genre: genre)){
+                                Text(genre.name)
+                                    .padding(7)
+                                    .font(.system(size: 25, design: .default))
+                                    .foregroundColor(.white)
+                                    .background(Color.blue)
+                                    .cornerRadius(8)
+                            }
+                        }
+                   }
+            }
         }
     }
-
 }
 
 
 struct CastRow: View {
+    @Environment(\.defaultMinListRowHeight) var minRowHeight
+
     @Binding var movie: Movie
-    @State var cast = [Cast]()
     
     var body: some View {
-        VStack { //geometry in
+        VStack {
+            HStack {
+                Text("Cast & Crew").font(.subheadline).bold()
+            }
+            .frame(width: (UIScreen.main.bounds.width), height: 40)
+            .background(Color(.systemGray6))
+            .foregroundColor(Color.blue)
 
-            List {
-                    Section(header:
-                        VStack(alignment: .center) {
-                            Text("Cast & Crew")
-                                .font(.subheadline).bold()
-                                .foregroundColor(Color.blue)
-                                .textCase(.none)
-
-                        })
-                    {
-                    
-                    ForEach(movie.cast ?? [Cast](), id: \.starId) { cast in
-                        let c = CastDecode(cast: cast)
-                        
-                        NavigationLink(destination: CastView(cast: cast)) {
-                            HStack {
-                                VStack {
-                                    WebImage(url: URL(string: c.photo()))
-                                            .resizable()
-                                            .renderingMode(.original)
-                                            .placeholder(Image(systemName: "person"))
-                                            .aspectRatio(contentMode: .fit)
-                                            .cornerRadius(8)
-                                    
-                                }
-                                .frame(width: 30, height: 60)
-                                
-                                VStack(alignment: .leading) {
-                                    
-                                    Text(c.name())
-                                    Text(c.subStringCast()).font(.subheadline).foregroundColor(.gray)
-
-                                }
-                                Spacer()
-                                Text("Details")
-                            }
+            List(movie.cast, id: \.starId) { cast in
+                let c = CastDecode(cast: cast)
+            
+                NavigationLink(destination: CastView(cast: cast)) {
+                    HStack {
+                        VStack {
+                            WebImage(url: URL(string: c.photo()))
+                                    .resizable()
+                                    .renderingMode(.original)
+                                    .placeholder(Image(systemName: "person"))
+                                    .aspectRatio(contentMode: .fit)
+                                    .cornerRadius(8)
+                            
                         }
+                        .frame(width: 30, height: 60)
+                        
+                        VStack(alignment: .leading) {
+                            
+                            Text(c.name())
+                                .foregroundColor(Color.blue)
+
+                            Text(c.subStringCast()).font(.subheadline).foregroundColor(.gray)
+
+                        }
+                        Spacer()
+                        Text("Details")
+                            .foregroundColor(Color.blue)
 
                     }
-
-                }//.frame(width: (geometry.size.width) - 33)//.background(Color.blue)
-
+                }
 
             }
-            .listStyle(GroupedListStyle())
 
-            .onAppear(perform: {
-                UITableView.appearance().isScrollEnabled = false
-            })
-            
-        }.frame(height: (UIScreen.main.bounds.height - 33))
-        //.frame(height: (UIScreen.main.bounds.height - 33))
-        //.frame(width: (UIScreen.main.bounds.width - 33), height: (CGFloat(cast.count) * 80))
+        }
+        .frame(height: UIScreen.main.bounds.height)
         //.listStyle(GroupedListStyle())
+        .listStyle(PlainListStyle())
 
-        //.onAppear(perform: {
-        //    UITableView.appearance().isScrollEnabled = false
-       // })
+        .onAppear(perform: {
+            UITableView.appearance().isScrollEnabled = false
+        })
+            
     }
 }
 
-struct iPhoneMovieView: View {
+
+
+struct BackgroundView: View {
+    @EnvironmentObject var user: UserData
+
     @Binding var movie: Movie
-    @EnvironmentObject var user: User
-    
+        
+    let width = (UIScreen.main.bounds.width)
+
     var body: some View {
         let m = MovieDecode(movie:movie)
         
-        HStack{
-            WebImage(url: m.posterURL())
-                .resizable()
-                .renderingMode(.original)
-                .placeholder(Image("no_image"))
-                .aspectRatio(contentMode: .fit)
-                .cornerRadius(8)
-                .frame(width: 150, height: 200)
-
-            VStack (alignment: .leading){
-                let reviews = RatingDecode(movie: movie)
-                let imdb = reviews.getIMDB()
-                let rotten = reviews.getRottenTomatoes()
-                let meta = reviews.getMetaCritic()
-                
-                HStack () {
-                    Image(rotten.0)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 30, height: 30)
-                    Text(rotten.1).font(.system(size: 10))
-                    
-                }
+        ZStack (alignment: .bottomLeading){
+            WebImage(url: URL(string: m.background()))
+                    .placeholder(Image(systemName: "livephoto.slash"))
+                    .resizable()
+                    .frame(width: width, height: 250, alignment: .center)
+                    .aspectRatio(contentMode: .fit)
+            
+            VStack(alignment: .leading) {
                 
                 HStack {
-                    Image("imdb")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 40, height: 30)
-                    Text(imdb).font(.system(size: 10))
+                    Text(m.title()).font(.system(size: 25)).bold().foregroundColor(.white).shadow(radius: 5)
+
+                    BookmarkView(movie: $movie)
                 }
-
-                HStack {
-                    Text(meta.1).foregroundColor(Color.white).bold()
-                        .background(Rectangle()
-                        .fill(meta.0)
-                        .frame(width: 40, height: 40)
-                        .cornerRadius(8))
-                    
-                }.frame(width: 40, height: 40)
-           
-            }
-            .frame(width: 80, height: 200)
-            
-        }.frame(width: 250, height: 200)
-        
-        HStack{
-            Text(m.title()).font(.title)
-            
-            Button(action: {
-                print("Bookmark button pressed...")
-                user.bookmark(movie: movie)
                 
-            })
-            {
-                   Image(systemName: "\(user.bookmarkStatus(movie:movie))")
-                        .font(.system(size: 25.0))
-                        .foregroundColor(Color.blue)
-              
+                Text(m.subString()).font(.subheadline).bold().foregroundColor(.white).shadow(radius: 5)
+                    .padding(.bottom, 1)
+
+                RatingRow(movie: $movie)
+
             }
-        }.padding(.bottom,5)
-
+            .padding(.bottom,15)
+            .padding(.leading,10)
+            
+        }
+        .frame(width: width, height: 250, alignment: .center)
         
-        Text(m.director()).padding(.bottom,5)
+        let reviews = RatingDecode(movie: movie)
+        let imdb = reviews.getIMDB()
+        let rotten = reviews.getRottenTomatoes()
+        let meta = reviews.getMetaCritic()
         
-        Text(m.subString()).font(.subheadline).foregroundColor(.gray).padding(.bottom,5)
-
-        Text(m.plot()).frame(width: 350, height: 100).padding(.bottom,5)
-    
-        GenreRow(movie: $movie).padding(.bottom,10)
         
-        // RatingRow(movie: movie).padding(.bottom,20)
-        
-        DropDownMovie(movie: $movie)
+        HStack {
+            
+            imdb.padding(.trailing, 10)
+            
+            rotten.padding(.trailing, 10)
+            
+            meta
+            
+        }.frame(width: width - 33)
     }
+}
 
+
+struct iPhonePortraitMovieView: View {
+    @Binding var movie: Movie
+    
+    let width = (UIScreen.main.bounds.width - 33)
+    
+    var body: some View {
+        let m = MovieDecode(movie:movie)
+        VStack {
+            
+            if (m.background().isEmpty) {
+                ZStack {
+                   // WebImage(url: m.posterURL())
+                    Image("background")
+                        .resizable()
+                        //.placeholder(Image("background"))
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: UIScreen.main.bounds.width, height: 410)
+                        .clipped()
+                        .blur(radius: 6)
+                    
+                    VStack {
+                        HStack{
+                            WebImage(url: m.posterURL())
+                                .resizable()
+                                .renderingMode(.original)
+                                .placeholder(Image("no_image"))
+                                .aspectRatio(contentMode: .fit)
+                                .cornerRadius(8)
+                                .frame(width: 140, height: 200)
+
+                            VStack (alignment: .leading){
+                                let reviews = RatingDecode(movie: movie)
+                                let imdb = reviews.getIMDB()
+                                let rotten = reviews.getRottenTomatoes()
+                                let meta = reviews.getMetaCritic()
+                                
+                                BookmarkView(movie: $movie).padding(.leading, 2)
+                                
+                                VStack {
+                                    rotten
+                                }.padding(.top, 5)
+                                
+                                
+                                VStack {
+                                    imdb
+                                }.padding(.leading, 2)
+
+                            
+                                VStack {
+                                    meta
+                                }.padding(.leading, 2)
+                                    .padding(.top, 5)
+
+                           
+                            }
+                            .frame(height: 200, alignment: .leading)
+                                //.frame(minWidth: 150, maxWidth: 150, minHeight: 200, maxHeight: 200, alignment: .leading)
+                            
+                            
+                        }.frame(height: 200)
+                        //.frame(width: 250, height: 200)
+                        
+                        VStack {
+                            Text(m.title())
+                                .font(.system(size: 40.0)).bold()
+                                .shadow(radius: 5)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.1)
+
+                            Text(m.director()).padding(.bottom,5)
+                            
+                            //Text(m.subString()).font(.subheadline).foregroundColor(.gray).padding(.bottom,5)
+                            
+                            m.subheadline()
+                            
+                        }.frame(width:width)
+                        
+                    }
+                    
+                }
+                .frame(width: UIScreen.main.bounds.width, height: 410)
+                
+                VStack {
+
+                    Text(m.plot())
+                        .padding(.bottom,5)
+                        //.frame(height: 100)
+                                
+                }.frame(width:width)
+            }
+            else {
+                
+                BackgroundView(movie: $movie)
+                
+                VStack {
+
+                    Text(m.plot())
+                        .padding(.bottom,5)
+                                
+                }.frame(width:width)
+                
+            }
+        }
+    }
+}
+
+struct iPhoneLandscapeMovieView: View {
+    @Binding var movie: Movie
+    
+    let width = (UIScreen.main.bounds.width)
+    
+    var body: some View {
+        let m = MovieDecode(movie:movie)
+        VStack {
+                
+            HStack{
+                WebImage(url: m.posterURL())
+                    .resizable()
+                    .renderingMode(.original)
+                    .placeholder(Image("no_image"))
+                    .aspectRatio(contentMode: .fit)
+                    .cornerRadius(8)
+                    .frame(width: 160, height: 220)
+                
+                VStack (alignment: .leading){
+                    Text(m.title()).font(.title)
+                    
+                    Text(m.subString()).font(.subheadline).foregroundColor(.gray)
+                    
+                    Text(m.director())
+
+                    HStack {
+                        let reviews = RatingDecode(movie: movie)
+                        let imdb = reviews.getIMDB()
+                        let rotten = reviews.getRottenTomatoes()
+                        let meta = reviews.getMetaCritic()
+                        
+                        BookmarkView(movie: $movie)
+                            .padding(.trailing, 10)
+                        
+                        imdb.padding(.trailing, 10)
+                        
+                        rotten.padding(.trailing, 10)
+                        
+                        meta
+                    }
+
+                    Text(m.plot())
+                                
+                }
+                
+            }
+            .frame(width: width, height: 200)
+            
+        }
+    }
 }
 
 struct iPadMovieView: View {
     @Binding var movie: Movie
-    @EnvironmentObject var user: User
+    @EnvironmentObject var user: UserData
+    
+    let width = UIScreen.main.bounds.width
     
     var body: some View {
         let m = MovieDecode(movie:movie)
 
-        HStack(alignment: .top){
-            WebImage(url: URL(string: m.poster()))
-                .resizable()
-                .renderingMode(.original)
-                .placeholder(Image("no_image"))
-                .aspectRatio(contentMode: .fit)
-                .cornerRadius(8)
-                .frame(width: 290, height: 400)
-                //.border(Color.red)
-            
-            ScrollView {
-            VStack(alignment: .leading){
+    
+        //if (m.background().isEmpty) {
+        //Disabled - Background looks better
+        if (false) {
+            HStack(alignment: .top){
+                WebImage(url: URL(string: m.poster()))
+                    .resizable()
+                    .renderingMode(.original)
+                    .placeholder(Image("no_image"))
+                    .aspectRatio(contentMode: .fit)
+                    .cornerRadius(8)
+                    .frame(width: 290, height: 400)
                 
-                HStack {
-                    
-                    Text(m.title())
-                        .font(.system(size: 40.0))
-                        .bold()
+                VStack(alignment: .leading) {
+                    HStack {
+                        Text(m.title())
+                            .font(.system(size: 35))
+                            .bold()
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.1)
+
+                        BookmarkView(movie: $movie)
+                        
+                        Spacer()
+                        
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)   // << here !!
+                    .padding(.bottom,5)
+
+
+                    Text(m.subString())
+                        .font(.system(size: 20.0)).bold()
+                        .foregroundColor(.gray)
+                        .padding(.bottom,5)
+                        .frame(maxWidth: .infinity, alignment: .leading)   // << here !!
+
+                                  
+                    RatingRow(movie:$movie)
+                        .padding(.bottom,5)
+                        .frame(maxWidth: .infinity, alignment: .leading)   // << here !!
 
                     
-                    Button(action: {
-                        print("Bookmark button pressed...")
-                        user.bookmark(movie: movie)
+                    HStack {
+                        let reviews = RatingDecode(movie: movie)
+                        let imdb = reviews.getIMDB()
+                        let rotten = reviews.getRottenTomatoes()
+                        let meta = reviews.getMetaCritic()
+                                            
                         
-                    })
-                    {
-                           Image(systemName: "\(user.bookmarkStatus(movie:movie))")
-                                .font(.system(size: 35.0))
-                                .foregroundColor(Color.blue)
-                      
+                        rotten.padding(.trailing, 10)
+                        imdb.padding(.trailing, 10)
+                        meta
+                
+                    }.frame(height: 50)
+                    
+                    
+                    Text(m.plot())
+                        .font(.system(size: 20.0))
+                        .padding(.bottom,5)
+                        .frame(height: 155, alignment: .topLeading)
+                    
+                    GenreRow(movie: $movie)
+                    
+                }.frame(width: (UIScreen.main.bounds.width-350))
+            }
+        }
+        else {
+            
+            let reviews = RatingDecode(movie: movie)
+            let imdb = reviews.getIMDB()
+            let rotten = reviews.getRottenTomatoes()
+            let meta = reviews.getMetaCrticRow()
+            
+            ZStack (alignment: .bottomLeading){
+                WebImage(url: URL(string: m.background()))
+                        .resizable()
+                        .placeholder(Image("background"))
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: width, height: 400)
+                        .clipped() // Equal to clipsToBounds = true
+                        .blur(radius:  6)
+
+                VStack(alignment: .center) {
+                    
+                    Spacer()
+                    
+                    HStack {
+                        WebImage(url: m.posterURL())
+                            .resizable()
+                            .renderingMode(.original)
+                            .placeholder(Image("no_image"))
+                            .aspectRatio(contentMode: .fit)
+                            .cornerRadius(8)
+                            .frame(width: 190, height: 265)
+                        
+                        
+                        VStack(alignment: .leading) {
+                            
+                            HStack {
+                                Text(m.title()).font(.system(size: 35)).bold().foregroundColor(.white).shadow(radius: 5)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.1)
+
+                                BookmarkView(movie: $movie)
+                            }
+                            
+                            Text(m.subString()).font(.system(size: 15)).bold().foregroundColor(.white).shadow(radius: 5)
+                                .padding(.bottom, 1)
+
+                            RatingRow(movie: $movie).padding(.bottom, 1)
+                            
+                            Text(m.plot()).font(.system(size: 15)).bold().foregroundColor(.white).shadow(radius: 5)
+                                .padding(.bottom, 1)
+                            
+                            HStack {
+                                imdb
+                                meta
+                                rotten
+                            }
+                            GenreRow(movie: $movie)
+
+                        }
+                        .frame(width: 580)
+                        
                     }
                     
-                }.padding(.bottom,5)
+                    Spacer()
+                    
+                }.frame(width: UIScreen.main.bounds.width)
 
 
-                RatingRow(movie:$movie)
-                    .padding(.bottom,5)
-
-
-                Text("Director: \(m.director())")
-                    .font(.system(size: 20.0))
-                    .foregroundColor(.gray)
-                    .padding(.bottom,5)
-
-                Text(m.subString())
-                    .font(.system(size: 20.0))
-                    .foregroundColor(.gray)
-                    .padding(.bottom,5)
-                    //.frame(width: (UIScreen.main.bounds.width-300), alignment: .leading)
-                              
-                Text(m.plot())
-                    .font(.system(size: 20.0))
-                    .foregroundColor(.gray)
-                    .padding(.bottom,5)
-                
-                
-                Text("Country: \(m.country())")
-                    .font(.system(size: 20.0))
-                    .foregroundColor(.gray)
-                    .padding(.bottom,5)
-                              
-                
-                Text("Language(s): \(m.language())")
-                    .font(.system(size: 20.0))
-                    .foregroundColor(.gray)
-                    .padding(.bottom,5)
-                
-                
-                Text("Awards: \(m.award())")
-                    .font(.system(size: 20.0))
-                    .foregroundColor(.gray)
-                    .padding(.bottom,5)
-                
-                Text("Box Office: \(m.boxOffice())")
-                    .font(.system(size: 20.0))
-                    .foregroundColor(.gray)
-                    .padding(.bottom,5)
-                
-                Text("Production: \(m.production())")
-                    .font(.system(size: 20.0))
-                    .foregroundColor(.gray)
-                    .padding(.bottom,5)
-                
-            }.frame(width: (UIScreen.main.bounds.width-350))
                 
             }
+            .frame(width: width, height: 400, alignment: .center)
             
-        }.frame(width: (UIScreen.main.bounds.width-33), height: 400)//.border(Color.blue)
-        
-        HStack {
-            HStack {
-                let reviews = RatingDecode(movie: movie)
-                let imdb = reviews.getIMDB()
-                let rotten = reviews.getRottenTomatoes()
-                let meta = reviews.getMetaCritic()
-                                            
-                
-                Image(rotten.0)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 30, height: 30)
-                Text(rotten.1)
-                    .font(.system(size: 10)).bold()
-                
-                
-                Image("imdb")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 40, height: 30)
-                Text(imdb)
-                    .font(.system(size: 10)).bold()
-                    .padding(.trailing, 10)
-                
-                
-                Text(meta.1)
-                    .foregroundColor(Color.white).bold()
-                    .background(Rectangle()
-                    .fill(meta.0)
-                    .frame(width: 40, height: 40)
-                    .cornerRadius(8))
-                
-            }.frame(width: 290, height: 50).offset(x:0)//.border(Color.red)
-            
-            HStack {
-                GenreRow(movie: $movie)
-            }.padding(.leading, 10)
-            
-            Spacer()
-
-            
-        }.frame(width: (UIScreen.main.bounds.width-33), height: 50)//.border(Color.blue)
-
+        }
+    
     }
 }
 
 struct MovieView: View {
-    @EnvironmentObject var user: User
-    @Environment(\.horizontalSizeClass) var sizeClass
-    @EnvironmentObject var movie_api: MovieDB_API
+    @EnvironmentObject var user: UserData
+
+    @Environment(\.verticalSizeClass) var verticalSizeClass: UserInterfaceSizeClass?
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass: UserInterfaceSizeClass?
 
     @State var movie: Movie
     
@@ -513,178 +724,181 @@ struct MovieView: View {
     @State var CartActive = false
 
     @State private var addedToCartAlert = false
+    @State var qty = 0
 
-    let height = (UIScreen.main.bounds.height - 50)
+
+    let height = (UIScreen.main.bounds.height)
 
     var body: some View {
-        
-            ZStack{
-              ScrollView{
-                VStack {
-                    
-                    if UIDevice.current.userInterfaceIdiom == .pad {
-                        // Available Idioms - .pad, .phone, .tv, .carPlay, .unspecified
-                        // Implement your logic here
-                        if self.sizeClass == .compact {
-                            iPhoneMovieView(movie: $movie)
-                        } else {
-                            iPadMovieView(movie: $movie)
-                        }
-                    }
-                    else {
-                        
-                        iPhoneMovieView(movie: $movie)
-                                                
-                    }
-                    
-                    CastRow(movie: $movie)
-                    
-                }.offset(y:10)
-            
-               }
-               .onAppear(perform: {
-                    self.loadMovie(id: movie.id)
-               })
-           
-               .navigationBarHidden(false)
-               .navigationBarTitle(Text("\(movie.title)"), displayMode: .inline)
+        GeometryReader {geometry in
+                ScrollView(.vertical, showsIndicators: false) {
+                  if horizontalSizeClass == .compact && verticalSizeClass == .regular {
+                      iPhonePortraitMovieView(movie: $movie)
+                      GenreRow(movie: $movie)
+                          .padding(.bottom, 5)
+                      DropDownMovie(movie: $movie)
+                      CastRow(movie: $movie)
 
-               .background(
-                   HStack {
-                       NavigationLink(destination: MainView(), isActive: $HomeActive) {EmptyView()}
-                       NavigationLink(destination: SearchView(), isActive: $SearchActive) {EmptyView()}
-                       NavigationLink(destination: UserView(), isActive: $UserActive) {EmptyView()}
-                       NavigationLink(destination: OrderView(), isActive: $OrderActive) {EmptyView()}
-                       NavigationLink(destination: CartView(), isActive: $CartActive) {EmptyView()}
-                       NavigationLink(destination: EmptyView()) {
-                           EmptyView()
-                       }
-                   }
+                  }
+                  else if horizontalSizeClass == .regular && verticalSizeClass == .compact {
+                      
+                      iPhoneLandscapeMovieView(movie: $movie)
+                      GenreRow(movie: $movie)
+                          .padding(.bottom, 5)
 
-               )
-               
-               .toolbar {
-                 ToolbarItem(placement: .bottomBar) {
-                   HStack{
-                       Button(action: {
-                           self.HomeActive = true
-                       })
-                       {
-                           Image(systemName: "house").imageScale(.large)
-                       }
-                       Button(action: {
-                           self.SearchActive = true
-                       })
-                       {
-                           Image(systemName: "magnifyingglass").imageScale(.large)
-                       }
-                       
-                       Button(action: {
-                           self.UserActive = true
-                       })
-                       {
-                           Image(systemName: "person.crop.circle").imageScale(.large)
-                       }
-                       
-                       Button(action: {
-                           self.OrderActive = true
-                       })
-                       {
-                           Image(systemName: "shippingbox").imageScale(.large)
-                       }
-                       
-                       Button(action: {
-                           self.CartActive = true
+                      DropDownMovie(movie: $movie)
+                      CastRow(movie: $movie)
 
-                       })
-                       {
-                            let count = user.getCartCount()
-                            
-                            if(count == 0) {
-                                
-                                Image(systemName: "cart").imageScale(.large)
+                  }
+                  else if horizontalSizeClass == .regular && verticalSizeClass == .regular {
+                      
+                      iPadMovieView(movie: $movie)
+                      DropDownMovie(movie: $movie)
+                      CastRow(movie: $movie)
 
-                            }
-                            else{
-                                ZStack {
-                                    Image(systemName: "cart").imageScale(.large)
-                                    Text("\(user.getCartCountStr())")
-                                        .foregroundColor(Color.black)
-                                        .background(Capsule().fill(Color.orange).frame(width:30, height:20))
-                                        .offset(x:20, y:-10)
-
-                                }
-                                
-                            }
-                           
-                       }
-                   }
-                 }
-               }
+                  }
+                  
+              }
                 
-                GeometryReader {geometry in
-                    Button(action: {
-                        print("Add button pressed...")
-                        //let qty = user.cart[movie] ?? 0
-                        //user.cart[movie] = qty+1
-                        user.addToCart(movie: movie)
-                        addedToCartAlert = true
-                    })
-                    {
-                        HStack {
-                            Image(systemName: "cart.badge.plus")
-                                .font(.title)
-                            Text("Add to Bag")
-                                .fontWeight(.semibold)
-                                .font(.title)
-                        }
-                        .padding(12)
-                        .foregroundColor(.white)
-                        .background(Color.blue)
-                        .cornerRadius(8)
+            ZStack{
 
+                Button(action: {
+                    print("Add button pressed...")
+                    self.addCartData(movieId: movie.id, qty: 1)
+                })
+                {
+                    HStack {
+                        Image(systemName: "cart.badge.plus")
+                            .font(.title)
+                        Text("Add to Bag")
+                            .fontWeight(.semibold)
+                            .font(.title)
                     }
-                    .spAlert(isPresent: $addedToCartAlert, message: "Added To Cart", duration:2.0, dismissOnTap: true, layout: .init())
-                    .offset( x:(geometry.size.width/2)-100, y: geometry.size.height-70)
+                    .padding(12)
+                    .foregroundColor(.white)
+                    .background(Color.blue)
+                    .cornerRadius(8)
+
+               }.offset( x:(geometry.size.width/2)-100, y: geometry.size.height-70)
+            }
+            .onAppear(perform: {
+                self.getMovieData()
+               self.getCartQtyData()
+           })
+
+        }
+        .toast(isPresenting: $addedToCartAlert){
+            AlertToast(type: .complete(Color.green), title: "Added To Cart")}
+        
+    
+       .navigationBarHidden(false)
+       .navigationBarTitle(Text("\(movie.title)"), displayMode: .inline)
+       .background(
+           HStack {
+               NavigationLink(destination: MainView(), isActive: $HomeActive) {EmptyView()}
+               NavigationLink(destination: SearchView(), isActive: $SearchActive) {EmptyView()}
+               NavigationLink(destination: UserView(), isActive: $UserActive) {EmptyView()}
+               NavigationLink(destination: OrderView(), isActive: $OrderActive) {EmptyView()}
+               NavigationLink(destination: CartView(), isActive: $CartActive) {EmptyView()}
+               NavigationLink(destination: EmptyView()) {
+                   EmptyView()
+               }
+           }
+       )
+       
+       .toolbar {
+         ToolbarItem(placement: .bottomBar) {
+           HStack{
+               Button(action: {
+                   self.HomeActive = true
+               })
+               {
+                   Image(systemName: "house").imageScale(.large)
+               }
+               Button(action: {
+                   self.SearchActive = true
+               })
+               {
+                   Image(systemName: "magnifyingglass").imageScale(.large)
+               }
+               
+               Button(action: {
+                   self.UserActive = true
+               })
+               {
+                   Image(systemName: "person.crop.circle").imageScale(.large)
+               }
+               
+               Button(action: {
+                   self.OrderActive = true
+               })
+               {
+                   Image(systemName: "shippingbox").imageScale(.large)
+               }
+               
+               Button(action: {
+                   self.CartActive = true
+
+               })
+               {
+                   
+                ZStack {
+                    Image(systemName: "cart").imageScale(.large)
+                    
+                    if(self.qty > 0) {
+                        Text("\(self.qty)")
+                            .foregroundColor(Color.black)
+                            .background(Capsule().fill(Color.orange).frame(width:30, height:20))
+                            .offset(x:20, y:-10)
+                    }
 
                 }
+             }
 
-            }
+           }
+         }
+       }
 
     }
     
-    
-    func loadMovie(id: String) {
-        
-        let url = "\(MyVariables.API_IP)/movie/\(id)"
-        let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
-
-        guard let url = URL(string: encoded_url!) else {
-            let status = "Invalid URL"
-            print(status)
-            return
-        }
-        
-        let request = URLRequest(url: url)
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let data = data {
-                if let decodedResponse = try? JSONDecoder().decode(Movie.self, from: data) {
-                    // we have good data – go back to the main thread
-                    DispatchQueue.main.async {
-                        // update our UI
-                        self.movie = decodedResponse
-
-                    }
-                    
-                    // everything is good, so we can exit
-                    return
+    func addCartData(movieId: String, qty: Int) {
+        API(user: user).addCart(movieId: movieId, qty: qty){ (result) in
+            switch result {
+            case .success( _ ):
+                DispatchQueue.main.async {
+                    addedToCartAlert = true
+                    self.getCartQtyData()
                 }
+            case .failure(let error):
+                print(error.localizedDescription)
             }
-        
-            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-            
-        }.resume()
+        }
+    }
+
+    func getMovieData() {
+        API(user: user).getMovie(id: movie.id) { (result) in
+            switch result {
+            case .success(let movie):
+                DispatchQueue.main.async {
+                    self.movie = movie
+                }
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
+        }
+    }
+    
+    func getCartQtyData() {
+        API(user: user).getCartQty(){ (result) in
+            switch result {
+            case .success(let qty):
+                DispatchQueue.main.async {
+                    self.qty = qty
+                }
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
+        }
     }
     
 }

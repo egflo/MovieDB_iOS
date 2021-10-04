@@ -5,31 +5,114 @@
 //  Created by Emmanuel Flores on 6/8/21.
 //
 
-import Foundation
 import SwiftUI
 import CoreData
 import UIKit
 import Combine
+import Foundation
 
-struct UserData: Codable {
+
+
+
+
+struct PaymentData: Codable {
+    var id: String = ""
+    var last4: String = ""
+    var receipt_url: String = ""
+    var exp_month: String = ""
+    var currency: String = ""
+    var exp_year: String = ""
+    var status: String = ""
+    var network: String = ""
+    var amount: Int = 0
+}
+
+
+struct PaymentIntent: Codable {
+    let amount: Double
+    let created: Int
+    let currency: String
+    let id: String
+    let secret: String
+}
+
+
+struct UserToken: Codable {
+    let id: Int
+    let username: String
+    let token: String
+}
+
+
+/*
+    CART DATA STRUCTURE
+ */
+
+struct Cart: Codable {
+    let id: Int
+    let userId: String
+    let movieId: String
+    let createdDate: Int
+    let movie: Movie?
+    var quantity: Int
+}
+
+struct CartDelete: Codable {
+    let id: Int
+    let status: Bool?
+}
+
+/*
+    USER DATA STRUCTURE
+ */
+
+struct User: Codable {
     var id: Int = 0
     var firstName: String = ""
     var lastName: String = ""
     var address: String = ""
     var unit: String = ""
     var email: String = ""
-    var password: String = ""
     var city: String = ""
     var state: String = ""
     var postcode: String = ""
     var sales: [Sale] = [Sale]()
 }
 
-struct Sale: Codable {
+/*
+    Sale DATA STRUCTURE
+ */
+
+struct SaleDetails: Codable {
+    let sale: Sale
+    let card: Card
+}
+
+struct Card: Codable {
+    let country: String
+    let last4: String
+    let funding: String
+    let exp_month: Int
+    let exp_year: Int
+    let brand: String
+    let network: String
+}
+
+struct Sale: Codable, Equatable {
     let id: Int
     let customerId: Int
-    let saleDate: String
-    let orders: [Order]
+    let saleDate: Int
+    let salesTax: Double
+    let subTotal: Double
+    let total: Double
+    let stripeId: String
+    let orders: [Order]?
+    let shipping: Shipping?
+    
+    static func ==(lhs: Sale, rhs: Sale) -> Bool {
+        return lhs.id == rhs.id
+    }
+
 }
 
 struct Order: Codable {
@@ -37,52 +120,73 @@ struct Order: Codable {
     let orderId: Int
     let movieId: String
     let quantity: Int
-    let list_price: Double
+    let listPrice: Double
 }
 
-struct ResponseMeta: Codable {
-    let size: Int
-    let number: Int
-    let totalElements: Int
-    let last: Bool
-    let totalPages: Int
-    let sort: Sort
-    let first: Bool
-    let numberOfElements: Int
-    let content: [MovieMeta]
+struct Shipping: Codable {
+    var id: Int
+    var firstName: String
+    var lastName: String
+    var address: String
+    var unit: String = ""
+    var city: String
+    var state: String
+    var postcode: String
 }
 
-struct MovieMeta: Codable {
-    let sales: Int?
-    let votes: Int?
-    let rottenTomatoes: String?
-    let name: String?
-    let id: Int?
-    let movieId: String?
 
-}
-
+/*
+    PAGABLE STRUCTURE
+ */
 
 struct Response: Codable {
-    var size: Int
-    var number: Int
+    var content: [Movie] = [Movie]()
+    var pageable: Pagable
+    var totalPages: Int
     var totalElements: Int
     var last: Bool
-    var totalPages: Int
+    var size: Int
+    var number: Int
     var sort: Sort
-    var first: Bool
     var numberOfElements: Int
-    var content: [Movie]
+    var first: Bool
+    var empty: Bool
 }
 
+
+struct ResponseOrders: Codable {
+    var content: [Sale] = [Sale]()
+    var pageable: Pagable
+    var totalPages: Int
+    var totalElements: Int
+    var last: Bool
+    var size: Int
+    var number: Int
+    var sort: Sort
+    var numberOfElements: Int
+    var first: Bool
+    var empty: Bool
+}
+
+struct Pagable:Codable {
+    var sort: Sort
+    var offset: Int
+    var pageNumber: Int
+    var pageSize: Int
+    var paged: Bool
+    var unpaged: Bool
+}
 
 struct Sort:Codable {
-    var unsorted: Bool?
-    var sorted: Bool?
-    var empty: Bool?
+    var unsorted: Bool
+    var sorted: Bool
+    var empty: Bool
 }
 
 
+/*
+    Movie STRUCTURE
+ */
 
 struct Movie:Codable, Equatable, Hashable, Identifiable{
     var uuid: UUID = UUID()
@@ -101,8 +205,8 @@ struct Movie:Codable, Equatable, Hashable, Identifiable{
     var boxOffice: String?
     var production: String?
     var country: String?
-    var genres: [Genre]?
-    var cast: [Cast]?
+    var genres: [Genre] = [Genre]()
+    var cast: [Cast] = [Cast]()
     var ratings: Rating?
     var price: Double?
     var background: String?
@@ -140,30 +244,46 @@ struct Movie:Codable, Equatable, Hashable, Identifiable{
     }
 }
 
+
 struct Genre:Codable {
-    var id: Int?
+    var id: Int
     var genreId: Int
     var movieId: String?
     var name: String
 }
 
 struct Rating:Codable {
-    var movieId: String?
-    var rating: Double
-    var numVotes: Int
+    var movieId: String
+    var rating: Double?
+    var numVotes: Int?
     var imdb: String?
     var metacritic: String?
     var rottenTomatoes: String?
+    var rottenTomatoesAudience: String?
+    var rottenTomatoesStatus: String?
+    var rottenTomatoesAudienceStatus: String?
 }
 
 struct Cast:Codable {
-    var starId: String = ""
-    var movieId: String?
+    var id: Int
+    var starId: String
+    var movieId: String
     var category: String?
     var characters: String?
+    var name: String?
+    var photo: String?
+}
+
+
+/*
+    CAST INFORMATION STRUCTURE
+ */
+
+
+struct Star: Codable {
+    var starId: String = ""
     var name: String = ""
     var photo: String?
-    
     var birthYear: Int?
     var bio: String?
     var birthName: String?
@@ -171,12 +291,166 @@ struct Cast:Codable {
     var dob: String?
     var dod: String?
     var place_of_birth: String?
+    var movies: [Cast] = [Cast]()
 }
+
+
+
+/*
+    META INFORMATION STRUCTURE
+ */
+
+
+struct ResponseMeta: Codable {
+    var content: [MovieMeta] = [MovieMeta]()
+    var pageable: Pagable
+    var totalPages: Int
+    var totalElements: Int
+    var last: Bool
+    var size: Int
+    var number: Int
+    var sort: Sort
+    var numberOfElements: Int
+    var first: Bool
+    var empty: Bool
+}
+
+
+struct MovieMeta: Codable, Equatable, Hashable, Identifiable {
+    var uuid: UUID = UUID()
+
+    let sales: Int?
+    let votes: Int?
+    let rottenTomatoes: String?
+    let name: String?
+    let id: Int?
+    let movieId: String?
+    
+    enum CodingKeys: String, CodingKey {
+        
+        case id
+        case movieId
+        case name
+        case rottenTomatoes
+        case votes
+        case sales
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    static func ==(lhs: MovieMeta, rhs: MovieMeta) -> Bool {
+        return lhs.uuid == rhs.uuid
+    }
+}
+
+
+/*
+    CHECKOUT STRUCTURE
+ */
+
+
+struct Checkout: Codable {
+    var total: Double = 0.0
+    var address: User = User()
+    var subTotal: Double = 0.0
+    var salesTax: Double = 0.0
+    var cart: [Cart] = [Cart]()
+}
+
+struct Address: Codable {
+    
+}
+
+/*
+    BOOKMARK STRUCTURE
+ */
+struct Bookmark: Codable {
+    var id: Int
+    var customerId: Int
+    var movieId: String
+    var created: Int?
+    
+}
+
+
+
+/*
+    DECODER CLASSES
+ */
 
 class CastDecode {
     @State var cast: Cast
     
     init(cast: Cast) {
+        self.cast = cast
+    }
+    
+    func name() -> String {
+        return cast.name!
+    }
+    
+
+    func photo() -> String {
+        var photo: String
+                
+        if let unwrapped = self.cast.photo {
+            photo = unwrapped
+        } else {
+            photo = ""
+        }
+        
+        return photo
+    }
+    
+    private func subCastCategory() -> String {
+        if let unwrapped = cast.category {
+            return unwrapped.capitalized
+        } else {
+            return ""
+        }
+    }
+    
+    private func subCastCharacter() -> String {
+        if let unwrapped = cast.characters {
+            let json = Data(unwrapped.utf8)
+            if let decodedResponse = try? JSONDecoder().decode([String].self, from: json) {
+                
+                // everything is good, so we can exit
+                //There can be more charcters fix
+                return decodedResponse[0]
+            }
+            
+        } else {
+            return ""
+        }
+        
+        return ""
+    }
+    
+    func subStringCast() -> String {
+        let category = subCastCategory()
+        let character = subCastCharacter()
+        
+        var str = ""
+        if(category.count > 0) {
+            str += category
+        }
+        
+        if(character.count > 0) {
+            str += " - \(character)"
+        }
+        
+        return str
+    }
+}
+
+
+class StarDecode {
+    @State var cast: Star
+    
+    init(cast: Star) {
         self.cast = cast
     }
     
@@ -266,47 +540,6 @@ class CastDecode {
         }
         
         return details
-    }
-    
-    private func subCastCategory() -> String {
-        if let unwrapped = cast.category {
-            return unwrapped.capitalized
-        } else {
-            return ""
-        }
-    }
-    
-    private func subCastCharacter() -> String {
-        if let unwrapped = cast.characters {
-            let json = Data(unwrapped.utf8)
-            if let decodedResponse = try? JSONDecoder().decode([String].self, from: json) {
-                
-                // everything is good, so we can exit
-                //There can be more charcters fix
-                return decodedResponse[0]
-            }
-            
-        } else {
-            return ""
-        }
-        
-        return ""
-    }
-    
-    func subStringCast() -> String {
-        let category = subCastCategory()
-        let character = subCastCharacter()
-        
-        var str = ""
-        if(category.count > 0) {
-            str += category
-        }
-        
-        if(character.count > 0) {
-            str += " - \(character)"
-        }
-        
-        return str
     }
     
 }
@@ -442,23 +675,23 @@ class MovieDecode {
         return plot
     }
     
+    
     func posterURL() -> URL {
         var poster:String
         
         if let unwrapped = self.movie.poster {
             poster = unwrapped
         } else {
-            poster = ""
+            poster = "no_image"
         }
         
-        guard let url = URL(string: "\(poster)") else {
-            preconditionFailure("Invalid static URL string: \(poster)")
-        }
+        //guard let url = URL(string: "\(poster)") else {
+        //    preconditionFailure("Invalid static URL string: \(poster)")
+        //}
         
-        return url
+        return URL(string: "\(poster)")!
     }
     
-
     
     func subString() -> String {
         
@@ -517,6 +750,58 @@ class MovieDecode {
         return sub
     }
     
+    func subheadline() -> AnyView {
+        
+        return (
+            AnyView(
+                HStack {
+                    Text(String(self.movie.year))
+                    .padding(.trailing, 4)
+                    .padding(.leading, 4)
+                        .background(Capsule().fill(Color.gray))
+                    
+                    if let rated = self.movie.rated {
+                        //Stack{
+                            Text("\(rated)")
+                            .frame(minWidth: 20)
+                            .padding(.trailing, 4)
+                            .padding(.leading, 4)
+                                .background(Capsule().fill(Color.gray))
+                            
+                        //}.fixedSize()
+                    }
+                    
+                    if let minutes = self.movie.runtime {
+                        
+                        let minutes = Int(minutes) ?? 0
+
+                        let hours = (minutes/60)
+                        let remaining_minutes = (minutes % 60)
+                        
+                        let runtime = "\(hours) hr \(remaining_minutes) min"
+                        
+                        if(hours == 0 && remaining_minutes == 0) {
+        
+                            
+                        }
+                       
+                        else {
+                            Text("\(runtime)")
+                            .padding(.trailing, 4)
+                            .padding(.leading, 4)
+                                .background(Capsule().fill(Color.gray))
+                        }
+                        
+                        
+                    }
+
+                }
+
+            )
+
+        )
+    }
+    
     func price(f: Double) -> String {
         let formatter = NumberFormatter()
         formatter.locale = Locale.current
@@ -556,77 +841,200 @@ class RatingDecode {
             self.ratings = unwrapped
 
         } else {
-            self.ratings = Rating(movieId: "", rating: 0, numVotes: 0, imdb: "N/A", metacritic: "N/A", rottenTomatoes: "N/A")
+            self.ratings = Rating(movieId: movie.id, rating: 0, numVotes: 0, imdb: "N/A", metacritic: "N/A", rottenTomatoes: "N/A")
         }
     }
     
-    func getIMDB() -> String {
+    func getIMDB() -> AnyView {
+        
+        //var text = Group{Text("N/A").font(.system(size: 12)).bold()}
+        
         if let unwrapped = ratings.imdb {
-            return unwrapped
+            let split = unwrapped.components(separatedBy: "/")
+            let text = Group{Text(split[0]).font(.system(size: 14)).bold() + Text("/\(split[1])").font(.system(size: 10)).bold().foregroundColor(.gray)}
+           
+            return AnyView(
+                HStack(spacing: 0) {
+                    Image("imdb")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 50, height: 27)
+
+                    text.padding(.leading,5).padding(.trailing,5).shadow(radius: 5)
+                }
+                .overlay(
+                    RoundedRectangle(cornerRadius: 2)
+                        .strokeBorder(Color.yellow, lineWidth: 2)
+                        //.background(RoundedRectangle(cornerRadius: 2).fill(Color.white))
+                    )
+            )
         }
         
         else {
-            return "N/A"
+            return AnyView(HStack{})
         }
+        
     }
     
-    func getRottenTomatoes() -> (String,String) {
-        var tomato = "rotten_na"
+    func getRottenTomatoes() -> AnyView {
+        var tomato = "Rotten_NA"
+        var audience = "Rotten_NA_aud"
+
+        var score = "N/A"
+        var aud_score = "N/A"
+
     
         if let unwrapped = ratings.rottenTomatoes {
-            let float_score = Float(unwrapped.replacingOccurrences(of: "%", with: "")) ?? 0
+            //let float_score = Float(unwrapped.replacingOccurrences(of: "%", with: "")) ?? 0
+            let float_score = Float(unwrapped) ?? 0
             
             if float_score >= 60 {
-                tomato = "rotten_fresh"
+                tomato = "Fresh"
             }
             
             if float_score < 60 && float_score > 0 {
-                tomato = "rotten_rotten"
+                tomato = "Rotten"
             }
             
-            return (tomato, unwrapped)
+            score = unwrapped
         }
-        else {
-            return (tomato, "N/A")
+        
+        if let unwrapped = ratings.rottenTomatoesAudience {
+            //let float_score = Float(unwrapped.replacingOccurrences(of: "%", with: "")) ?? 0
+            let float_score = Float(unwrapped) ?? 0
+            
+            if float_score >= 60 {
+                audience = "Upright"
+            }
+            
+            if float_score < 60 && float_score > 0 {
+                audience = "Spilled"
+            }
+            
+            aud_score = unwrapped
         }
+        
+        if let unwrapped = ratings.rottenTomatoesStatus {
+            tomato = unwrapped
+        }
+        
+        if let unwrapped = ratings.rottenTomatoesAudienceStatus {
+            audience = unwrapped
+        }
+
+        
+        return AnyView(
+            HStack (spacing: 0) {
+                if(score != "N/A") {
+                    Image(tomato)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 30, height: 30)
+                    Text("\(score)%").font(.system(size: 18)).bold().shadow(radius: 5)
+                }
+                
+                if(aud_score != "N/A") {
+                    Image(audience)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 28, height: 28)
+                        .padding(.leading, 5)
+                    Text("\(aud_score)%").font(.system(size: 18)).bold().shadow(radius: 5)
+                    
+                }
+            }
+
+        )
     }
     
-    func getMetaCritic() -> (Color, String) {
-        var color_code = Color.gray
-        
+    func getMetaCrticRow() -> AnyView {
         if let unwrapped = ratings.metacritic {
-            let split = unwrapped.components(separatedBy: "/")
             
-            let number = Int(split[0]) ?? 0
-            
-            if(number >= 61){
-                color_code = Color.green;
-            }
-            else if(number >= 40 && number <= 60){
-                color_code = Color.yellow;
-            }
-            else if(number >= 20 && number <= 39){
-                color_code = Color.red;
-            }
-            else {
-                color_code = Color.gray;
+            if(unwrapped.isEmpty) {
+                
+                return AnyView(VStack{})
             }
             
-            return (color_code, split[0])
+            let score = unwrapped.components(separatedBy: ".")[0]
             
+            return AnyView (
+        
+                HStack(spacing: 0) {
+                    Image("metacritic")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 28, height: 28)
+
+                    Text(score).font(.system(size: 18)).bold().shadow(radius: 5)
+                        .padding(.leading,2)
+                }
+            )
         }
         
         else {
-            return (color_code, "0")
+            return AnyView(VStack{})
         }
+        
     }
+    
+    func getMetaCritic() -> AnyView {
+        var color = Color.gray
+        var score = "N/A"
+        
+        if let unwrapped = ratings.metacritic {
+            
+            var number = 0
+            if(unwrapped.count != 0) {
+                if(unwrapped.contains("/")){
+                    let split = unwrapped.components(separatedBy: "/")
+                    number = Int(split[0]) ?? 0
+                }
+                
+                else {
+                    number = Int(Float(unwrapped) ?? 0)
+                }
+                
+            }
+            
+
+            if(number >= 61){
+                color = Color.green;
+            }
+            else if(number >= 40 && number <= 60){
+                color = Color.yellow;
+            }
+            else if(number >= 20 && number <= 39){
+                color = Color.red;
+            }
+            else {
+                color = Color.gray;
+            }
+            
+            score = String(number)
+            
+        }
+        
+        return AnyView (
+        
+            VStack(alignment: .leading) {
+                Text(score).font(.system(size: 22)).bold()
+                    .foregroundColor(Color.white)
+                    .background(Rectangle()
+                    .fill(color)
+                    .frame(width: 40, height: 40)
+                    .cornerRadius(8))
+                
+            }.frame(width: 40, height: 40)
+        )
+    }
+    
 }
 
 
 class UserDecode {
-    var user: UserData
+    var user: User
     
-    init(user: UserData) {
+    init(user: User) {
         self.user = user
     }
     
@@ -671,11 +1079,6 @@ class UserDecode {
         return email
     }
     
-    func password() -> String {
-        let email = user.password
-        return email
-    }
-    
     func city() -> String {
         let city = user.city
         if(city.isEmpty) {
@@ -710,32 +1113,80 @@ class UserDecode {
 
 class SaleDecode {
     var sale: Sale
+    var card: Card?
     
-    init(sale: Sale) {
+    var formatter: NumberFormatter
+    
+    init(sale: Sale, card: Card? = nil) {
         self.sale = sale
+        
+        if let unwrapped = card {
+            self.card = unwrapped
+        }
+        
+        self.formatter = NumberFormatter()
+        formatter.locale = Locale.current
+        formatter.usesGroupingSeparator = true
+        formatter.numberStyle = .currency
     }
+    
     func getId() -> String {
         return "Order #" + String(sale.id)
     }
     
     func getDate() -> String {
-        return sale.saleDate
+        
+        let epochTime = TimeInterval(sale.saleDate) / 1000
+        let date = Date(timeIntervalSince1970: epochTime)
+
+        let df = DateFormatter()
+        df.dateFormat = "yyyy-MM-dd"
+
+        return df.string(from: date)
+    }
+    
+    func getSubTotal() -> String {
+        
+        return formatter.string(from: NSNumber(value: sale.subTotal))!
+    }
+    
+    func getSalesTax() -> String {
+        
+        return formatter.string(from: NSNumber(value: sale.salesTax))!
     }
     
     func getTotal() -> String {
-        let total = sale.orders.reduce(0) {$0 + ($1.list_price * Double($1.quantity))}
-        let formatter = NumberFormatter()
-        formatter.locale = Locale.current
-        formatter.usesGroupingSeparator = true
-        formatter.numberStyle = .currency
         
-        return formatter.string(from: NSNumber(value: total))!
+        return formatter.string(from: NSNumber(value: sale.total))!
     }
     
     func getNumItems() -> Int {
-        let total = sale.orders.reduce(0) {$0 + ($1.quantity)}
-        
-        
+        let total = sale.orders!.reduce(0) {$0 + ($1.quantity)}
         return total
+    }
+    
+    func getCardBrand() -> String {
+        
+        var brand = "visa"
+
+        if let unwrapped = card {
+            let card = unwrapped
+            
+            if(card.brand == "amex")
+            {
+                brand = "amex"
+            }
+            
+            else if(card.brand == "discover") {
+                brand = "discover"
+            }
+            
+            else if(card.brand == "mastercard") {
+                brand = "mastercard"
+            }
+            
+        }
+
+        return brand
     }
 }

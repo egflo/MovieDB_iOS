@@ -11,14 +11,95 @@ import URLImage
 import SDWebImageSwiftUI
 import Combine
 
+struct OrderRowDetailView: View {
+    @EnvironmentObject var user: UserData
+
+    @State var order: Order
+    @State var movieData: Movie?
+    @State var isActive = false;
+
+    let width = (UIScreen.main.bounds.width - 33)
+    let height = (UIScreen.main.bounds.height - 33)
+
+    var body: some View {
+        
+        VStack {
+            if let movie = movieData {
+                NavigationLink(destination: MovieView(movie: movie), isActive: $isActive) {
+                    HStack {
+                        let m = MovieDecode(movie:movie)
+                        
+                        VStack {
+                            WebImage(url: m.posterURL())
+                                    .resizable()
+                                    .renderingMode(.original)
+                                    .placeholder(Image("no_image"))
+                                    .aspectRatio(contentMode: .fit)
+                                    .cornerRadius(8)
+                            
+                        }
+                        .frame(width: 40, height: 70)
+                        
+                        VStack(alignment: .leading) {
+                            
+                            Text(m.title()).font(.headline).foregroundColor(.blue)
+                            Text(m.subString()).font(.subheadline).foregroundColor(.gray)
+
+                        }
+                        
+                        Spacer()
+
+                        VStack {
+                            Text("\(currencyFormater(num: order.listPrice))")
+                            Divider()
+                            Text("Qty:  \(order.quantity)")
+                        }.frame(width: 80)
+                        
+                    }
+                    .frame(height: 90)
+                    .onTapGesture{self.isActive = true}
+               }
+            }
+            
+            else {
+                ProgressView()
+            }
+        }
+        .onAppear(perform: {getMovieData()})
+    }
+    
+    
+    func currencyFormater(num: Double) -> String {
+        
+        let formatter = NumberFormatter()
+        formatter.locale = Locale.current
+        formatter.usesGroupingSeparator = true
+        formatter.numberStyle = .currency
+        
+        return formatter.string(from: NSNumber(value: num))!
+    }
+    
+    func getMovieData() {
+        API(user: user).getMovie(id: order.movieId) { (result) in
+            switch result {
+            case .success(let movie):
+                DispatchQueue.main.async {
+                    self.movieData = movie
+                }
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
+        }
+    }
+}
 
 struct OrderDetailsView: View {
-    @EnvironmentObject var user: User
-    @State var sale: Sale
-    @State var movies = [String : Movie]()
+    @EnvironmentObject var user: UserData
     
-    @State var total = "0.0"
-
+    @State var sale: Sale
+    @State var saleDetails: SaleDetails?
+    @State var qty = 0
+    
     @State var HomeActive = false
     @State var SearchActive = false
     @State var UserActive = false
@@ -33,63 +114,76 @@ struct OrderDetailsView: View {
 
         VStack{
             
-            Text("Subtotal: \(calc_subtotal())").font(.system(size: 15)).bold().frame(width:width, alignment: .trailing)
-            
-            //Text("Sales Tax: 0.00%").font(.system(size: 15)).bold()
-            
-            Text("Shipping: $0.00").font(.system(size: 15)).bold().frame(width:width, alignment: .trailing)
-            
-            Text("Total: \(calc_subtotal())").font(.system(size: 25)).bold().frame(width:width, alignment: .trailing)
-            
-            Divider()
+            if let details = saleDetails {
+                
+                let decode = SaleDecode(sale: details.sale, card: details.card)
 
-    
-            List(sale.orders, id: \.id) { order in
-                let m = MovieDecode(movie: movies[order.movieId] ?? Movie())
-
-                NavigationLink(destination: MovieView(movie: m.movie)) {
-                    HStack {
-                        VStack {
-                            WebImage(url: URL(string: m.poster()))
-                                    .resizable()
-                                    .renderingMode(.original)
-                                    .placeholder(Image("no_image"))
-                                    .aspectRatio(contentMode: .fit)
-                                    .cornerRadius(8)
-                            
-                        }.frame(width: 40, height: 70)
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text("Shipping Address").font(.headline).bold()
                         
-                        VStack(alignment: .leading) {
-                            
-                            Text(m.title()).font(.headline)
-                            Text(m.subString()).font(.subheadline).foregroundColor(.gray)
-
+                        if(details.sale.shipping!.unit.count > 0) {
+                            Text(details.sale.shipping!.unit).font(.subheadline)
                         }
                         
-                        Spacer()
-                        Divider()
+                        Text(details.sale.shipping!.address).font(.subheadline)
                         
-                        VStack(alignment: .center) {
-                            Text("Qty: \(order.quantity)")
-                            Divider().frame(maxWidth: 80)
-                            Text("\(m.price(f: order.list_price))")
-                        }.frame(width: 80)
-                        
-                    }.onAppear{loadMovie(id: order.movieId)}
+                        Text("\(details.sale.shipping!.city), \(details.sale.shipping!.state) \(details.sale.shipping!.postcode)").font(.subheadline)
+                       
+                        Text("United States").font(.subheadline)
+                    }
                     
-             }
+                    Spacer()
+                    
+                    VStack (alignment: .trailing) {
+                        
+                        HStack {
+                            Image(decode.getCardBrand())
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 30, height: 25)
+                            
+                            Text("**** \(details.card.last4)").font(.system(size: 15)).bold()
+                        }
+                        Text("Subtotal: \(decode.getSubTotal())").font(.system(size: 15)).bold()
+                        
+                        Text("Sales Tax: \(decode.getSalesTax())").font(.system(size: 15)).bold()
+                        
+                        Text("Shipping: $0.00").font(.system(size: 15)).bold()//.frame(width:width, alignment: .trailing)
+                        
+                        Text("Total: \(decode.getTotal())").font(.system(size: 22)).bold()
+                    
+                    }
+                    
+                }.frame(width:width, height: 100)
                 
-            }.frame(width: width)
+                                
+                List(sale.orders!, id: \.id) { order in
+                    OrderRowDetailView(order:order)
+                }.listStyle(GroupedListStyle())
+                
+                .onAppear(perform: {
+                    UITableView.appearance().isScrollEnabled = false
+                })
+                
+                      
+            }
             
-            //Spacer()
+            else {
+                
+                ProgressView()
+                
+            }
             
-            //.frame(width: width, height: (CGFloat(sale.orders.count) * 90))
-            
-            
-        }.offset(y: 15)
+            Spacer()
         
+        }
+        .onAppear(perform: {
+            self.getSaleData()
+            self.getCartQtyData()
+        })
+        .navigationBarTitle(Text("Order #\(String(sale.id))"), displayMode: .large)
         .navigationBarHidden(false)
-        .navigationBarTitle(Text("Order #" + String(sale.id)), displayMode: .large)
         
         .background(
             HStack {
@@ -140,103 +234,201 @@ struct OrderDetailsView: View {
 
                 })
                 {
-                     let count = user.getCartCount()
-                     
-                     if(count == 0) {
-                         
-                         Image(systemName: "cart").imageScale(.large)
-
-                     }
-                     else{
-                         ZStack {
-                             Image(systemName: "cart").imageScale(.large)
-                             Text("\(user.getCartCountStr())")
-                                 .foregroundColor(Color.black)
-                                 .background(Capsule().fill(Color.orange).frame(width:30, height:20))
-                                 .offset(x:20, y:-10)
-
-                         }
-                         
-                     }
                     
-                }
+                 ZStack {
+                     Image(systemName: "cart").imageScale(.large)
+                     
+                     if(self.qty > 0) {
+                         Text("\(self.qty)")
+                             .foregroundColor(Color.black)
+                             .background(Capsule().fill(Color.orange).frame(width:30, height:20))
+                             .offset(x:20, y:-10)
+                         
+                     }
+
+                 }
+               }
             }
           }
         }
     }
     
-    func calc_subtotal() -> String{
-        let total = sale.orders.reduce(0) {$0 + ($1.list_price * Double($1.quantity))}
-
-        let formatter = NumberFormatter()
-        formatter.locale = Locale.current
-        formatter.usesGroupingSeparator = true
-        formatter.numberStyle = .currency
-        
-        return formatter.string(from: NSNumber(value: total))!
-        
-    }
     
-    func loadMovies() {
-        for order in sale.orders {
-            loadMovie(id: order.movieId)
+    func getSaleData() {
+        API(user: user).getSale(id: sale.id) { (result) in
+            switch result {
+            case .success(let details):
+                DispatchQueue.main.async {
+                    self.saleDetails = details
+                    
+                }
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
         }
     }
     
-    
-    func loadMovie(id: String) {
-                
-        let url = "\(MyVariables.API_IP)/movie/\(id)"
-        let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
-
-        guard let url = URL(string: encoded_url!) else {
-            let status = "Invalid URL"
-            print(status)
-            return
+    func getCartQtyData() {
+        API(user: user).getCartQty(){ (result) in
+            switch result {
+            case .success(let qty):
+                DispatchQueue.main.async {
+                    self.qty = qty
+                }
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
         }
-        
-        let request = URLRequest(url: url)
+    }
 
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let data = data {
-                if let decodedResponse = try? JSONDecoder().decode(Movie.self, from: data) {
-                    // we have good data – go back to the main thread
-                    DispatchQueue.main.async {
-                        // update our UI
-                        self.movies[id] = decodedResponse
+}
+
+
+
+struct OrderContentView: View {
+    @EnvironmentObject var user: UserData
+
+    @State var order: Order
+    @State var movieData: Movie?
+    
+    let width = (UIScreen.main.bounds.width - 33)
+    var body: some View {
+        
+        VStack {
+            
+            if let movie = movieData {
+                HStack {
+                    let m = MovieDecode(movie:movie)
+                    
+                    VStack {
+                        WebImage(url: m.posterURL())
+                                .resizable()
+                                .renderingMode(.original)
+                                .placeholder(Image("no_image"))
+                                .aspectRatio(contentMode: .fit)
+                                .cornerRadius(8)
+                        
                     }
-                    // everything is good, so we can exit
-                    return
+                    .frame(width: 40, height: 70)
+                    
+                    VStack(alignment: .leading) {
+                        
+                        Text(m.title()).font(.headline).foregroundColor(.blue)
+                        Text(m.subString()).font(.subheadline).foregroundColor(.gray)
+
+                    }
+                    
+                }
+                .frame(height: 75)
+                .onAppear(perform:{getMovieData()})
+
+            }
+            
+            else {
+                
+                ProgressView()
+         
+            }
+            
+        }
+        .onAppear(perform: {getMovieData()})
+        
+    }
+    
+    func getMovieData() {
+        API(user: user).getMovie(id: order.movieId) { (result) in
+            switch result {
+            case .success(let movie):
+                DispatchQueue.main.async {
+                    self.movieData = movie
+                }
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
+        }
+    }
+    
+}
+
+
+struct OrderRowView: View {
+    @State var decode: SaleDecode
+    @State var isActive = false
+    
+    let width = (UIScreen.main.bounds.width - 33)
+
+    var body: some View {
+
+        NavigationLink(destination: OrderDetailsView(sale: decode.sale), isActive: $isActive) {
+
+            VStack {
+                Divider().frame(width: width)
+                    VStack(alignment: .leading) {
+                        HStack {
+                        
+                            Rectangle()
+                                .fill(Color.blue)
+                                .frame(width: 10, height: 40)
+
+                            
+                            Text(decode.getId()).font(.system(size: 20)).bold()
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.gray)
+                        
+                    }
+                    
+                    Divider().frame(width: width, height: 5)
+                    
+                    
+                    Text(decode.getDate())
+                        .frame(width: width, alignment: .leading)
+                    
+                    Text("Total: \(decode.getTotal())").bold()
+
+                    ForEach(decode.sale.orders ?? [Order](), id: \.id) { order in
+                 
+                        OrderContentView(order: order)
+                 
+                    }
+                        
                 }
             }
-        
-            print("Fetch failed: \(error?.localizedDescription ?? "Unknown error")")
-            
-        }.resume()
+        }
+        .frame(width: width)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            self.isActive = true
+        }
     }
 }
 
-struct OrderView: View {
-    @EnvironmentObject var user: User
-    @EnvironmentObject var movie_api: MovieDB_API
 
+
+
+struct OrderView: View {
+    @EnvironmentObject var user: UserData
+    
+    @StateObject var dataSource = ContentDataSourceOrders()
+    @State var qty = 0
+    
     @State var HomeActive = false
     @State var SearchActive = false
     @State var UserActive = false
     @State var OrderActive = false
     @State var CartActive = false
     
-    let width = (UIScreen.main.bounds.width - 33)
+    let width = (UIScreen.main.bounds.width)
 
-    
-    
     var body: some View {
         
         VStack {
         
-        Text("My Orders").font(.title).bold().frame(width:width, alignment: .leading)
+            Text("My Orders").font(.title).bold().frame(width:width-33, alignment: .leading)
 
-            if(user.data.sales.count == 0) {
+            if(dataSource.items.count == 0) {
                 GeometryReader {geometry in
 
                     VStack {
@@ -259,49 +451,51 @@ struct OrderView: View {
                 
                 ScrollView {
                     LazyVStack{
-                        ForEach(user.data.sales, id: \.id) { sale in
-                            let sale_decode = SaleDecode(sale: sale)
+                        ForEach(dataSource.items, id: \.id) { sale in
+                            let decode = SaleDecode(sale: sale)
+
+                            if(dataSource.items.last == sale){
                                 
-                            NavigationLink(destination: OrderDetailsView(sale: sale)) {
                                 VStack {
-                                    
-                                    HStack {
-                                        
-                                        VStack(alignment: .leading) {
-                                            Text(sale_decode.getId()).bold()
-                                            Text("Number of Items: \(sale_decode.getNumItems())")
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                        VStack(alignment: . trailing){
-                                            
-                                            Text(sale.saleDate)
-                                            Text("Total: \(sale_decode.getTotal())")
-                                        }
-           
-                                        Image(systemName: "chevron.right")
-                                            .foregroundColor(.gray)
-                                        
-                                    }
-                                    
-        
+
+                                    OrderRowView(decode: decode)
                                 }
+                                .onAppear {
+                                    print("Load More")
+                                    dataSource.loadMoreContent(user: user)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                
 
-                            }//.buttonStyle(PlainButtonStyle())
-                            
-                            Divider().frame(width: width)
+                            }
+                            else {
+                                
+                                VStack {
 
+                                    OrderRowView(decode: decode)
+                                }
+                                .onAppear {
+                                    print("Load More")
+                                    dataSource.loadMoreContent(user: user)
+                                }
+                                .buttonStyle(PlainButtonStyle())
+                                
+                            }
 
                         }
                         
                     }.frame(width: width)
                     
                 }.frame(width: UIScreen.main.bounds.width)
-            
             }
             
         }.offset(y: 15)
+        
+        .onAppear {
+            print("Load More")
+            dataSource.loadMoreContent(user: user)
+            self.getCartQtyData()
+        }
         
         .navigationBarHidden(true)
         .navigationBarTitle(Text("Orders"), displayMode: .large)
@@ -355,28 +549,35 @@ struct OrderView: View {
 
                 })
                 {
-                     let count = user.getCartCount()
-                     
-                     if(count == 0) {
-                         
-                         Image(systemName: "cart").imageScale(.large)
-
-                     }
-                     else{
-                         ZStack {
-                             Image(systemName: "cart").imageScale(.large)
-                             Text("\(user.getCartCountStr())")
-                                 .foregroundColor(Color.black)
-                                 .background(Capsule().fill(Color.orange).frame(width:30, height:20))
-                                 .offset(x:20, y:-10)
-
-                         }
-                         
-                     }
                     
-                }
+                 ZStack {
+                     Image(systemName: "cart").imageScale(.large)
+                     
+                     if(self.qty > 0) {
+                         Text("\(self.qty)")
+                             .foregroundColor(Color.black)
+                             .background(Capsule().fill(Color.orange).frame(width:30, height:20))
+                             .offset(x:20, y:-10)
+                         
+                     }
+
+                 }
+               }
             }
           }
+        }
+    }
+    
+    func getCartQtyData() {
+        API(user: user).getCartQty(){ (result) in
+            switch result {
+            case .success(let qty):
+                DispatchQueue.main.async {
+                    self.qty = qty
+                }
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
         }
     }
     

@@ -108,10 +108,11 @@ struct MovieRow: View {
 }
 
 struct SearchView: View {
-    @EnvironmentObject var user: User
+    @EnvironmentObject var user: UserData
     
     @State var text = ""
     @State var isSearching = false
+    @State var qty = 0
     
     @StateObject var dataSource = ContentDataSource()
     
@@ -128,11 +129,10 @@ struct SearchView: View {
     var body: some View {
         
             VStack{
-                
                 VStack(spacing: 0) {
                     Text("Search \(text)").font(.title).bold().frame(width:width, alignment: .leading)
                     SearchBar(text: $text, isSearching: $isSearching).onChange(of: text, perform: { value in
-                            dataSource.setText(text: value)
+                            dataSource.setText(text: value, user: user)
                       })
                         .frame(width: (UIScreen.main.bounds.width - 15), height: 80)
                         .onAppear{ dataSource.query = "title"}
@@ -142,34 +142,30 @@ struct SearchView: View {
                         LazyVStack {
 
                             ForEach(dataSource.items, id: \.uuid) { movie in
-                               // NavigationLink(destination: MovieView(movie: movie)) {
-                                    if(dataSource.items.last == movie){
-                                        MovieRow(movie: movie)
-                                            .padding(.leading,24)
-                                            .padding(.trailing, 20)
-                                            //.onTapGesture{self.isActive = true}
-                                            .frame(width: (UIScreen.main.bounds.width - 15), height: 80)
-                                            .onAppear {
-                                                print("Load More")
-                                                dataSource.loadMoreContent()
-                                            }
-                                            
-                                    }
-                                    else {
-                                        MovieRow(movie: movie)
-                                            .padding(.leading,24)
-                                            .padding(.trailing, 20)
-                                            //.onTapGesture{self.isActive = true}
-                                            .frame(width: (UIScreen.main.bounds.width), height: 80)
+                                if(dataSource.items.last == movie){
+                                    MovieRow(movie: movie)
+                                        .padding(.leading,24)
+                                        .padding(.trailing, 20)
+                                        //.onTapGesture{self.isActive = true}
+                                        .frame(width: (UIScreen.main.bounds.width - 15), height: 80)
+                                        .onAppear {
+                                            print("Load More")
+                                            dataSource.loadMoreContent(user: user)
+                                        }
                                         
-                                        //Rectangle().fill(Color.gray).frame(height: 1)
-                                        Divider()
-                                    }
-                    
-                             //}
+                                }
+                                    
+                                else {
+                                    MovieRow(movie: movie)
+                                        .padding(.leading,24)
+                                        .padding(.trailing, 20)
+                                        .frame(width: (UIScreen.main.bounds.width), height: 80)
+                                    
+                                    Divider()
+                                }
                           
-                          }
-                            //.onAppear{ dataSource.query = "title"}
+                            }
+                            
                             if dataSource.isLoadingPage {
                                 ProgressView() //A view that shows the progress towards completion of a task.
                             }
@@ -178,7 +174,9 @@ struct SearchView: View {
 
                   }
                 
-            }.offset(y: 15)
+            }
+            .offset(y: 15)
+            .onAppear(perform: {self.getCartQtyData()})
         
             .navigationBarHidden(true)
             .navigationBarTitle(Text("Search \(text)"), displayMode: .large)
@@ -198,7 +196,7 @@ struct SearchView: View {
             )
             
             .toolbar {
-              ToolbarItem(placement: .bottomBar) {
+                ToolbarItem(placement: .bottomBar) {
                 HStack{
                     Button(action: {
                         self.HomeActive = true
@@ -231,28 +229,36 @@ struct SearchView: View {
                         self.CartActive = true
                     })
                     {
-                        let count = user.getCartCount()
                         
-                        if(count == 0) {
-                            Image(systemName: "cart").imageScale(.large)
-                        }
-                        
-                        else{
-                            ZStack {
-                                Image(systemName: "cart").imageScale(.large)
-                                Text("\(user.getCartCountStr())")
-                                    .foregroundColor(Color.black)
-                                    .background(Capsule().fill(Color.orange).frame(width:30, height:20))
-                                    .offset(x:20, y:-10)
+                     ZStack {
+                         Image(systemName: "cart").imageScale(.large)
+                         
+                         if(self.qty > 0) {
+                             Text("\(self.qty)")
+                                 .foregroundColor(Color.black)
+                                 .background(Capsule().fill(Color.orange).frame(width:30, height:20))
+                                 .offset(x:20, y:-10)
+                             
+                         }
 
-                            }
-                            
-                        }
-                    }
+                     }
+                   }
                 }
               }
             }
         
     }
     
+    func getCartQtyData() {
+        API(user: user).getCartQty(){ (result) in
+            switch result {
+            case .success(let qty):
+                DispatchQueue.main.async {
+                    self.qty = qty
+                }
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
+        }
+    }
 }

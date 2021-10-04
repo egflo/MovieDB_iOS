@@ -10,15 +10,15 @@ import SwiftUI
 @main
 struct MovieDBApp: App {
     let persistenceController = PersistenceController.shared
-    @StateObject private var user = User()
-    @StateObject var movie_api = MovieDB_API()
+    @StateObject private var user = UserData()
+    @StateObject private var alert = AlertViewModel()
     
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
                 .environmentObject(user)
-                .environmentObject(movie_api)
+                .environmentObject(alert)
 
         }
     }
