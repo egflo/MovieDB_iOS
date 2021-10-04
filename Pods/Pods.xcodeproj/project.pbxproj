@@ -1,0 +1,897 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 52;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		AA4EC0FBF17D37A2362A96FF6EFAB3AA /* StripeTerminal */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = C5D216C29B6CCAF959E818D460F55217 /* Build configuration list for PBXAggregateTarget "StripeTerminal" */;
+			buildPhases = (
+				D670EA4360D6A2031A27AB21CF952BE1 /* [CP] Copy dSYMs */,
+			);
+			dependencies = (
+			);
+			name = StripeTerminal;
+			productName = StripeTerminal;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		74752B54F584DB5FEE0A36A2486AD169 /* Pods-MovieDBTests-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = 4A2F5030EEA9541737C58EDAD9F043A3 /* Pods-MovieDBTests-dummy.m */; };
+		B1F8449D3399A89DEBD73BDF0123DB14 /* Pods-MovieDBTests-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 8148CAC8AFA3061806F79F5579191541 /* Pods-MovieDBTests-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		B4CD6A2549CC733DB876C5A68DCDF8A8 /* Pods-MovieDB-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = FFBDE75F5F708E0B5B863C37D2B3CB2C /* Pods-MovieDB-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		CBBBC1B74273FA6D0CF97AE535FF7A8A /* Pods-MovieDB-MovieDBUITests-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = 58799CAF93135F0158A1A45567123A83 /* Pods-MovieDB-MovieDBUITests-dummy.m */; };
+		DD735035A088AB21465A6FA8F3CACF8F /* Pods-MovieDB-MovieDBUITests-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = C3264AE7A8F7AE12E0842571E57BF45E /* Pods-MovieDB-MovieDBUITests-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		F8C1E7CD82EF2C77058A40194EDFF82B /* Pods-MovieDB-dummy.m in Sources */ = {isa = PBXBuildFile; fileRef = 3CC18A7AC5E865C24580820D25BC9370 /* Pods-MovieDB-dummy.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		576508D54570FD339F1560D051228610 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFDFE7DC352907FC980B868725387E98 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AA4EC0FBF17D37A2362A96FF6EFAB3AA;
+			remoteInfo = StripeTerminal;
+		};
+		CD89789E11EA166117FBAA9FA4843621 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFDFE7DC352907FC980B868725387E98 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D416CAD26FD12768B6898F0898166FA7;
+			remoteInfo = "Pods-MovieDB";
+		};
+		CFFFADD7ADDE007AB697807E1854B710 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BFDFE7DC352907FC980B868725387E98 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AA4EC0FBF17D37A2362A96FF6EFAB3AA;
+			remoteInfo = StripeTerminal;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		035A498EAFB7A37581B1F186C1A125F5 /* Pods-MovieDB-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-MovieDB-acknowledgements.plist"; sourceTree = "<group>"; };
+		3774548517D4E2434D8FC95E15CA881F /* StripeTerminal.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = StripeTerminal.release.xcconfig; sourceTree = "<group>"; };
+		3CC18A7AC5E865C24580820D25BC9370 /* Pods-MovieDB-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "Pods-MovieDB-dummy.m"; sourceTree = "<group>"; };
+		3E587BBDC1C28E9619E777E0AA236B36 /* Pods-MovieDB-MovieDBUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-MovieDB-MovieDBUITests.debug.xcconfig"; sourceTree = "<group>"; };
+		496330758DC66E0ACE1F36ED537C0BCD /* Pods-MovieDBTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-MovieDBTests.release.xcconfig"; sourceTree = "<group>"; };
+		4A2F5030EEA9541737C58EDAD9F043A3 /* Pods-MovieDBTests-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "Pods-MovieDBTests-dummy.m"; sourceTree = "<group>"; };
+		4B397008E6B4475EF1AE9648FA3436B3 /* Pods_MovieDBTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MovieDBTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		541EAC5B884C5B473F1390F08E6AFA46 /* StripeTerminal.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = StripeTerminal.debug.xcconfig; sourceTree = "<group>"; };
+		58799CAF93135F0158A1A45567123A83 /* Pods-MovieDB-MovieDBUITests-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "Pods-MovieDB-MovieDBUITests-dummy.m"; sourceTree = "<group>"; };
+		612FCCD37CA4242C0A159EC75D027EBC /* Pods_MovieDB.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MovieDB.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		6BD7FC0B7F0FE906C84994C90A66F65F /* Pods-MovieDBTests-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-MovieDBTests-acknowledgements.plist"; sourceTree = "<group>"; };
+		7B8F59817AE0FF2F65D1B23598581583 /* StripeTerminal-copy-dsyms.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "StripeTerminal-copy-dsyms.sh"; sourceTree = "<group>"; };
+		7DBE67633CD0DB67A111ECC9CC7FE1A1 /* Pods-MovieDB.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-MovieDB.release.xcconfig"; sourceTree = "<group>"; };
+		8148CAC8AFA3061806F79F5579191541 /* Pods-MovieDBTests-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Pods-MovieDBTests-umbrella.h"; sourceTree = "<group>"; };
+		89AE1A35475F8436616E44A9F3AD99AD /* Pods-MovieDB-MovieDBUITests-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-MovieDB-MovieDBUITests-Info.plist"; sourceTree = "<group>"; };
+		94785AFE8AE42273945CA297303C4FEA /* Pods-MovieDBTests-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-MovieDBTests-acknowledgements.markdown"; sourceTree = "<group>"; };
+		966F775782DE97D14A2E902EEA44D1DC /* Pods-MovieDB.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-MovieDB.debug.xcconfig"; sourceTree = "<group>"; };
+		9B80E9A89F0E1801AF7C72CEFDC5AAFD /* Pods-MovieDB-MovieDBUITests-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-MovieDB-MovieDBUITests-acknowledgements.markdown"; sourceTree = "<group>"; };
+		9D940727FF8FB9C785EB98E56350EF41 /* Podfile */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; indentWidth = 2; name = Podfile; path = ../Podfile; sourceTree = SOURCE_ROOT; tabWidth = 2; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
+		A16561DD13CADC4CBA94C5974A8C1FC0 /* Pods_MovieDB_MovieDBUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_MovieDB_MovieDBUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		B87CDB7D259F5C18AD4FB30191530B72 /* Pods-MovieDBTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-MovieDBTests.debug.xcconfig"; sourceTree = "<group>"; };
+		BCD70D72DAA5B4AAD6237B121A1C8AFB /* Pods-MovieDB-MovieDBUITests.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; path = "Pods-MovieDB-MovieDBUITests.modulemap"; sourceTree = "<group>"; };
+		BEFAD25788E56564C79268A014136690 /* Pods-MovieDB-MovieDBUITests-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-MovieDB-MovieDBUITests-acknowledgements.plist"; sourceTree = "<group>"; };
+		C3264AE7A8F7AE12E0842571E57BF45E /* Pods-MovieDB-MovieDBUITests-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Pods-MovieDB-MovieDBUITests-umbrella.h"; sourceTree = "<group>"; };
+		C700A33258561FA5E9AD34FCD29056D8 /* Pods-MovieDB-MovieDBUITests-frameworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "Pods-MovieDB-MovieDBUITests-frameworks.sh"; sourceTree = "<group>"; };
+		CA9BB09D8ADE5C3A1D579E259ABE5A7D /* Pods-MovieDB.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; path = "Pods-MovieDB.modulemap"; sourceTree = "<group>"; };
+		D6BFEA14931C7A26F4CFA93ADE9AC7BF /* Pods-MovieDBTests-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-MovieDBTests-Info.plist"; sourceTree = "<group>"; };
+		D6F9510840BFF4C48F615FA8E1CA80FD /* Pods-MovieDB-MovieDBUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-MovieDB-MovieDBUITests.release.xcconfig"; sourceTree = "<group>"; };
+		D72728C71DD58D65244683F370B6E0E6 /* Pods-MovieDB-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-MovieDB-acknowledgements.markdown"; sourceTree = "<group>"; };
+		DC97684CEDD18B6E1DEA5AE09F4C9EB1 /* Pods-MovieDB-frameworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "Pods-MovieDB-frameworks.sh"; sourceTree = "<group>"; };
+		E32646CCE417EA0E2456AADB34EA8BD3 /* Pods-MovieDB-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-MovieDB-Info.plist"; sourceTree = "<group>"; };
+		EC8C95E04BF5C89973A2AC6D5F9390AF /* StripeTerminal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StripeTerminal.framework; path = Carthage/Build/iOS/StripeTerminal.framework; sourceTree = "<group>"; };
+		EF5480E09D775AD7F25B3AE92C8C2C12 /* Pods-MovieDBTests.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; path = "Pods-MovieDBTests.modulemap"; sourceTree = "<group>"; };
+		FFBDE75F5F708E0B5B863C37D2B3CB2C /* Pods-MovieDB-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Pods-MovieDB-umbrella.h"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		40D7BC95381EA375CDC302A5158D472F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DF4EC9C11E52DE91F4E85C7C225C4F63 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F8AD63905216181DA94755FC2E29F76E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1041942BD9501E2205CE8B7C3DA523C9 /* Pods-MovieDB-MovieDBUITests */ = {
+			isa = PBXGroup;
+			children = (
+				BCD70D72DAA5B4AAD6237B121A1C8AFB /* Pods-MovieDB-MovieDBUITests.modulemap */,
+				9B80E9A89F0E1801AF7C72CEFDC5AAFD /* Pods-MovieDB-MovieDBUITests-acknowledgements.markdown */,
+				BEFAD25788E56564C79268A014136690 /* Pods-MovieDB-MovieDBUITests-acknowledgements.plist */,
+				58799CAF93135F0158A1A45567123A83 /* Pods-MovieDB-MovieDBUITests-dummy.m */,
+				C700A33258561FA5E9AD34FCD29056D8 /* Pods-MovieDB-MovieDBUITests-frameworks.sh */,
+				89AE1A35475F8436616E44A9F3AD99AD /* Pods-MovieDB-MovieDBUITests-Info.plist */,
+				C3264AE7A8F7AE12E0842571E57BF45E /* Pods-MovieDB-MovieDBUITests-umbrella.h */,
+				3E587BBDC1C28E9619E777E0AA236B36 /* Pods-MovieDB-MovieDBUITests.debug.xcconfig */,
+				D6F9510840BFF4C48F615FA8E1CA80FD /* Pods-MovieDB-MovieDBUITests.release.xcconfig */,
+			);
+			name = "Pods-MovieDB-MovieDBUITests";
+			path = "Target Support Files/Pods-MovieDB-MovieDBUITests";
+			sourceTree = "<group>";
+		};
+		578452D2E740E91742655AC8F1636D1F /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
+		5A6C9F55FC82F3BE83FA29E7CADF90CE /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				EC8C95E04BF5C89973A2AC6D5F9390AF /* StripeTerminal.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		5BD90AC3FFA0DEBC838D02D7AA1C8578 /* StripeTerminal */ = {
+			isa = PBXGroup;
+			children = (
+				5A6C9F55FC82F3BE83FA29E7CADF90CE /* Frameworks */,
+				F540B01A24F66918178592786ADB7C07 /* Support Files */,
+			);
+			path = StripeTerminal;
+			sourceTree = "<group>";
+		};
+		5DB52D5D84C8E411955EC33AA57619D9 /* Pods-MovieDBTests */ = {
+			isa = PBXGroup;
+			children = (
+				EF5480E09D775AD7F25B3AE92C8C2C12 /* Pods-MovieDBTests.modulemap */,
+				94785AFE8AE42273945CA297303C4FEA /* Pods-MovieDBTests-acknowledgements.markdown */,
+				6BD7FC0B7F0FE906C84994C90A66F65F /* Pods-MovieDBTests-acknowledgements.plist */,
+				4A2F5030EEA9541737C58EDAD9F043A3 /* Pods-MovieDBTests-dummy.m */,
+				D6BFEA14931C7A26F4CFA93ADE9AC7BF /* Pods-MovieDBTests-Info.plist */,
+				8148CAC8AFA3061806F79F5579191541 /* Pods-MovieDBTests-umbrella.h */,
+				B87CDB7D259F5C18AD4FB30191530B72 /* Pods-MovieDBTests.debug.xcconfig */,
+				496330758DC66E0ACE1F36ED537C0BCD /* Pods-MovieDBTests.release.xcconfig */,
+			);
+			name = "Pods-MovieDBTests";
+			path = "Target Support Files/Pods-MovieDBTests";
+			sourceTree = "<group>";
+		};
+		7C0081D85BCD09F0112E66339D0A87A1 /* Targets Support Files */ = {
+			isa = PBXGroup;
+			children = (
+				9E2B591438B56A8DDB5CEF2A9B6BF5C9 /* Pods-MovieDB */,
+				1041942BD9501E2205CE8B7C3DA523C9 /* Pods-MovieDB-MovieDBUITests */,
+				5DB52D5D84C8E411955EC33AA57619D9 /* Pods-MovieDBTests */,
+			);
+			name = "Targets Support Files";
+			sourceTree = "<group>";
+		};
+		882950CD118850E459C179F5E490C3C0 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				5BD90AC3FFA0DEBC838D02D7AA1C8578 /* StripeTerminal */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
+		9E2B591438B56A8DDB5CEF2A9B6BF5C9 /* Pods-MovieDB */ = {
+			isa = PBXGroup;
+			children = (
+				CA9BB09D8ADE5C3A1D579E259ABE5A7D /* Pods-MovieDB.modulemap */,
+				D72728C71DD58D65244683F370B6E0E6 /* Pods-MovieDB-acknowledgements.markdown */,
+				035A498EAFB7A37581B1F186C1A125F5 /* Pods-MovieDB-acknowledgements.plist */,
+				3CC18A7AC5E865C24580820D25BC9370 /* Pods-MovieDB-dummy.m */,
+				DC97684CEDD18B6E1DEA5AE09F4C9EB1 /* Pods-MovieDB-frameworks.sh */,
+				E32646CCE417EA0E2456AADB34EA8BD3 /* Pods-MovieDB-Info.plist */,
+				FFBDE75F5F708E0B5B863C37D2B3CB2C /* Pods-MovieDB-umbrella.h */,
+				966F775782DE97D14A2E902EEA44D1DC /* Pods-MovieDB.debug.xcconfig */,
+				7DBE67633CD0DB67A111ECC9CC7FE1A1 /* Pods-MovieDB.release.xcconfig */,
+			);
+			name = "Pods-MovieDB";
+			path = "Target Support Files/Pods-MovieDB";
+			sourceTree = "<group>";
+		};
+		CF1408CF629C7361332E53B88F7BD30C = {
+			isa = PBXGroup;
+			children = (
+				9D940727FF8FB9C785EB98E56350EF41 /* Podfile */,
+				D210D550F4EA176C3123ED886F8F87F5 /* Frameworks */,
+				882950CD118850E459C179F5E490C3C0 /* Pods */,
+				F700285E759EEF7697E029996D8AAB4D /* Products */,
+				7C0081D85BCD09F0112E66339D0A87A1 /* Targets Support Files */,
+			);
+			sourceTree = "<group>";
+		};
+		D210D550F4EA176C3123ED886F8F87F5 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				578452D2E740E91742655AC8F1636D1F /* iOS */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		F540B01A24F66918178592786ADB7C07 /* Support Files */ = {
+			isa = PBXGroup;
+			children = (
+				7B8F59817AE0FF2F65D1B23598581583 /* StripeTerminal-copy-dsyms.sh */,
+				541EAC5B884C5B473F1390F08E6AFA46 /* StripeTerminal.debug.xcconfig */,
+				3774548517D4E2434D8FC95E15CA881F /* StripeTerminal.release.xcconfig */,
+			);
+			name = "Support Files";
+			path = "../Target Support Files/StripeTerminal";
+			sourceTree = "<group>";
+		};
+		F700285E759EEF7697E029996D8AAB4D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				612FCCD37CA4242C0A159EC75D027EBC /* Pods_MovieDB.framework */,
+				A16561DD13CADC4CBA94C5974A8C1FC0 /* Pods_MovieDB_MovieDBUITests.framework */,
+				4B397008E6B4475EF1AE9648FA3436B3 /* Pods_MovieDBTests.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		783FB1F4B6CB5EB1453A004CF12BAEBD /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B4CD6A2549CC733DB876C5A68DCDF8A8 /* Pods-MovieDB-umbrella.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		884278580A3123F6A58A471E19EE9D99 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B1F8449D3399A89DEBD73BDF0123DB14 /* Pods-MovieDBTests-umbrella.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B915795CA99933107CAA22583C349C15 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DD735035A088AB21465A6FA8F3CACF8F /* Pods-MovieDB-MovieDBUITests-umbrella.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		AB21DC0D9D2BCCDD79986D09F7B5DCA4 /* Pods-MovieDB-MovieDBUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 85FA92F506250A6B13D5CD25FC063540 /* Build configuration list for PBXNativeTarget "Pods-MovieDB-MovieDBUITests" */;
+			buildPhases = (
+				B915795CA99933107CAA22583C349C15 /* Headers */,
+				AD889C46BBF9869714FAE74A1F5DEE7B /* Sources */,
+				F8AD63905216181DA94755FC2E29F76E /* Frameworks */,
+				8D69E2E67BC861D68B82C5B1F0870EFE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				67F0680C627D52DC70BAF00488F5B6B5 /* PBXTargetDependency */,
+			);
+			name = "Pods-MovieDB-MovieDBUITests";
+			productName = "Pods-MovieDB-MovieDBUITests";
+			productReference = A16561DD13CADC4CBA94C5974A8C1FC0 /* Pods_MovieDB_MovieDBUITests.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		D416CAD26FD12768B6898F0898166FA7 /* Pods-MovieDB */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C61DC47D04DCB3858520888CCBCB7620 /* Build configuration list for PBXNativeTarget "Pods-MovieDB" */;
+			buildPhases = (
+				783FB1F4B6CB5EB1453A004CF12BAEBD /* Headers */,
+				DF4E0EDBAD7592CAF4CBCA5A61B9843D /* Sources */,
+				DF4EC9C11E52DE91F4E85C7C225C4F63 /* Frameworks */,
+				9853F8074670A6AE808D1902D169D29C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				EFCFE68881108D20F456206F593AA2A2 /* PBXTargetDependency */,
+			);
+			name = "Pods-MovieDB";
+			productName = "Pods-MovieDB";
+			productReference = 612FCCD37CA4242C0A159EC75D027EBC /* Pods_MovieDB.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		FDA7D3768853E060F47F6CCAFAB6C0D7 /* Pods-MovieDBTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 77E9524D6ED1254203B16F954A9E03C5 /* Build configuration list for PBXNativeTarget "Pods-MovieDBTests" */;
+			buildPhases = (
+				884278580A3123F6A58A471E19EE9D99 /* Headers */,
+				AEDC7FF5BE85A9491D3547832D41FC62 /* Sources */,
+				40D7BC95381EA375CDC302A5158D472F /* Frameworks */,
+				123BDA57986B6C8A7037FC3DBF336C34 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1E020F8E2A5882ABDD1F55F70D58D1E4 /* PBXTargetDependency */,
+			);
+			name = "Pods-MovieDBTests";
+			productName = "Pods-MovieDBTests";
+			productReference = 4B397008E6B4475EF1AE9648FA3436B3 /* Pods_MovieDBTests.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		BFDFE7DC352907FC980B868725387E98 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1100;
+				LastUpgradeCheck = 1250;
+			};
+			buildConfigurationList = 4821239608C13582E20E6DA73FD5F1F9 /* Build configuration list for PBXProject "Pods" */;
+			compatibilityVersion = "Xcode 11.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = CF1408CF629C7361332E53B88F7BD30C;
+			productRefGroup = F700285E759EEF7697E029996D8AAB4D /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D416CAD26FD12768B6898F0898166FA7 /* Pods-MovieDB */,
+				AB21DC0D9D2BCCDD79986D09F7B5DCA4 /* Pods-MovieDB-MovieDBUITests */,
+				FDA7D3768853E060F47F6CCAFAB6C0D7 /* Pods-MovieDBTests */,
+				AA4EC0FBF17D37A2362A96FF6EFAB3AA /* StripeTerminal */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		123BDA57986B6C8A7037FC3DBF336C34 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8D69E2E67BC861D68B82C5B1F0870EFE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9853F8074670A6AE808D1902D169D29C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		D670EA4360D6A2031A27AB21CF952BE1 /* [CP] Copy dSYMs */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/StripeTerminal/StripeTerminal-copy-dsyms-input-files.xcfilelist",
+			);
+			name = "[CP] Copy dSYMs";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/StripeTerminal/StripeTerminal-copy-dsyms-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/StripeTerminal/StripeTerminal-copy-dsyms.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AD889C46BBF9869714FAE74A1F5DEE7B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CBBBC1B74273FA6D0CF97AE535FF7A8A /* Pods-MovieDB-MovieDBUITests-dummy.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AEDC7FF5BE85A9491D3547832D41FC62 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				74752B54F584DB5FEE0A36A2486AD169 /* Pods-MovieDBTests-dummy.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DF4E0EDBAD7592CAF4CBCA5A61B9843D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F8C1E7CD82EF2C77058A40194EDFF82B /* Pods-MovieDB-dummy.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		1E020F8E2A5882ABDD1F55F70D58D1E4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "Pods-MovieDB";
+			target = D416CAD26FD12768B6898F0898166FA7 /* Pods-MovieDB */;
+			targetProxy = CD89789E11EA166117FBAA9FA4843621 /* PBXContainerItemProxy */;
+		};
+		67F0680C627D52DC70BAF00488F5B6B5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = StripeTerminal;
+			target = AA4EC0FBF17D37A2362A96FF6EFAB3AA /* StripeTerminal */;
+			targetProxy = CFFFADD7ADDE007AB697807E1854B710 /* PBXContainerItemProxy */;
+		};
+		EFCFE68881108D20F456206F593AA2A2 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = StripeTerminal;
+			target = AA4EC0FBF17D37A2362A96FF6EFAB3AA /* StripeTerminal */;
+			targetProxy = 576508D54570FD339F1560D051228610 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		39A9D2412232743A6EC7ABA96F311C0F /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = D6F9510840BFF4C48F615FA8E1CA80FD /* Pods-MovieDB-MovieDBUITests.release.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = "Target Support Files/Pods-MovieDB-MovieDBUITests/Pods-MovieDB-MovieDBUITests-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MODULEMAP_FILE = "Target Support Files/Pods-MovieDB-MovieDBUITests/Pods-MovieDB-MovieDBUITests.modulemap";
+				OTHER_LDFLAGS = "";
+				OTHER_LIBTOOLFLAGS = "";
+				PODS_ROOT = "$(SRCROOT)";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		4BC7450F9457737EE3E637BA155B56F7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"POD_CONFIGURATION_DEBUG=1",
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRIP_INSTALLED_PRODUCT = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				SYMROOT = "${SRCROOT}/../build";
+			};
+			name = Debug;
+		};
+		4DEA5F5E0B0753F2A50DED44F1BD754A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3E587BBDC1C28E9619E777E0AA236B36 /* Pods-MovieDB-MovieDBUITests.debug.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = "Target Support Files/Pods-MovieDB-MovieDBUITests/Pods-MovieDB-MovieDBUITests-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MODULEMAP_FILE = "Target Support Files/Pods-MovieDB-MovieDBUITests/Pods-MovieDB-MovieDBUITests.modulemap";
+				OTHER_LDFLAGS = "";
+				OTHER_LIBTOOLFLAGS = "";
+				PODS_ROOT = "$(SRCROOT)";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		515721E84748EEDACD4F823244052B39 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 966F775782DE97D14A2E902EEA44D1DC /* Pods-MovieDB.debug.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = "Target Support Files/Pods-MovieDB/Pods-MovieDB-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MODULEMAP_FILE = "Target Support Files/Pods-MovieDB/Pods-MovieDB.modulemap";
+				OTHER_LDFLAGS = "";
+				OTHER_LIBTOOLFLAGS = "";
+				PODS_ROOT = "$(SRCROOT)";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		5723E994F8AEB9F0E60D069017F3113D /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7DBE67633CD0DB67A111ECC9CC7FE1A1 /* Pods-MovieDB.release.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = "Target Support Files/Pods-MovieDB/Pods-MovieDB-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MODULEMAP_FILE = "Target Support Files/Pods-MovieDB/Pods-MovieDB.modulemap";
+				OTHER_LDFLAGS = "";
+				OTHER_LIBTOOLFLAGS = "";
+				PODS_ROOT = "$(SRCROOT)";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		61DFA0C9D300F9849D5A475651E29C09 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3774548517D4E2434D8FC95E15CA881F /* StripeTerminal.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		7B2028686ACCF43B604D14087DB4DEF6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 541EAC5B884C5B473F1390F08E6AFA46 /* StripeTerminal.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		8B5A46FF8D3C1289CDEE3BAFACABCD2A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"POD_CONFIGURATION_RELEASE=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRIP_INSTALLED_PRODUCT = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				SYMROOT = "${SRCROOT}/../build";
+			};
+			name = Release;
+		};
+		AE03F404D326970F0152C4F6055449A6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = B87CDB7D259F5C18AD4FB30191530B72 /* Pods-MovieDBTests.debug.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = "Target Support Files/Pods-MovieDBTests/Pods-MovieDBTests-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MODULEMAP_FILE = "Target Support Files/Pods-MovieDBTests/Pods-MovieDBTests.modulemap";
+				OTHER_LDFLAGS = "";
+				OTHER_LIBTOOLFLAGS = "";
+				PODS_ROOT = "$(SRCROOT)";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		D5B9FAA85A95F4A29F5D563142AC9312 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 496330758DC66E0ACE1F36ED537C0BCD /* Pods-MovieDBTests.release.xcconfig */;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = "Target Support Files/Pods-MovieDBTests/Pods-MovieDBTests-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MODULEMAP_FILE = "Target Support Files/Pods-MovieDBTests/Pods-MovieDBTests.modulemap";
+				OTHER_LDFLAGS = "";
+				OTHER_LIBTOOLFLAGS = "";
+				PODS_ROOT = "$(SRCROOT)";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		4821239608C13582E20E6DA73FD5F1F9 /* Build configuration list for PBXProject "Pods" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4BC7450F9457737EE3E637BA155B56F7 /* Debug */,
+				8B5A46FF8D3C1289CDEE3BAFACABCD2A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		77E9524D6ED1254203B16F954A9E03C5 /* Build configuration list for PBXNativeTarget "Pods-MovieDBTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AE03F404D326970F0152C4F6055449A6 /* Debug */,
+				D5B9FAA85A95F4A29F5D563142AC9312 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		85FA92F506250A6B13D5CD25FC063540 /* Build configuration list for PBXNativeTarget "Pods-MovieDB-MovieDBUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4DEA5F5E0B0753F2A50DED44F1BD754A /* Debug */,
+				39A9D2412232743A6EC7ABA96F311C0F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C5D216C29B6CCAF959E818D460F55217 /* Build configuration list for PBXAggregateTarget "StripeTerminal" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7B2028686ACCF43B604D14087DB4DEF6 /* Debug */,
+				61DFA0C9D300F9849D5A475651E29C09 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C61DC47D04DCB3858520888CCBCB7620 /* Build configuration list for PBXNativeTarget "Pods-MovieDB" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				515721E84748EEDACD4F823244052B39 /* Debug */,
+				5723E994F8AEB9F0E60D069017F3113D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = BFDFE7DC352907FC980B868725387E98 /* Project object */;
+}
