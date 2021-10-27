@@ -6,8 +6,17 @@
         "repositoryURL": "https://github.com/elai950/AlertToast.git",
         "state": {
           "branch": null,
-          "revision": "0a6f9182ce19ccd267f7d022ebbc9ae3952f4012",
-          "version": "1.2.9"
+          "revision": "a4f4267f6454259ba4ed8f9dadb87334a789c26c",
+          "version": "1.3.7"
+        }
+      },
+      {
+        "package": "JWTDecode",
+        "repositoryURL": "https://github.com/auth0/JWTDecode.swift.git",
+        "state": {
+          "branch": null,
+          "revision": "3cd207fb9e943b6168a117baa3936c823204c2dc",
+          "version": "2.6.3"
         }
       },
       {
@@ -20,12 +29,21 @@
         }
       },
       {
+        "package": "PopupView",
+        "repositoryURL": "https://github.com/exyte/PopupView",
+        "state": {
+          "branch": "master",
+          "revision": "4ca31b450bdfdc027eab688440556b11167b0a77",
+          "version": null
+        }
+      },
+      {
         "package": "SDWebImage",
         "repositoryURL": "https://github.com/SDWebImage/SDWebImage",
         "state": {
           "branch": null,
-          "revision": "76dd4b49110b8624317fc128e7fa0d8a252018bc",
-          "version": "5.11.1"
+          "revision": "a72df4849408da7e5d3c1b586797b7c601c41d1b",
+          "version": "5.12.1"
         }
       },
       {
@@ -42,8 +60,8 @@
         "repositoryURL": "https://github.com/ivanvorobei/SPAlert",
         "state": {
           "branch": null,
-          "revision": "b8e7005c6184ce66b560bddebb62fcd7dd7cc608",
-          "version": "3.2.2"
+          "revision": "066d79016f24a804d8b789a5ec4117db6454cf66",
+          "version": "3.4.1"
         }
       },
       {
@@ -51,8 +69,8 @@
         "repositoryURL": "https://github.com/stripe/stripe-ios",
         "state": {
           "branch": null,
-          "revision": "8ca9931984949fbce44c342d5cecdada03cda18f",
-          "version": "21.6.0"
+          "revision": "fabd7ebe14052d505466ffe824b49eeab3778501",
+          "version": "21.8.1"
         }
       },
       {
@@ -65,12 +83,30 @@
         }
       },
       {
+        "package": "WrappingStack",
+        "repositoryURL": "https://github.com/diniska/swiftui-wrapping-stack",
+        "state": {
+          "branch": null,
+          "revision": "530e1d24155bc272af461da4cc1ed25ecce9e3ab",
+          "version": "1.0.1"
+        }
+      },
+      {
         "package": "URLImage",
         "repositoryURL": "https://github.com/dmytro-anokhin/url-image",
         "state": {
           "branch": null,
-          "revision": "a55b6597f6ce67dfbdc136ecfb8c8436b14ca41d",
-          "version": "3.1.0"
+          "revision": "4042f955f1fdff00ced85545e1eecdbf969b5cd0",
+          "version": "3.1.1"
+        }
+      },
+      {
+        "package": "WrappingHStack",
+        "repositoryURL": "https://github.com/dkk/WrappingHStack",
+        "state": {
+          "branch": null,
+          "revision": "8ad45ec818edfd59a63640b8d7df96df3c8a1c47",
+          "version": "2.1.2"
         }
       }
     ]
