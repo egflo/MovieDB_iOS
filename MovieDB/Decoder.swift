@@ -13,7 +13,17 @@ import Foundation
 
 
 
+/*
+    API NON-DATA RESPONSE
+ */
+struct ResponseStatus: Codable {
+    var message: String
+    var status: Int
+}
 
+/*
+    STRIPE RESPONSE
+ */
 
 struct PaymentData: Codable {
     var id: String = ""
@@ -59,24 +69,60 @@ struct Cart: Codable {
 
 struct CartDelete: Codable {
     let id: Int
-    let status: Bool?
+    let status: Bool
+    let message: String
 }
 
 /*
     USER DATA STRUCTURE
  */
 
-struct User: Codable {
+struct Email: Codable {
+    var id: Int = 0
+    var email: String = ""
+    var newEmail: String = ""
+    var password: String = ""
+}
+
+struct Password: Codable {
+    var id: Int = 0
+    var password: String = ""
+    var newPassword: String = ""
+}
+
+struct Address: Codable, Hashable, Equatable{
     var id: Int = 0
     var firstName: String = ""
     var lastName: String = ""
     var address: String = ""
     var unit: String = ""
-    var email: String = ""
     var city: String = ""
     var state: String = ""
     var postcode: String = ""
+    
+    /**
+     func hash(into hasher: inout Hasher) {
+         hasher.combine(id)
+     }
+     
+     static func ==(lhs: Address, rhs: Address) -> Bool {
+         return lhs.id == rhs.id
+     }
+     */
+
+}
+
+
+struct User: Codable {
+    var id: Int = 0
+    var firstName: String = ""
+    var lastName: String = ""
+    var email: String = ""
+    var primaryAddressId: Int = 0
     var sales: [Sale] = [Sale]()
+    var addresses: [Address] = [Address]()
+    var reviews: [Review] = [Review]()
+
 }
 
 /*
@@ -192,9 +238,9 @@ struct Movie:Codable, Equatable, Hashable, Identifiable{
     var uuid: UUID = UUID()
     
     var id: String = ""
-    var title: String = ""
+    var title: String = "No Title Found"
     var year: Int = 0
-    var director: String = ""
+    var director: String = "Not Director Found"
     var poster: String?
     var plot: String?
     var rated: String?
@@ -205,11 +251,11 @@ struct Movie:Codable, Equatable, Hashable, Identifiable{
     var boxOffice: String?
     var production: String?
     var country: String?
+    var background: String?
     var genres: [Genre] = [Genre]()
     var cast: [Cast] = [Cast]()
     var ratings: Rating?
     var price: Double?
-    var background: String?
     
     enum CodingKeys: String, CodingKey {
         
@@ -247,13 +293,23 @@ struct Movie:Codable, Equatable, Hashable, Identifiable{
 
 struct Genre:Codable {
     var id: Int
-    var genreId: Int
-    var movieId: String?
+    //var genreId: Int
+    //var movieId: String?
     var name: String
 }
 
+struct Cast:Codable {
+    //var id: Int
+    var starId: String
+    //var movieId: String
+    var category: String?
+    var characters: String?
+    var name: String?
+    var photo: String?
+}
+
+
 struct Rating:Codable {
-    var movieId: String
     var rating: Double?
     var numVotes: Int?
     var imdb: String?
@@ -264,14 +320,33 @@ struct Rating:Codable {
     var rottenTomatoesAudienceStatus: String?
 }
 
-struct Cast:Codable {
-    var id: Int
-    var starId: String
-    var movieId: String
-    var category: String?
-    var characters: String?
-    var name: String?
-    var photo: String?
+struct Review: Codable, Equatable {
+    let id: Int
+    let movieId: String
+    let customerId: Int
+    let text: String
+    let rating: Int
+    let sentiment: String
+    let title: String
+    let customerName: String
+    
+    static func ==(lhs: Review, rhs: Review) -> Bool {
+        return lhs.id == rhs.id
+    }
+}
+
+struct ResponseReviews: Codable {
+    var content: [Review] = [Review]()
+    var pageable: Pagable
+    var totalPages: Int
+    var totalElements: Int
+    var last: Bool
+    var size: Int
+    var number: Int
+    var sort: Sort
+    var numberOfElements: Int
+    var first: Bool
+    var empty: Bool
 }
 
 
@@ -353,15 +428,12 @@ struct MovieMeta: Codable, Equatable, Hashable, Identifiable {
 
 struct Checkout: Codable {
     var total: Double = 0.0
-    var address: User = User()
+    var address = Address()
     var subTotal: Double = 0.0
     var salesTax: Double = 0.0
     var cart: [Cart] = [Cart]()
 }
 
-struct Address: Codable {
-    
-}
 
 /*
     BOOKMARK STRUCTURE
@@ -433,16 +505,27 @@ class CastDecode {
         let category = subCastCategory()
         let character = subCastCharacter()
         
-        var str = ""
-        if(category.count > 0) {
-            str += category
-        }
-        
         if(character.count > 0) {
-            str += " - \(character)"
+            return character
         }
         
-        return str
+        else {
+            return category
+        }
+        /**
+         var str = ""
+         if(category.count > 0) {
+             str += category
+         }
+         
+         if(character.count > 0) {
+             str += " - \(character)"
+         }
+         
+         return str
+         
+         */
+
     }
 }
 
@@ -841,7 +924,7 @@ class RatingDecode {
             self.ratings = unwrapped
 
         } else {
-            self.ratings = Rating(movieId: movie.id, rating: 0, numVotes: 0, imdb: "N/A", metacritic: "N/A", rottenTomatoes: "N/A")
+            self.ratings = Rating(rating: 0, numVotes: 0, imdb: "N/A", metacritic: "N/A", rottenTomatoes: "N/A")
         }
     }
     
@@ -955,8 +1038,12 @@ class RatingDecode {
                 return AnyView(VStack{})
             }
             
-            let score = unwrapped.components(separatedBy: ".")[0]
-            
+            var score = unwrapped.components(separatedBy: ".")[0]
+
+            if(unwrapped.contains("/")) {
+                score = unwrapped.components(separatedBy: "/")[0]
+            }
+
             return AnyView (
         
                 HStack(spacing: 0) {
@@ -1055,59 +1142,62 @@ class UserDecode {
         return l_name
     }
     
-    func address() -> String {
-        let address = user.address
-        if(address.isEmpty) {
-            return "Address"
-        }
-        return address
-    }
-    
-    func unit() -> String {
-        let unit = user.unit
-        if(unit.isEmpty) {
-            return "Unit/P.O Box"
-        }
-        return unit
-    }
-    
-    func email() -> String {
-        let email = user.email
-        if(email.isEmpty) {
-            return "Email"
-        }
-        return email
-    }
-    
-    func city() -> String {
-        let city = user.city
-        if(city.isEmpty) {
-            return "City"
-        }
-        return city
-    }
-    
-    func state() -> String {
-        let state = user.state
-        if(state.isEmpty) {
-            return "State"
-        }
-        return state
-    }
-    
-    func postcode() -> String {
-        let postcode = user.postcode
-        if(postcode.isEmpty) {
-            return "Postcode/Zipcode"
-        }
-        return postcode
-    }
-    
-    func validEmail() -> Bool {
-        let regex =  "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
-        let namePredicate = NSPredicate(format: "SELF MATCHES%@", regex)
-        return namePredicate.evaluate(with: self.user.email)
-    }
+    /**
+     func address() -> String {
+         let address = user.address
+         if(address.isEmpty) {
+             return "Address"
+         }
+         return address
+     }
+     
+     func unit() -> String {
+         let unit = user.unit
+         if(unit.isEmpty) {
+             return "Unit/P.O Box"
+         }
+         return unit
+     }
+     
+     func email() -> String {
+         let email = user.email
+         if(email.isEmpty) {
+             return "Email"
+         }
+         return email
+     }
+     
+     func city() -> String {
+         let city = user.city
+         if(city.isEmpty) {
+             return "City"
+         }
+         return city
+     }
+     
+     func state() -> String {
+         let state = user.state
+         if(state.isEmpty) {
+             return "State"
+         }
+         return state
+     }
+     
+     func postcode() -> String {
+         let postcode = user.postcode
+         if(postcode.isEmpty) {
+             return "Postcode/Zipcode"
+         }
+         return postcode
+     }
+     
+     func validEmail() -> Bool {
+         let regex =  "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+         let namePredicate = NSPredicate(format: "SELF MATCHES%@", regex)
+         return namePredicate.evaluate(with: self.user.email)
+     }
+     */
+
 }
 
 

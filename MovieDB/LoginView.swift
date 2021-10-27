@@ -8,6 +8,56 @@
 import SwiftUI
 import KeychainAccess
 import AlertToast
+import JWTDecode
+
+class PopoverViewModel: ObservableObject{
+    
+    @Published var show = false
+    @Published var text = "Test"
+
+}
+
+class AlertViewModel: ObservableObject{
+    
+    @Published var show = false
+    @Published var title = "Error"
+    @Published var subtitle = "Subtitle"
+   
+    @Published var image = "exclamationmark.circle"
+    @Published var color = Color.red
+
+    func setError(title: String, subtitle: String) {
+        self.image = "exclamationmark.circle"
+        self.color = Color.red
+        self.title = title
+        self.subtitle = subtitle
+        self.show = true
+    }
+    
+    func setComplete(title: String, subtitle: String) {
+        self.image = "exclamationmark.circle"
+        self.color = Color.green
+        self.title = title
+        self.subtitle = subtitle
+        self.show = true
+    }
+
+    func setSubtitle(subtitle: String) {
+        self.subtitle = subtitle
+    }
+    
+    func setTitle(title: String) {
+        self.title = title
+    }
+    
+    /*
+    @Published var alertToast: AlertToast {
+        didSet{
+            show.toggle()
+        }
+    }
+    */
+}
 
 
 struct LoginView: View {
@@ -27,69 +77,68 @@ struct LoginView: View {
     let verticalPaddingForForm = 30
     
     var body: some View {
-        ZStack {
-            VStack(spacing: CGFloat(verticalPaddingForForm)) {
-                Image(systemName: "film")
-                    .resizable()
-                    .frame(width: 100, height: 100).foregroundColor(.secondary)
-                                
-               HStack {
-                    Image(systemName: "envelope.fill")
-                       .foregroundColor(.gray)
-                    TextField("Email", text: $email)
-                        .foregroundColor(.gray)
-                }
-                .padding()
-                .background(Color(.systemGray5))
-                .cornerRadius(10)
-                .shadow(radius: 8)
-                
-                HStack {
-                    Image(systemName: "key")
+        VStack {
+            Spacer()
+            ZStack {
+                VStack(spacing: CGFloat(verticalPaddingForForm)) {
+                    Image(systemName: "film")
                         .resizable()
-                        .frame(width: 12, height: 20)
-                        .foregroundColor(.gray)
-                    SecureField("Password", text: $password)
-                        .foregroundColor(.gray)
-
-                }
-                .padding()
-                .background(Color(.systemGray5))
-                .cornerRadius(10)
-                .shadow(radius: 8)
-
-                
-                Button(action:  {
-                        self.loading = true
-                        authUser()
-                        
+                        .frame(width: 100, height: 100).foregroundColor(.secondary)
+                                    
+                   HStack {
+                        Image(systemName: "envelope.fill")
+                           .foregroundColor(.gray)
+                        TextField("Email", text: $email)
+                            .foregroundColor(.gray)
+                    }
+                    .padding()
+                    .background(Color(.systemGray5))
+                    .cornerRadius(10)
+                    .shadow(radius: 8)
                     
-                }) {
-                    Text("Login").bold()
-                        .padding()
-                    
-                    if(self.loading){
-                        ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: Color.white))
+                    HStack {
+                        Image(systemName: "key")
+                            .resizable()
+                            .frame(width: 12, height: 20)
+                            .foregroundColor(.gray)
+                        SecureField("Password", text: $password)
+                            .foregroundColor(.gray)
 
                     }
+                    .padding()
+                    .background(Color(.systemGray5))
+                    .cornerRadius(10)
+                    .shadow(radius: 8)
+
                     
-                }.frame(width: 150, height: 50)
+                    Button(action:  {
+                            self.loading = true
+                            authUser()
+                            
+                        
+                    }) {
+                        Text("Login").bold()
+                            .padding()
+                        
+                        if(self.loading){
+                            ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: Color.white))
 
-                .background(Color.blue)
-                .foregroundColor(Color.white)
-                .cornerRadius(10)
+                        }
+                        
+                    }.frame(width: 150, height: 50)
+
+                    .background(Color.blue)
+                    .foregroundColor(Color.white)
+                    .cornerRadius(10)
+                    
+              }.padding(.horizontal, CGFloat(verticalPaddingForForm))
                 
-          }.padding(.horizontal, CGFloat(verticalPaddingForForm))
-            
-        }.frame(maxWidth: 600)
-        
-        .toast(isPresenting: $showToast){
-
-            //Choose .hud to toast alert from the top of the screen
-            AlertToast(displayMode: .hud, type: .error(Color.red), title: viewModel.title, subTitle: viewModel.subtitle)
-
+            }.frame(maxWidth: 600)
+            Spacer()
         }
+        .navigationBarHidden(true)
+
     }
     
     func authUser() {
@@ -101,13 +150,19 @@ struct LoginView: View {
                     user.id = userToken.id
                     user.username = userToken.username
                     user.token = userToken.token
+                    let keychain = Keychain(service: "com.dataflix-token")
+                    keychain["JWT"] = userToken.token
                     
                     self.loading = false
                     
                 }
             case .failure(let error):
-                viewModel.subtitle = error.localizedDescription
-                viewModel.show = true
+                DispatchQueue.main.async {
+                    viewModel.subtitle = error.localizedDescription
+                    viewModel.show = true
+                    self.loading = false
+                }
+
             }
         }
     }
@@ -116,23 +171,61 @@ struct LoginView: View {
 struct ContentView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @EnvironmentObject var user: UserData
+    @EnvironmentObject var viewModel: AlertViewModel
     
+    let keychain = Keychain(service: "com.dataflix-token")
 
+    
     var body: some View {
-          if !user.isLoggedin {
-                //return AnyView(LoginView())
-                //AnyView(LoginView())
-               LoginView()
-           } else {
-               // return AnyView(SearchView())
-                NavigationView {
-                    MainView()
-                        //.transition(.move(edge: .trailing))
-                        //.animation(Animation.linear(duration: 2))
-                    //AnyView(MainView())
-                }.navigationViewStyle(StackNavigationViewStyle())
-         }
+        NavigationView {
+            
+            let token = keychain["JWT"]
+            
+             if !user.isLoggedin || token == nil {
+                   //return AnyView(LoginView())
+                   //AnyView(LoginView())
+                  LoginView()
+              } else {
+                 
+             //ContextView(context: AnyView(MainView()))
+                 MainView()
+                     .transition(AnyTransition.opacity.animation(.easeInOut(duration: 1.0)))
+                     //.transition(.move(edge: .trailing))
+                     //.animation(Animation.linear(duration: 2))
+                     .navigationBarHidden(true)
+                     .onAppear(perform: {user.token = token!})
 
+              }
+           
+        }
+        .navigationViewStyle(StackNavigationViewStyle())
+        
+        
+        .toast(isPresenting: $viewModel.show){
+
+            //Choose .hud to toast alert from the top of the screen
+            AlertToast(displayMode: .hud, type: .systemImage(viewModel.image, viewModel.color), title: viewModel.title, subTitle: viewModel.subtitle)
+        }
+        
+    }
+    
+    
+    func authToken() {
+        API(user: user).authToken() { (result) in
+            switch result {
+            case .success( _ ):
+                DispatchQueue.main.async {
+                    print("Valid Token")
+                }
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    viewModel.subtitle = error.localizedDescription
+                    viewModel.show = true
+                    user.isLoggedin = false
+                }
+
+            }
+        }
     }
 }
 

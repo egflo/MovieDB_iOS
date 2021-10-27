@@ -26,14 +26,14 @@ struct DropDown: View {
                 Image(systemName: expand ? "chevron.up" : "chevron.down")
                     .font(.system(size: 20))
             }
-            .onTapGesture {
-                self.expand.toggle()
-            }
+
         })
         .frame(width: (UIScreen.main.bounds.width), height: 40)
         .background(Color(.systemGray6))
         .foregroundColor(Color.blue)
-
+        .onTapGesture {
+            self.expand.toggle()
+        }
         
         if expand {
             Text(self.text)
@@ -51,7 +51,8 @@ struct CastMovieRow: View {
 
     @Binding var cast: Cast
     @State var movies: [Movie]?
-    
+    let rowHeight = 65
+
     var body: some View {
         VStack {
             
@@ -64,7 +65,7 @@ struct CastMovieRow: View {
             
             if let movies = movies {
                 
-                List(movies, id: \.uuid) { movie in
+                ForEach(movies, id: \.uuid) { movie in
                     let m = MovieDecode(movie:movie)
 
                     NavigationLink(destination: MovieView(movie: movie)) {
@@ -93,19 +94,23 @@ struct CastMovieRow: View {
                             Text("Details")
                                 .foregroundColor(Color.blue)
 
+                            Image(systemName: "chevron.right")
+                                .font(Font.system(size: 15))
+                                .foregroundColor(Color.gray)
                         }
                     }
 
                 }
-                .frame(height: UIScreen.main.bounds.height)
+                //.frame(height: UIScreen.main.bounds.height)
+                .frame(height: CGFloat(rowHeight))
+                .padding(.leading, 15)
+                .padding(.trailing, 15)
                 //.listStyle(GroupedListStyle())
                 .listStyle(PlainListStyle())
 
                 .onAppear(perform: {
                     UITableView.appearance().isScrollEnabled = false
                 })
-                
-                .frame(height: (UIScreen.main.bounds.height))
                 
             }
             
@@ -165,7 +170,7 @@ struct iPhoneCastView: View {
             
                 Text(c.subString()).font(.subheadline).foregroundColor(.gray)//.padding(.bottom,10)
          
-                Text(c.birthDetails()).padding(.bottom,5).frame(width: (UIScreen.main.bounds.width - 33), height: 70)
+                Text(c.birthDetails()).padding(.bottom,5).frame(width: (UIScreen.main.bounds.width - 33))
             
                 DropDown(headline: "Biography", text: c.bio())//.padding(.bottom,10)
                 
@@ -296,14 +301,6 @@ struct CastView: View {
     
     @State var cast: Cast
     
-    @State var HomeActive = false
-    @State var SearchActive = false
-    @State var UserActive = false
-    @State var OrderActive = false
-    @State var CartActive = false
-    
-    @State var qty = 0
-    
     var body: some View {
         VStack {
             ScrollView(.vertical, showsIndicators: false) {
@@ -327,7 +324,7 @@ struct CastView: View {
           }
             
         }
-        .onAppear(perform: {self.getCartQtyData()})
+        .onAppear(perform: {})
         .toast(isPresenting: $viewModel.show){
 
             //Choose .hud to toast alert from the top of the screen
@@ -336,83 +333,9 @@ struct CastView: View {
         }
         .navigationBarHidden(false)
         .navigationBarTitle(Text("\(cast.name!)"), displayMode: .inline)
-
-        .background(
-            HStack {
-                NavigationLink(destination: MainView(), isActive: $HomeActive) {EmptyView()}
-                NavigationLink(destination: SearchView(), isActive: $SearchActive) {EmptyView()}
-                NavigationLink(destination: UserView(), isActive: $UserActive) {EmptyView()}
-                NavigationLink(destination: OrderView(), isActive: $OrderActive) {EmptyView()}
-                NavigationLink(destination: CartView(), isActive: $CartActive) {EmptyView()}
-                NavigationLink(destination: EmptyView()) {
-                    EmptyView()
-                }
-            }
-
-        )
-        
         .toolbar {
-          ToolbarItem(placement: .bottomBar) {
-            HStack{
-                Button(action: {
-                    self.HomeActive = true
-                })
-                {
-                    Image(systemName: "house").imageScale(.large)
-                }
-                Button(action: {
-                    self.SearchActive = true
-                })
-                {
-                    Image(systemName: "magnifyingglass").imageScale(.large)
-                }
-                
-                Button(action: {
-                    self.UserActive = true
-                })
-                {
-                    Image(systemName: "person.crop.circle").imageScale(.large)
-                }
-                
-                Button(action: {
-                    self.OrderActive = true
-                })
-                {
-                    Image(systemName: "shippingbox").imageScale(.large)
-                }
-                
-                Button(action: {
-                    self.CartActive = true
-
-                })
-                {
-                    ZStack {
-                        Image(systemName: "cart").imageScale(.large)
-                        
-                        if(self.qty > 0) {
-                            Text("\(self.qty)")
-                                .foregroundColor(Color.black)
-                                .background(Capsule().fill(Color.orange).frame(width:30, height:20))
-                                .offset(x:20, y:-10)
-                        }
-
-                    }
-                    
-                }
-            }
-          }
-        }
-    }
-    
-    func getCartQtyData() {
-        API(user: user).getCartQty(){ (result) in
-            switch result {
-            case .success(let qty):
-                DispatchQueue.main.async {
-                    self.qty = qty
-                }
-            case .failure(let error):
-                print(error.localizedDescription)
+            ToolbarItemGroup(placement: .bottomBar) {
+                ItemsToolbar()
             }
         }
     }

@@ -98,14 +98,6 @@ struct OrderDetailsView: View {
     
     @State var sale: Sale
     @State var saleDetails: SaleDetails?
-    @State var qty = 0
-    
-    @State var HomeActive = false
-    @State var SearchActive = false
-    @State var UserActive = false
-    @State var OrderActive = false
-    @State var CartActive = false
-    
     
     let width = (UIScreen.main.bounds.width - 33)
     let height = (UIScreen.main.bounds.height - 33)
@@ -180,77 +172,15 @@ struct OrderDetailsView: View {
         }
         .onAppear(perform: {
             self.getSaleData()
-            self.getCartQtyData()
         })
         .navigationBarTitle(Text("Order #\(String(sale.id))"), displayMode: .large)
         .navigationBarHidden(false)
-        
-        .background(
-            HStack {
-                NavigationLink(destination: MainView(), isActive: $HomeActive) {EmptyView()}
-                NavigationLink(destination: SearchView(), isActive: $SearchActive) {EmptyView()}
-                NavigationLink(destination: UserView(), isActive: $UserActive) {EmptyView()}
-                NavigationLink(destination: OrderView(), isActive: $OrderActive) {EmptyView()}
-                NavigationLink(destination: CartView(), isActive: $CartActive) {EmptyView()}
-                NavigationLink(destination: EmptyView()) {
-                    EmptyView()
-                }
-            }
-
-        )
-        
         .toolbar {
-          ToolbarItem(placement: .bottomBar) {
-            HStack{
-                Button(action: {
-                    self.HomeActive = true
-                })
-                {
-                    Image(systemName: "house").imageScale(.large)
-                }
-                Button(action: {
-                    self.SearchActive = true
-                })
-                {
-                    Image(systemName: "magnifyingglass").imageScale(.large)
-                }
-                
-                Button(action: {
-                    self.UserActive = true
-                })
-                {
-                    Image(systemName: "person.crop.circle").imageScale(.large)
-                }
-                
-                Button(action: {
-                    self.OrderActive = true
-                })
-                {
-                    Image(systemName: "shippingbox").imageScale(.large)
-                }
-                
-                Button(action: {
-                    self.CartActive = true
-
-                })
-                {
-                    
-                 ZStack {
-                     Image(systemName: "cart").imageScale(.large)
-                     
-                     if(self.qty > 0) {
-                         Text("\(self.qty)")
-                             .foregroundColor(Color.black)
-                             .background(Capsule().fill(Color.orange).frame(width:30, height:20))
-                             .offset(x:20, y:-10)
-                         
-                     }
-
-                 }
-               }
+            ToolbarItemGroup(placement: .bottomBar) {
+                ItemsToolbar()
             }
-          }
         }
+        
     }
     
     
@@ -268,19 +198,6 @@ struct OrderDetailsView: View {
         }
     }
     
-    func getCartQtyData() {
-        API(user: user).getCartQty(){ (result) in
-            switch result {
-            case .success(let qty):
-                DispatchQueue.main.async {
-                    self.qty = qty
-                }
-            case .failure(let error):
-                print(error.localizedDescription)
-            }
-        }
-    }
-
 }
 
 
@@ -412,14 +329,6 @@ struct OrderView: View {
     @EnvironmentObject var user: UserData
     
     @StateObject var dataSource = ContentDataSourceOrders()
-    @State var qty = 0
-    
-    @State var HomeActive = false
-    @State var SearchActive = false
-    @State var UserActive = false
-    @State var OrderActive = false
-    @State var CartActive = false
-    
     let width = (UIScreen.main.bounds.width)
 
     var body: some View {
@@ -474,10 +383,10 @@ struct OrderView: View {
 
                                     OrderRowView(decode: decode)
                                 }
-                                .onAppear {
-                                    print("Load More")
-                                    dataSource.loadMoreContent(user: user)
-                                }
+                                //.onAppear {
+                                //    print("Load More")
+                               //     dataSource.loadMoreContent(user: user)
+                               // }
                                 .buttonStyle(PlainButtonStyle())
                                 
                             }
@@ -489,97 +398,23 @@ struct OrderView: View {
                 }.frame(width: UIScreen.main.bounds.width)
             }
             
-        }.offset(y: 15)
+        }
+        //.offset(y: 15)
         
         .onAppear {
             print("Load More")
             dataSource.loadMoreContent(user: user)
-            self.getCartQtyData()
         }
         
         .navigationBarHidden(true)
         .navigationBarTitle(Text("Orders"), displayMode: .large)
-        
-        .background(
-            HStack {
-                NavigationLink(destination: MainView(), isActive: $HomeActive) {EmptyView()}
-                NavigationLink(destination: SearchView(), isActive: $SearchActive) {EmptyView()}
-                NavigationLink(destination: UserView(), isActive: $UserActive) {EmptyView()}
-                NavigationLink(destination: OrderView(), isActive: $OrderActive) {EmptyView()}
-                NavigationLink(destination: CartView(), isActive: $CartActive) {EmptyView()}
-                NavigationLink(destination: EmptyView()) {
-                    EmptyView()
-                }
-            }
-
-        )
-        
         .toolbar {
-          ToolbarItem(placement: .bottomBar) {
-            HStack{
-                Button(action: {
-                    self.HomeActive = true
-                })
-                {
-                    Image(systemName: "house").imageScale(.large)
-                }
-                Button(action: {
-                    self.SearchActive = true
-                })
-                {
-                    Image(systemName: "magnifyingglass").imageScale(.large)
-                }
-                
-                Button(action: {
-                    self.UserActive = true
-                })
-                {
-                    Image(systemName: "person.crop.circle").imageScale(.large)
-                }
-                
-                Button(action: {
-                    self.OrderActive = true
-                })
-                {
-                    Image(systemName: "shippingbox").imageScale(.large)
-                }
-                
-                Button(action: {
-                    self.CartActive = true
-
-                })
-                {
-                    
-                 ZStack {
-                     Image(systemName: "cart").imageScale(.large)
-                     
-                     if(self.qty > 0) {
-                         Text("\(self.qty)")
-                             .foregroundColor(Color.black)
-                             .background(Capsule().fill(Color.orange).frame(width:30, height:20))
-                             .offset(x:20, y:-10)
-                         
-                     }
-
-                 }
-               }
+            ToolbarItemGroup(placement: .bottomBar) {
+                ItemsToolbar()
             }
-          }
         }
     }
     
-    func getCartQtyData() {
-        API(user: user).getCartQty(){ (result) in
-            switch result {
-            case .success(let qty):
-                DispatchQueue.main.async {
-                    self.qty = qty
-                }
-            case .failure(let error):
-                print(error.localizedDescription)
-            }
-        }
-    }
     
 }
 

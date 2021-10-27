@@ -23,8 +23,8 @@ struct GenreMainRow: View {
 
     var body: some View {
         
-        let genre_data = Genre(id: genre.id!, genreId: genre.id!, name: genre.name!)
-            
+        //let genre_data = Genre(id: genre.id!, genreId: genre.id!, name: genre.name!)
+        let genre_data = Genre(id: genre.id!, name: genre.name!)
         ZStack{
             Image("background")
                 .renderingMode(.original)
@@ -97,43 +97,52 @@ struct MovieRowView: View {
 
     var meta: MovieMeta
     @State var isActive = false;
-    @State var movie = Movie()
+    @State var movie: Movie?
     
     var body: some View {
-        let m = MovieDecode(movie:movie)
         
         VStack{
-            NavigationLink(destination: MovieView(movie: movie), isActive: $isActive){
-                ZStack (alignment: .bottomLeading){
-                        WebImage(url: URL(string: m.background()))
-                                .resizable()
-                                .placeholder(
-                                    Image("background")
-                                )
-                                .scaledToFill()
-                                .clipped()
-                                .transition(.fade(duration: 0.5)) // Fade Transition with duration
-                        
-                        VStack(alignment: .leading) {
-                            Text(m.title()).font(.system(size: 28)).bold().foregroundColor(.white).shadow(radius: 5)
-                                .padding(.trailing, 4)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.1)
+            if let movie = movie {
+                let m = MovieDecode(movie:movie)
 
-                            Text(m.subString()).font(.subheadline).bold().foregroundColor(.white).shadow(radius: 5)
+                NavigationLink(destination: MovieView(movie: movie), isActive: $isActive){
+                    ZStack (alignment: .bottomLeading){
+                            WebImage(url: URL(string: m.background()))
+                                    .resizable()
+                                    .placeholder(
+                                        Image("background")
+                                    )
+                                    .scaledToFill()
+                                    .clipped()
+                                    .transition(.fade(duration: 0.5)) // Fade Transition with duration
+                            
+                            VStack(alignment: .leading) {
+                                Text(m.title()).font(.system(size: 28)).bold().foregroundColor(.white).shadow(radius: 5)
+                                    .padding(.trailing, 4)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.1)
 
-                        }
-                        .padding(.bottom,20)
-                        .padding(.leading,20)
+                                Text(m.subString()).font(.subheadline).bold().foregroundColor(.white).shadow(radius: 5)
+
+                            }
+                            .padding(.bottom,20)
+                            .padding(.leading,20)
+                    }
+                    
                 }
-                
+                .onTapGesture{self.isActive = true}
             }
-            .onTapGesture{self.isActive = true}
-            .onAppear(perform: {
-                self.getMovieData()
-            })
-        }.cornerRadius(8)
+            
+            else {
+                ProgressView()
+            }
 
+
+        }
+        .cornerRadius(8)
+        .onAppear(perform: {
+            self.getMovieData()
+        })
     }
      
     func getMovieData() {
@@ -199,7 +208,6 @@ struct MovieMainView: View {
                                         MovieRowView(meta: meta)
                                             .frame(width: 400, height: 220, alignment: .center)
                                     
-
                                 }
                                 
                             }.onAppear {
@@ -255,33 +263,24 @@ struct MovieMainView: View {
 
     }
     
-    /**
-    func getMetaData() {
-        API(user: user).getMetaMovie(path: self.path) { (result) in
-            switch result {
-            case .success(let metas):
-                DispatchQueue.main.async {
-                    self.metas = metas
-                }
-            case .failure(let error):
-                print(error.localizedDescription)
-            }
-        }
-    }
-    **/
 }
 
 struct MainView: View {
-    @EnvironmentObject var user: UserData
+    init() {
+        //Use this if NavigationBarTitle is with Large Font
+        //UINavigationBar.appearance().largeTitleTextAttributes = [.foregroundColor: UIColor.red]
 
-    @State var HomeActive = false
-    @State var SearchActive = false
-    @State var UserActive = false
-    @State var OrderActive = false
-    @State var CartActive = false
+        //Use this if NavigationBarTitle is with displayMode = .inline
+        //UINavigationBar.appearance().titleTextAttributes = [.foregroundColor: UIColor.red]
+        
+        UIToolbar.appearance().isTranslucent = false
+        //UIToolbar.appearance().barTintColor = UIColor.systemGray6
+        //UIToolbar.appearance().setBackgroundImage(UIImage(), forToolbarPosition: .any, barMetrics: .default)
+        //UIToolbar.appearance().setShadowImage(UIImage(), forToolbarPosition: .any)
+    }
     
-    
-    @State var qty = 0
+    @EnvironmentObject var user: UserData
+    @EnvironmentObject var viewModel: AlertViewModel
     
     var body: some View {
         
@@ -303,91 +302,14 @@ struct MainView: View {
                 .padding(.bottom, 15)
             
         }
-        .onAppear(perform: {getCartQtyData()})
-        .offset(y: 15)
         
         .navigationBarHidden(true)
-        
-        .background(
-            HStack {
-                NavigationLink(destination: MainView(), isActive: $HomeActive) {EmptyView()}
-                NavigationLink(destination: SearchView(), isActive: $SearchActive) {EmptyView()}
-                NavigationLink(destination: UserView(), isActive: $UserActive) {EmptyView()}
-                NavigationLink(destination: OrderView(), isActive: $OrderActive) {EmptyView()}
-                NavigationLink(destination: CartView(), isActive: $CartActive) {EmptyView()}
-                NavigationLink(destination: EmptyView()) {
-                    EmptyView()
-                }
-            }
-        )
-        
         .toolbar {
-          ToolbarItemGroup(placement: .bottomBar) {
-            HStack{
-                Button(action: {
-                    self.HomeActive = true
-                })
-                {
-                    Image(systemName: "house").imageScale(.large)
-                }
-                Button(action: {
-                    self.SearchActive = true
-                })
-                {
-                    Image(systemName: "magnifyingglass").imageScale(.large)
-                }
-                
-                Button(action: {
-                    self.UserActive = true
-                })
-                {
-                    Image(systemName: "person.crop.circle").imageScale(.large)
-                }
-                
-                Button(action: {
-                    self.OrderActive = true
-                })
-                {
-                    Image(systemName: "shippingbox").imageScale(.large)
-                }
-                
-                Button(action: {
-                    self.CartActive = true
-
-                })
-                {
-                    
-                 ZStack {
-                     Image(systemName: "cart").imageScale(.large)
-                     
-                     if(self.qty > 0) {
-                         Text("\(self.qty)")
-                             .foregroundColor(Color.black)
-                             .background(Capsule().fill(Color.orange).frame(width:30, height:20))
-                             .offset(x:20, y:-10)
-                         
-                     }
-
-                    }
-                }
-             }
-          }
-        }
-
-    }
-    
-    func getCartQtyData() {
-        API(user: user).getCartQty(){ (result) in
-            switch result {
-            case .success(let qty):
-                DispatchQueue.main.async {
-                    self.qty = qty
-                }
-            case .failure(let error):
-                print(error.localizedDescription)
+            ToolbarItemGroup(placement: .bottomBar) {
+                ItemsToolbar()
             }
         }
+    
     }
-
 }
 

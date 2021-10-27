@@ -13,6 +13,9 @@ import SDWebImageSwiftUI
 import Combine
 import UIKit
 import Introspect
+import AlertToast
+import Stripe
+import KeychainAccess
 
 struct CustomTextField: TextFieldStyle {
     @Binding var focused: Bool
@@ -22,8 +25,9 @@ struct CustomTextField: TextFieldStyle {
         configuration
         .padding(8)
         .background(
-            RoundedRectangle(cornerRadius: 8, style: .continuous)
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .stroke(focused ? Color.red : Color(.systemGray6), lineWidth: 3)
+                .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
                 //.background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.white))
 
         )
@@ -58,7 +62,6 @@ struct LabelTextField : View {
             }.frame(height: 30)
             
             TextField("\(placeHolder)", text: $input, onEditingChanged: {edit in self.editing = edit})
-                .background(Color(.systemGray5))
                 .textFieldStyle(CustomTextField(focused: $error))
                 .introspectTextField { textField in
                     textField.becomeFirstResponder()
@@ -103,15 +106,10 @@ struct LabelSecureTextField : View {
 
 
 struct PasswordView: View {
+    @EnvironmentObject var userData: UserData
+    @EnvironmentObject var viewModel: AlertViewModel
     @State var user: User
-    @State var qty = 0
-    
-    @State var HomeActive = false
-    @State var SearchActive = false
-    @State var UserActive = false
-    @State var OrderActive = false
-    @State var CartActive = false
-    
+
     @State var newPasswordStatus: Bool = false
     @State var newConfirmPasswordStatus: Bool = false
     @State var passwordStatus: Bool = false
@@ -120,18 +118,16 @@ struct PasswordView: View {
     @State var newConfirmPassword: String = ""
     @State var password: String = ""
 
-    @State var errorNewPassword = ""
-    @State var errorNewConfirmPassword = ""
-    @State var errorPassword = ""
+    @State var errorNewPassword = "Password is required"
+    @State var errorNewConfirmPassword = "Password(s) Must Match"
+    @State var errorPassword = "Password is required"
 
     
     let width = (UIScreen.main.bounds.width - 33)
 
     var body: some View {
         
-        VStack {
-            //Text("Change Password").font(.title).bold().frame(width:width, alignment: .leading)
-            
+        ScrollView {
             LabelSecureTextField(label: "Old Password", placeHolder: "Old Password", input: $password, error: $passwordStatus, error_message: $errorPassword)
             
             Divider()
@@ -147,7 +143,8 @@ struct PasswordView: View {
             }) {
                 
                 Text("Save Changes").bold()
-                    .frame(width: width , height: 50, alignment: .center)
+                    .frame(maxWidth: .infinity, minHeight:50, maxHeight: 50)
+                    //.frame(width: width , height: 50, alignment: .center)
                     //You need to change height & width as per your requirement
                     .foregroundColor(Color.white)
                     .background(Color.blue)
@@ -160,111 +157,89 @@ struct PasswordView: View {
             Spacer()
 
         }
-        .frame(width:width)
-        
-        .onAppear(perform:{
-            //self.getUserData()
-            //self.getCartQtyData()
-        })
-        //.offset(y: 15)
+        .padding(.leading, 15)
+        .padding(.trailing, 15)
+        .frame(maxWidth: 600)
         
         .navigationBarHidden(false)
+        .navigationBarTitleDisplayMode(.inline)
         .navigationBarTitle(Text("Change Password"), displayMode: .large)
-        
-        .background(
-            HStack {
-                NavigationLink(destination: MainView(), isActive: $HomeActive) {EmptyView()}
-                NavigationLink(destination: SearchView(), isActive: $SearchActive) {EmptyView()}
-                NavigationLink(destination: UserView(), isActive: $UserActive) {EmptyView()}
-                NavigationLink(destination: OrderView(), isActive: $OrderActive) {EmptyView()}
-                NavigationLink(destination: CartView(), isActive: $CartActive) {EmptyView()}
-                NavigationLink(destination: EmptyView()) {
-                    EmptyView()
-                }
-            }
-
-        )
-        
         .toolbar {
-          ToolbarItem(placement: .bottomBar) {
-            HStack{
-                Button(action: {
-                    self.HomeActive = true
-                })
-                {
-                    Image(systemName: "house").imageScale(.large)
-                }
-                Button(action: {
-                    self.SearchActive = true
-                })
-                {
-                    Image(systemName: "magnifyingglass").imageScale(.large)
-                }
-                
-                Button(action: {
-                    self.UserActive = true
-                })
-                {
-                    Image(systemName: "person.crop.circle").imageScale(.large)
-                }
-                
-                Button(action: {
-                    self.OrderActive = true
-                })
-                {
-                    Image(systemName: "shippingbox").imageScale(.large)
-                }
-                
-                Button(action: {
-                    self.CartActive = true
-
-                })
-                {
-                    
-                 ZStack {
-                     Image(systemName: "cart").imageScale(.large)
-                     
-                     if(self.qty > 0) {
-                         Text("\(self.qty)")
-                             .foregroundColor(Color.black)
-                             .background(Capsule().fill(Color.orange).frame(width:30, height:20))
-                             .offset(x:20, y:-10)
-                         
-                     }
-
-                    }
-                }
-
+            ToolbarItemGroup(placement: .bottomBar) {
+                ItemsToolbar()
             }
-          }
         }
     
     }
     
     func validate() {
         
+        var points = 0
+        
+        let password = password.trimmingCharacters(in: .whitespaces)
         if(password.count == 0) {
             passwordStatus = true
-            errorPassword = "Password is required"
-            return
+
+        }
+        else {
+            passwordStatus = false
+            points += 1
         }
         
-        print("Valid Form Submited")
+        let newPassword = newPassword.trimmingCharacters(in: .whitespaces)
+        if(newPassword.count == 0) {
+            newPasswordStatus = true
+
+        }
+        else {
+            newPasswordStatus = false
+            points += 1
+        }
+        
+        let confirmPassword = newConfirmPassword.trimmingCharacters(in: .whitespaces)
+        if(confirmPassword != newPassword) {
+            newConfirmPasswordStatus = true
+
+        }
+        else {
+            newConfirmPasswordStatus = false
+            points += 1
+        }
+        
+        
+        if(points >= 3) {
+            print("Valid Form Submited")
+            let changePassword = Password(id: user.id, password: password, newPassword: newPassword)
+            uploadPassword(password: changePassword)
+        }
         
     }
     
+    func uploadPassword(password: Password) {
+        API(user: userData).uploadPassword(password: password) { (result) in
+            switch result {
+            case .success(let user):
+                DispatchQueue.main.async {
+                    viewModel.setComplete(title: "Password Updated", subtitle: "Re-login with updated password.")
+                    self.user = user
+                    userData.isLoggedin = false
+
+                }
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    viewModel.setError(title: "Error", subtitle: error.localizedDescription)
+                    
+                }
+            }
+        }
+    }
 }
 
 struct EmailView: View {
+    @EnvironmentObject var userData: UserData
+    @EnvironmentObject var viewModel: AlertViewModel
     @State var user: User
-    @State var qty = 0
-    
-    @State var HomeActive = false
-    @State var SearchActive = false
-    @State var UserActive = false
-    @State var OrderActive = false
-    @State var CartActive = false
-    
+
     @State var emailStatus: Bool = false
     @State var emailConfirmStatus: Bool = false
     @State var passwordStatus: Bool = false
@@ -283,7 +258,7 @@ struct EmailView: View {
 
     var body: some View {
         
-        VStack {
+        ScrollView {
             //Text("Change Email").font(.title).bold().frame(width:width, alignment: .leading)
             Divider()
 
@@ -292,7 +267,7 @@ struct EmailView: View {
                 .padding(.bottom)
                 .padding(.top)
                 .font(.headline)
-                .frame(width:width, alignment: .leading)
+                //.frame(width:width, alignment: .leading)
             
             Divider()
             
@@ -308,7 +283,8 @@ struct EmailView: View {
             }) {
                 
                 Text("Save Changes").bold()
-                    .frame(width: width , height: 50, alignment: .center)
+                    .frame(maxWidth: .infinity, minHeight:50, maxHeight: 50)
+                    //frame(width: width , height: 50, alignment: .center)
                     //You need to change height & width as per your requirement
                     .foregroundColor(Color.white)
                     .background(Color.blue)
@@ -321,77 +297,17 @@ struct EmailView: View {
             Spacer()
             
         }
-        .frame(width:width)
-        //.offset(y: 15)
+        .padding(.leading, 15)
+        .padding(.trailing, 15)
+        .frame(maxWidth: 600)
         
         .navigationBarHidden(false)
-        .navigationBarTitle(Text("Change Email"), displayMode: .large)
-        
-        .background(
-            HStack {
-                NavigationLink(destination: MainView(), isActive: $HomeActive) {EmptyView()}
-                NavigationLink(destination: SearchView(), isActive: $SearchActive) {EmptyView()}
-                NavigationLink(destination: UserView(), isActive: $UserActive) {EmptyView()}
-                NavigationLink(destination: OrderView(), isActive: $OrderActive) {EmptyView()}
-                NavigationLink(destination: CartView(), isActive: $CartActive) {EmptyView()}
-                NavigationLink(destination: EmptyView()) {
-                    EmptyView()
-                }
-            }
-        )
-        
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitle(Text("Change Email"),displayMode: .large)
         .toolbar {
-          ToolbarItem(placement: .bottomBar) {
-            HStack{
-                Button(action: {
-                    self.HomeActive = true
-                })
-                {
-                    Image(systemName: "house").imageScale(.large)
-                }
-                Button(action: {
-                    self.SearchActive = true
-                })
-                {
-                    Image(systemName: "magnifyingglass").imageScale(.large)
-                }
-                
-                Button(action: {
-                    self.UserActive = true
-                })
-                {
-                    Image(systemName: "person.crop.circle").imageScale(.large)
-                }
-                
-                Button(action: {
-                    self.OrderActive = true
-                })
-                {
-                    Image(systemName: "shippingbox").imageScale(.large)
-                }
-                
-                Button(action: {
-                    self.CartActive = true
-
-                })
-                {
-                    
-                 ZStack {
-                     Image(systemName: "cart").imageScale(.large)
-                     
-                     if(self.qty > 0) {
-                         Text("\(self.qty)")
-                             .foregroundColor(Color.black)
-                             .background(Capsule().fill(Color.orange).frame(width:30, height:20))
-                             .offset(x:20, y:-10)
-                         
-                     }
-
-                    }
-                }
-
+            ToolbarItemGroup(placement: .bottomBar) {
+                ItemsToolbar()
             }
-          }
         }
 
     }
@@ -403,60 +319,98 @@ struct EmailView: View {
     }
     
     func validate() {
-        
+        var points = 0
         let email = newEmail.trimmingCharacters(in: .whitespaces)
         let confirmEmail = confirmEmail.trimmingCharacters(in: .whitespaces)
 
         if(email.count == 0) {
             emailStatus = true
             errorNewEmail = "Email is required"
-            return
-
+        }
+        else {
+            emailStatus = false
+            points += 1
         }
         
         if(!validEmail(email: email)) {
             emailConfirmStatus = true
             errorNewEmail = "Email not a valid format"
-            return
+        }
+        
+        else {
+            emailConfirmStatus = false
+            points += 1
         }
         
         if(confirmEmail != email) {
             emailConfirmStatus = true
             errorConfirmEmail = "Email(s) do not match"
-            return
-
+        }
+        else {
+            emailConfirmStatus = false
+            points += 1
         }
         
         if(password.count == 0) {
             passwordStatus = true
             errorPassword = "Password is required"
-            return
+        }
+        else {
+            passwordStatus = false
+            points += 1
         }
         
         
-        print("Valid Form Submited")
+        if(points >= 3) {
+            print("Email Form Submited")
+            let email = Email(id: user.id, email: user.email, newEmail: newEmail, password: password)
+            uploadEmail(email: email)
+        }
         
+    }
+    
+    func uploadEmail(email: Email) {
+        API(user: userData).uploadEmail(email: email) { (result) in
+            switch result {
+            case .success(let user):
+                DispatchQueue.main.async {
+                    viewModel.setComplete(title: "Email Updated", subtitle: "Re-login with updated email.")
+
+                    self.user = user
+                    userData.isLoggedin = false
+                }
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    viewModel.setError(title: "Error", subtitle: error.localizedDescription)
+                    
+                }
+            }
+        }
     }
     
 }
 
 
 struct AddressView: View {
+    @Environment(\.presentationMode) var mode: Binding<PresentationMode>
+
+    @EnvironmentObject var userData: UserData
+    @EnvironmentObject var viewModel: AlertViewModel
+    
     @State var user: User
-    @State var qty = 0
+    @State var address: Address
+    @State var insert: Bool
     
-    @State var HomeActive = false
-    @State var SearchActive = false
-    @State var UserActive = false
-    @State var OrderActive = false
-    @State var CartActive = false
-    
+    @State var firstNameStatus: Bool = false
+    @State var lastNameStatus: Bool = false
     @State var addressStatus: Bool = false
     @State var unitStatus: Bool = false
     @State var cityStatus: Bool = false
     @State var stateStatus: Bool = false
     @State var postcodeStatus: Bool = false
     
+    @State var errorFirstName = "No First Name Inserted"
+    @State var errorLastName = "No Last Name Inserted"
     @State var errorUnit = "No Unit Inserted"
     @State var errorAddress = "Address is Required"
     @State var errorCity = "City is Required"
@@ -466,122 +420,78 @@ struct AddressView: View {
     let width = (UIScreen.main.bounds.width - 33)
 
     var body: some View {
-        VStack {
-            let userDecode = UserDecode(user: user)
-            Group {
-                
-                //Text("Change Address").font(.title).bold().frame(width:width, alignment: .leading)
-            
-                LabelTextField(label: "Unit", placeHolder: "Aot, Suite, Unit, Building (Optional)", input: $user.unit, error: $unitStatus, error_message: $errorUnit)
-                
-                LabelTextField(label: "Address", placeHolder: "Street Number, Stree Address", input: $user.address, error: $addressStatus, error_message: $errorAddress)
-                
-                LabelTextField(label: "City", placeHolder: "City, Town", input: $user.city, error: $cityStatus, error_message: $errorCity)
-                
-                HStack {
-                    LabelTextField(label: "State", placeHolder: "", input: $user.state, error: $stateStatus, error_message: $errorState)
-                        .frame(width: 150)
+        ScrollView {
+                Group {
+                    LabelTextField(label: "Firstname", placeHolder: "", input: $address.firstName, error: $firstNameStatus, error_message: $errorFirstName)
                     
-                    Spacer().frame(width: 10)
+                    LabelTextField(label: "Lastname", placeHolder: "", input: $address.lastName, error: $lastNameStatus, error_message: $errorLastName)
+                        
+                    LabelTextField(label: "Unit", placeHolder: "Aot, Suite, Unit, Building (Optional)", input: $address.unit, error: $unitStatus, error_message: $errorUnit)
                     
-                    LabelTextField(label: "Postcode", placeHolder: "Zipcode", input: $user.postcode, error: $postcodeStatus, error_message: $errorPoastcode)
+                    LabelTextField(label: "Address", placeHolder: "Street Number, Stree Address", input: $address.address, error: $addressStatus, error_message: $errorAddress)
                     
-                }.frame(width: width)
+                    LabelTextField(label: "City", placeHolder: "City, Town", input: $address.city, error: $cityStatus, error_message: $errorCity)
+                    
+                    HStack {
+                        LabelTextField(label: "State", placeHolder: "", input: $address.state, error: $stateStatus, error_message: $errorState)
+                            .frame(width: 150)
+                        
+                        Spacer().frame(width: 10)
+                        
+                        LabelTextField(label: "Postcode", placeHolder: "Zipcode", input: $address.postcode, error: $postcodeStatus, error_message: $errorPoastcode)
+                        
+                    }//.frame(width: width)
 
-            }
-            
-            
-            Button(action: {
-                print("Saving Address")
-                validate()
-            }) {
-                
-                Text("Save Changes").bold()
-                    .frame(width: width , height: 50, alignment: .center)
-                    //You need to change height & width as per your requirement
-                    .foregroundColor(Color.white)
-                    .background(Color.blue)
-                    .cornerRadius(8)
-                    .padding(.bottom,5)
-                    .padding(.top, 5)
-                    
                 }
-            
+                
+                Button(action: {
+                    print("Saving Address")
+                    validate()
+                }) {
+                    
+                    Text("Save Changes").bold()
+                        .frame(maxWidth: .infinity, minHeight:50, maxHeight: 50)
+                        //You need to change height & width as per your requirement
+                        .foregroundColor(Color.white)
+                        .background(Color.blue)
+                        .cornerRadius(8)
+                        .padding(.bottom,5)
+                        .padding(.top, 5)
+                        
+                    }
+                
+                if(!insert) {
+                    Button(action: {
+                        print("Making Default Address")
+                        self.uploadDefaultAddress(address: address)
+                    }) {
+                        
+                        Text("Make Default").bold()
+                            .frame(maxWidth: .infinity, minHeight:50, maxHeight: 50)
+                            //You need to change height & width as per your requirement
+                            .foregroundColor(Color.white)
+                            .background(Color.blue)
+                            .cornerRadius(8)
+                            .padding(.bottom,5)
+                            .padding(.top, 5)
+                            
+                        }
+                }
             Spacer()
             
         }
-        .frame(width:width)
-        
+        .padding(.leading, 15)
+        .padding(.trailing, 15)
+        .frame(maxWidth: 600)
+                
         .navigationBarHidden(false)
+        .navigationBarTitleDisplayMode(.inline)
         .navigationBarTitle(Text("Change Address"), displayMode: .large)
-        
-        .background(
-            HStack {
-                NavigationLink(destination: MainView(), isActive: $HomeActive) {EmptyView()}
-                NavigationLink(destination: SearchView(), isActive: $SearchActive) {EmptyView()}
-                NavigationLink(destination: UserView(), isActive: $UserActive) {EmptyView()}
-                NavigationLink(destination: OrderView(), isActive: $OrderActive) {EmptyView()}
-                NavigationLink(destination: CartView(), isActive: $CartActive) {EmptyView()}
-                NavigationLink(destination: EmptyView()) {
-                    EmptyView()
-                }
-            }
-        )
-        
         .toolbar {
-          ToolbarItem(placement: .bottomBar) {
-            HStack{
-                Button(action: {
-                    self.HomeActive = true
-                })
-                {
-                    Image(systemName: "house").imageScale(.large)
-                }
-                Button(action: {
-                    self.SearchActive = true
-                })
-                {
-                    Image(systemName: "magnifyingglass").imageScale(.large)
-                }
-                
-                Button(action: {
-                    self.UserActive = true
-                })
-                {
-                    Image(systemName: "person.crop.circle").imageScale(.large)
-                }
-                
-                Button(action: {
-                    self.OrderActive = true
-                })
-                {
-                    Image(systemName: "shippingbox").imageScale(.large)
-                }
-                
-                Button(action: {
-                    self.CartActive = true
-
-                })
-                {
-                    
-                 ZStack {
-                     Image(systemName: "cart").imageScale(.large)
-                     
-                     if(self.qty > 0) {
-                         Text("\(self.qty)")
-                             .foregroundColor(Color.black)
-                             .background(Capsule().fill(Color.orange).frame(width:30, height:20))
-                             .offset(x:20, y:-10)
-                         
-                     }
-
-                    }
-                }
-
+            ToolbarItemGroup(placement: .bottomBar) {
+                ItemsToolbar()
             }
-          }
         }
-
     }
     
     func validPostal(postcode: String) -> Bool {
@@ -593,8 +503,30 @@ struct AddressView: View {
     func validate() {
         var points = 0
         
-        let address = user.address.trimmingCharacters(in: .whitespaces)
-        if(address.count == 0) {
+        let firstName = address.firstName.trimmingCharacters(in: .whitespaces)
+        if(firstName.count == 0) {
+            firstNameStatus = true
+
+        }
+        else {
+            firstNameStatus = false
+            points += 1
+
+        }
+        
+        let lastName = address.lastName.trimmingCharacters(in: .whitespaces)
+        if(lastName.count == 0) {
+            lastNameStatus = true
+
+        }
+        else {
+            lastNameStatus = false
+            points += 1
+
+        }
+        
+        let addressAddress = address.address.trimmingCharacters(in: .whitespaces)
+        if(addressAddress.count == 0) {
             addressStatus = true
 
         }
@@ -604,7 +536,7 @@ struct AddressView: View {
 
         }
         
-        let city = user.city.trimmingCharacters(in: .whitespaces)
+        let city = address.city.trimmingCharacters(in: .whitespaces)
         if(city.count == 0) {
             cityStatus = true
 
@@ -615,7 +547,7 @@ struct AddressView: View {
 
         }
         
-        let state = user.state.trimmingCharacters(in: .whitespaces)
+        let state = address.state.trimmingCharacters(in: .whitespaces)
         if(state.count == 0) {
             stateStatus = true
 
@@ -626,7 +558,7 @@ struct AddressView: View {
 
         }
         
-        let postcode = user.postcode.trimmingCharacters(in: .whitespaces)
+        let postcode = address.postcode.trimmingCharacters(in: .whitespaces)
         if(postcode.count == 0 || !validPostal(postcode: postcode)) {
             postcodeStatus = true
 
@@ -637,41 +569,185 @@ struct AddressView: View {
 
         }
         
+        if(points >= 6) {
+            let address = Address(id: address.id, firstName: address.firstName, lastName: address.lastName, address: address.address, unit: address.unit, city: address.city, state: address.state, postcode: address.postcode)
+            uploadAddress(address: address)
+        }
+        
+    }
+    
+    func uploadDefaultAddress(address: Address) {
+        API(user: userData).uploadPrimaryAddressId(id: address.id) { (result) in
+            switch result {
+            case .success(let user):
+                DispatchQueue.main.async {
+                    self.user = user
+                    viewModel.setComplete(title: "Success", subtitle: "Address is now primary address.")
+                }
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    viewModel.setError(title: "Error", subtitle: error.localizedDescription)
+
+                    
+                }
+            }
+        }
+    }
+    
+    func uploadAddress(address: Address) {
+        API(user: userData).uploadAddress(address: address, insert: insert) { (result) in
+            switch result {
+            case .success(let address):
+                DispatchQueue.main.async {
+                    if(insert) {
+                        user.addresses.append(address)
+                        self.mode.wrappedValue.dismiss()
+                    }
+                    
+                    else {
+                        //if let index = self.user.addresses.firstIndex(where: {$0.id == address.id}) {
+                        //    user.addresses[index] = address
+                        //}
+                        self.address = address
+                    }
+                    //self.user = user
+                    viewModel.setComplete(title: "Success", subtitle: "Address \((insert == true) ? "Added":"Updated")")
+                }
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    viewModel.setError(title: "Error", subtitle: error.localizedDescription)
+
+                    
+                }
+            }
+        }
     }
 }
 
+
+struct AddressesView: View {
+    @EnvironmentObject var userData: UserData
+    @EnvironmentObject var viewModel: AlertViewModel
+    
+    @State var user: User
+    @State var addresses = [Address]()
+    @State var isActive = false
+
+    let width = (UIScreen.main.bounds.width)
+
+    var body: some View {
+        VStack {
+
+            List {
+                ForEach(self.user.addresses, id: \.id) { address in
+
+                    NavigationLink(destination: AddressView(user: user, address: address, insert: false)) {
+                        HStack {
+                            VStack(alignment: .leading) {
+                                
+                                if(address.id == user.primaryAddressId) {
+                                    
+                                    Text("Primary Address").bold()
+                                        .foregroundColor(Color.blue)
+                                }
+
+                                VStack(alignment: .leading) {
+                                    Text("\(address.firstName) \(address.lastName)")
+                                    Text("\(address.address), \(address.city) \(address.state) \(address.postcode)")
+                                }
+                   
+                            }
+                                       
+                            Spacer()
+
+                            Text("Change")
+                                .foregroundColor(Color.blue)
+                            
+                        }.frame(height: (address.id == user.primaryAddressId) ? 80:50)
+                        
+                    }
+                    .buttonStyle(PlainButtonStyle())
+
+                }
+                .onDelete(perform: removeAddressData)
+            }
+
+        }
+        .onAppear(perform: {
+            self.getAddressData()
+        })
+        .frame(width:width)
+        
+        .navigationBarHidden(false)
+        .navigationBarTitle(Text("Addresses"), displayMode: .large)
+        .navigationBarItems(trailing:
+            Button(action: {
+        }) {
+            NavigationLink(destination: AddressView(user: user, address: Address(),  insert: true), isActive: $isActive) {
+                Image(systemName: "plus")
+            }
+        })
+        
+        .toolbar {
+            ToolbarItemGroup(placement: .bottomBar) {
+                ItemsToolbar()
+            }
+        }
+    }
+    
+    func getAddressData() {
+        API(user: userData).getAddresses(){ (result) in
+            switch result {
+            case .success(let addreses):
+                DispatchQueue.main.async {
+                    self.user.addresses = addreses
+                }
+            case .failure(let error):
+                viewModel.setError(title: "Error", subtitle: error.localizedDescription)
+            }
+        }
+    }
+
+    
+    func removeAddressData(at offsets: IndexSet) {
+        let index = offsets.first!
+        let address = self.user.addresses[index]
+        
+        API(user: userData).deleteAddress(address: address){ (result) in
+            switch result {
+            case .success(_):
+                DispatchQueue.main.async {
+                    self.user.addresses.remove(at: index)
+
+                }
+            case .failure(let error):
+                viewModel.setError(title: "Error", subtitle: error.localizedDescription)
+            }
+        }
+    }
+
+}
+
 struct UserView: View {
-    @EnvironmentObject var user: UserData
+    @EnvironmentObject var userData: UserData
+    @EnvironmentObject var viewModel: AlertViewModel
     
-    @State var qty = 0
-    
-    @State var HomeActive = false
-    @State var SearchActive = false
-    @State var UserActive = false
-    @State var OrderActive = false
-    @State var CartActive = false
-    
-    
-    @State var userData: User?
+    @State var user: User?
     @State var device = false
     @State var updateSuccess = false
     @State var updateFaliure = false
 
-
     let width = (UIScreen.main.bounds.width - 33)
     let height = (UIScreen.main.bounds.height - 33)
-    
+    let keychain = Keychain(service: "com.dataflix-token")
 
     //https://www.reddit.com/r/swift/comments/ppfoys/found_nil_while_unwrapping/
-    
-    
-    
     var body: some View {
         //let user_decode = UserDecode(user: self.data)
         VStack{
             Text("Account Settings").font(.title).bold().frame(width: width, alignment: .leading)
 
-            if let user = userData {
+            if let user = user {
                 
                 List {
                     
@@ -694,13 +770,17 @@ struct UserView: View {
                     }.buttonStyle(PlainButtonStyle())
 
             
-                    NavigationLink(destination: AddressView(user: user)) {
+                    NavigationLink(destination: AddressesView(user: user)) {
                         HStack {
                             VStack(alignment: .leading) {
                                 Text("Primary Address").bold()
                                     .foregroundColor(Color.blue)
 
-                                Text("\(user.address), \(user.city) \(user.state) \(user.postcode)")
+                                if let address = user.addresses.first(where: {$0.id == user.primaryAddressId}) {
+                                    Text("\(address.address), \(address.city) \(address.state) \(address.postcode)")
+                                } else {
+                                   Text("No primary address selected.")
+                                }
                             }
                                        
                             Spacer()
@@ -741,6 +821,10 @@ struct UserView: View {
                 
                 Button(action: {
                     print("Logout")
+                    userData.isLoggedin = false
+                    viewModel.setComplete(title: "Logged Out", subtitle: "You have been logged out.")
+                    keychain["JWT"] = nil
+
 
                 }) {
                     
@@ -767,108 +851,30 @@ struct UserView: View {
         }
         .onAppear(perform:{
             self.getUserData()
-            self.getCartQtyData()
         })
-        .offset(y: 15)
-
         
         .navigationBarHidden(true)
         .navigationBarTitle(Text("Account Settings"), displayMode: .large)
-        
-        .background(
-            HStack {
-                NavigationLink(destination: MainView(), isActive: $HomeActive) {EmptyView()}
-                NavigationLink(destination: SearchView(), isActive: $SearchActive) {EmptyView()}
-                NavigationLink(destination: UserView(), isActive: $UserActive) {EmptyView()}
-                NavigationLink(destination: OrderView(), isActive: $OrderActive) {EmptyView()}
-                NavigationLink(destination: CartView(), isActive: $CartActive) {EmptyView()}
-                NavigationLink(destination: EmptyView()) {
-                    EmptyView()
-                }
-            }
-
-        )
-        
         .toolbar {
-          ToolbarItem(placement: .bottomBar) {
-            HStack{
-                Button(action: {
-                    self.HomeActive = true
-                })
-                {
-                    Image(systemName: "house").imageScale(.large)
-                }
-                Button(action: {
-                    self.SearchActive = true
-                })
-                {
-                    Image(systemName: "magnifyingglass").imageScale(.large)
-                }
-                
-                Button(action: {
-                    self.UserActive = true
-                })
-                {
-                    Image(systemName: "person.crop.circle").imageScale(.large)
-                }
-                
-                Button(action: {
-                    self.OrderActive = true
-                })
-                {
-                    Image(systemName: "shippingbox").imageScale(.large)
-                }
-                
-                Button(action: {
-                    self.CartActive = true
-
-                })
-                {
-                    
-                 ZStack {
-                     Image(systemName: "cart").imageScale(.large)
-                     
-                     if(self.qty > 0) {
-                         Text("\(self.qty)")
-                             .foregroundColor(Color.black)
-                             .background(Capsule().fill(Color.orange).frame(width:30, height:20))
-                             .offset(x:20, y:-10)
-                         
-                     }
-
-                    }
-                }
-
+            ToolbarItemGroup(placement: .bottomBar) {
+                ItemsToolbar()
             }
-          }
         }
     }
     
     func getUserData() {
-        API(user: user).getUser(){ (result) in
+        API(user: userData).getUser(){ (result) in
             switch result {
             case .success(let user):
                 DispatchQueue.main.async {
-                    self.userData = user
+                    self.user = user
                 }
             case .failure(let error):
-                print(error.localizedDescription)
+                viewModel.setError(title: "Error", subtitle: error.localizedDescription)
             }
         }
     }
     
-    func getCartQtyData() {
-        API(user: user).getCartQty(){ (result) in
-            switch result {
-            case .success(let qty):
-                DispatchQueue.main.async {
-                    self.qty = qty
-                }
-            case .failure(let error):
-                print(error.localizedDescription)
-            }
-        }
-    }
 }
 
 struct UserAccount_Previews: PreviewProvider {

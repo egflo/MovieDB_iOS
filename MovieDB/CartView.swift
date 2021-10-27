@@ -13,25 +13,6 @@ import SDWebImageSwiftUI
 import Combine
 import AlertToast
 
-class AlertViewModel: ObservableObject{
-    
-    @Published var show = false
-    @Published var title = "Error"
-    @Published var subtitle = "Subtitle"
-    
-    func setSubtitle(subtitle: String) {
-        self.subtitle = subtitle
-    }
-    
-    
-    /*
-    @Published var alertToast: AlertToast {
-        didSet{
-            show.toggle()
-        }
-    }
-    */
-}
 
 
 struct iPhoneCartView: View {
@@ -39,7 +20,6 @@ struct iPhoneCartView: View {
     @EnvironmentObject var viewModel: AlertViewModel
 
     @Binding var cart: [Cart]?
-    @Binding var qty: Int
 
     let width = (UIScreen.main.bounds.width - 33)
     var body: some View {
@@ -142,11 +122,13 @@ struct iPhoneCartView: View {
                     if let index = self.cart!.firstIndex(where: {$0.id == item.id}) {
                         cart!.remove(at: index)
                     }
-                    getCartQtyData()
-   
+                    
+                    self.getCartQtyData()
                 }
             case .failure(let error):
-                viewModel.subtitle = error.localizedDescription
+                DispatchQueue.main.async {
+                    viewModel.setError(title: "Cart Error", subtitle: error.localizedDescription)
+                }
             }
         }
     }
@@ -160,11 +142,15 @@ struct iPhoneCartView: View {
                     if let index = self.cart!.firstIndex(where: {$0.id == item.id}) {
                         cart![index].quantity = item.quantity
                     }
-                    getCartQtyData()
+                    self.getCartQtyData()
+
                 }
             case .failure(let error):
-                viewModel.subtitle = error.localizedDescription
-                viewModel.show = true            }
+                DispatchQueue.main.async {
+                    viewModel.setError(title: "Cart Error", subtitle: error.localizedDescription)
+                }
+                
+            }
         }
     }
     
@@ -173,11 +159,13 @@ struct iPhoneCartView: View {
             switch result {
             case .success(let qty):
                 DispatchQueue.main.async {
-                    self.qty = qty
+                    user.qty = qty
                 }
             case .failure(let error):
-                viewModel.subtitle = error.localizedDescription
-                viewModel.show = true            }
+                DispatchQueue.main.async {
+                    viewModel.setError(title: "Cart Error", subtitle: error.localizedDescription)
+                }
+            }
         }
     }
     
@@ -192,7 +180,6 @@ struct iPadCartView: View {
     @EnvironmentObject var viewModel: AlertViewModel
 
     @Binding var cart: [Cart]?
-    @Binding var qty: Int
 
     let width = (UIScreen.main.bounds.width - 33)
     
@@ -299,12 +286,14 @@ struct iPadCartView: View {
                     if let index = self.cart!.firstIndex(where: {$0.id == item.id}) {
                         cart!.remove(at: index)
                     }
-                    getCartQtyData()
-   
+                    self.getCartQtyData()
+
                 }
             case .failure(let error):
-                viewModel.subtitle = error.localizedDescription
-                viewModel.show = true
+                DispatchQueue.main.async {
+                    viewModel.setError(title: "Cart Error", subtitle: error.localizedDescription)
+
+                }
             }
         }
     }
@@ -318,11 +307,14 @@ struct iPadCartView: View {
                     if let index = self.cart!.firstIndex(where: {$0.id == item.id}) {
                         cart![index].quantity = item.quantity
                     }
-                    getCartQtyData()
+                    self.getCartQtyData()
+
                 }
             case .failure(let error):
-                viewModel.subtitle = error.localizedDescription
-                viewModel.show = true
+                DispatchQueue.main.async {
+                    viewModel.setError(title: "Cart Error", subtitle: error.localizedDescription)
+
+                }
             }
         }
     }
@@ -332,11 +324,13 @@ struct iPadCartView: View {
             switch result {
             case .success(let qty):
                 DispatchQueue.main.async {
-                    self.qty = qty
+                    user.qty = qty
                 }
             case .failure(let error):
-                viewModel.subtitle = error.localizedDescription
-                viewModel.show = true
+                DispatchQueue.main.async {
+                    viewModel.setError(title: "Cart Error", subtitle: error.localizedDescription)
+
+                }
             }
         }
     }
@@ -358,16 +352,10 @@ struct CartView: View {
     
     
     let width = (UIScreen.main.bounds.width - 33)
-
-    @State var HomeActive = false
-    @State var SearchActive = false
-    @State var UserActive = false
-    @State var OrderActive = false
-    @State var CartActive = false
-
+    let height = UIScreen.main.bounds.height
+    
     @State var CheckOutActive = false
     @State var cart:[Cart]?
-    @State var qty = 0
     
     var body: some View {
         VStack {
@@ -388,7 +376,8 @@ struct CartView: View {
                                 .font(.system(size: 15.0))
                                 .foregroundColor(.gray)
 
-                        }.offset( x:(geometry.size.width/2)-120, y: (geometry.size.height/2)-120)
+                        //-120
+                        }.offset( x:(geometry.size.width/2), y: (geometry.size.height/2))
                     
                     }
                     
@@ -423,24 +412,25 @@ struct CartView: View {
                     ScrollView (showsIndicators: false){
                         
                         if horizontalSizeClass == .compact && verticalSizeClass == .regular {
-                            iPhoneCartView(cart: $cart, qty: $qty)
+                            iPhoneCartView(cart: $cart)
 
                         }
                         else if horizontalSizeClass == .regular && verticalSizeClass == .compact {
                             
-                            iPhoneCartView(cart: $cart, qty: $qty)
+                            iPhoneCartView(cart: $cart)
 
 
                         }
                         else if horizontalSizeClass == .regular && verticalSizeClass == .regular {
                             
-                            iPadCartView(cart: $cart, qty: $qty)
+                            iPadCartView(cart: $cart)
 
 
                         }
 
+                        Spacer()
                     }
-                    .frame(width: UIScreen.main.bounds.width)
+                    .frame(width: width)
               
                 }
                 
@@ -455,86 +445,14 @@ struct CartView: View {
         }
         .onAppear(perform: {
             self.getCartData()
-            self.getCartQtyData()
         })
         
-        .toast(isPresenting: $viewModel.show){
-
-            //Choose .hud to toast alert from the top of the screen
-            AlertToast(displayMode: .hud, type: .error(Color.red), title: viewModel.title, subTitle: viewModel.subtitle)
-
-        }
-        
-        .offset(y: 15)
         .navigationBarHidden(true)
         .navigationBarTitle(Text("My Cart"), displayMode: .large)
-
-        
-        .background(
-            HStack {
-                NavigationLink(destination: MainView(), isActive: $HomeActive) {EmptyView()}
-                NavigationLink(destination: SearchView(), isActive: $SearchActive) {EmptyView()}
-                NavigationLink(destination: UserView(), isActive: $UserActive) {EmptyView()}
-                NavigationLink(destination: OrderView(), isActive: $OrderActive) {EmptyView()}
-                NavigationLink(destination: CartView(), isActive: $CartActive) {EmptyView()}
-                NavigationLink(destination: EmptyView()) {
-                    EmptyView()
-                }
-            }
-
-        )
-        
         .toolbar {
-          ToolbarItem(placement: .bottomBar) {
-            HStack{
-                Button(action: {
-                    self.HomeActive = true
-                })
-                {
-                    Image(systemName: "house").imageScale(.large)
-                }
-                Button(action: {
-                    self.SearchActive = true
-                })
-                {
-                    Image(systemName: "magnifyingglass").imageScale(.large)
-                }
-                
-                Button(action: {
-                    self.UserActive = true
-                })
-                {
-                    Image(systemName: "person.crop.circle").imageScale(.large)
-                }
-                
-                Button(action: {
-                    self.OrderActive = true
-                })
-                {
-                    Image(systemName: "shippingbox").imageScale(.large)
-                }
-                
-                Button(action: {
-                    self.CartActive = true
-                })
-                {
-                    
-                 ZStack {
-                     Image(systemName: "cart").imageScale(.large)
-                     
-                     if(self.qty > 0) {
-                         Text("\(self.qty)")
-                             .foregroundColor(Color.black)
-                             .background(Capsule().fill(Color.orange).frame(width:30, height:20))
-                             .offset(x:20, y:-10)
-                         
-                     }
-
-                    }
-                }
+            ToolbarItemGroup(placement: .bottomBar) {
+                ItemsToolbar()
             }
-        
-          }
         }
     }
     
@@ -551,19 +469,6 @@ struct CartView: View {
         
     }
     
-    func getCartQtyData() {
-        API(user: user).getCartQty(){ (result) in
-            switch result {
-            case .success(let qty):
-                DispatchQueue.main.async {
-                    self.qty = qty
-                }
-            case .failure(let error):
-                viewModel.subtitle = error.localizedDescription
-                viewModel.show = true
-            }
-        }
-    }
     
     func getCartData() {
         API(user: user).getCart { (result) in
@@ -574,8 +479,10 @@ struct CartView: View {
                     self.cart = cart
                 }
             case .failure(let error):
-                viewModel.subtitle = error.localizedDescription
-                viewModel.show = true
+                DispatchQueue.main.async {
+                    viewModel.subtitle = error.localizedDescription
+                    viewModel.show = true
+                }
             }
         }
     }
