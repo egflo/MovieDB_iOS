@@ -51,6 +51,12 @@ struct UserToken: Codable {
     let id: Int
     let username: String
     let token: String
+    //let roles: [Set<Authority>]
+}
+
+
+struct Authority: Codable, Hashable {
+    let authority: String
 }
 
 
@@ -122,7 +128,7 @@ struct User: Codable {
     var sales: [Sale] = [Sale]()
     var addresses: [Address] = [Address]()
     var reviews: [Review] = [Review]()
-
+    //let authorities: [Set<Authority>]
 }
 
 /*
@@ -203,14 +209,14 @@ struct Response: Codable {
 struct ResponseOrders: Codable {
     var content: [Sale] = [Sale]()
     var pageable: Pagable
+    var last: Bool
     var totalPages: Int
     var totalElements: Int
-    var last: Bool
-    var size: Int
-    var number: Int
-    var sort: Sort
     var numberOfElements: Int
     var first: Bool
+    var sort: Sort
+    var size: Int
+    var number: Int
     var empty: Bool
 }
 
@@ -427,11 +433,22 @@ struct MovieMeta: Codable, Equatable, Hashable, Identifiable {
 
 
 struct Checkout: Codable {
+    var defaultId: Int = 0
     var total: Double = 0.0
-    var address = Address()
+    var addresses: [Address] = [Address]()
     var subTotal: Double = 0.0
     var salesTax: Double = 0.0
     var cart: [Cart] = [Cart]()
+}
+
+struct ProcessOrder: Codable {
+    let total: Double
+    let subtotal: Double
+    let salesTax: Double
+    let cart: [Cart]
+    let address: Address
+    let customerId: Int
+    let stripeId: String
 }
 
 

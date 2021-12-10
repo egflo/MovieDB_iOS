@@ -11,9 +11,13 @@ import UIKit
 import Combine
 import Stripe
 
+//https://github.com/exyte/PopupView/blob/master/Example/Common/ContentView.swift
+//https://github.com/callicoder/spring-boot-react-oauth2-social-login-demo/blob/master/react-social/src/app/App.js
+
 struct MyVariables {
     //static var API_IP = "http://10.81.1.123:8080/moviedb_api"
-    static var API_IP = "http://10.81.1.109:8080"
+    static var API_IP = ""
+    //static var API_IP = "http://10.81.1.108:8080"
     static var STRIPE_PUBLIC_KEY = ""
 }
 
@@ -636,7 +640,7 @@ class API: ObservableObject {
         
     }
     
-    func uploadOrder(checkout: Checkout, paymentIntent: STPPaymentIntentParams, completion: @escaping (Result<Sale,Error>) -> Void) {
+    func uploadOrder(order: ProcessOrder, completion: @escaping (Result<Sale,Error>) -> Void) {
         
         // Prepare URL
         let url = "\(MyVariables.API_IP)/sale/"
@@ -677,9 +681,9 @@ class API: ObservableObject {
             let shipping: Shipping
         }
         
-        let uploadShippingModel = Shipping(customerId: userId, firstName: checkout.address.firstName, lastName: checkout.address.lastName, address: checkout.address.address, unit: checkout.address.unit, city: checkout.address.city, state: checkout.address.state, postcode: checkout.address.postcode)
+        let uploadShippingModel = Shipping(customerId: order.customerId, firstName: order.address.firstName, lastName: order.address.lastName, address: order.address.address, unit: order.address.unit, city: order.address.city, state: order.address.state, postcode: order.address.postcode)
         
-        let uploadDataModel = UploadData(total: checkout.total, subTotal: checkout.subTotal, salesTax: checkout.salesTax, customerId: userId, stripeId: paymentIntent.stripeId!, shipping: uploadShippingModel)
+        let uploadDataModel = UploadData(total: order.total, subTotal: order.subtotal, salesTax: order.salesTax, customerId: order.customerId, stripeId: order.stripeId, shipping: uploadShippingModel)
 
         
         guard let data = try? JSONEncoder().encode(uploadDataModel) else {
@@ -1409,6 +1413,7 @@ class ContentDataSource: ObservableObject {
     
     @Published var items = [Movie]()
     @Published var isLoadingPage = false
+    @Published var last = false
     
     private var canLoadMorePages = true
     private var currentPage = 0
@@ -1470,6 +1475,7 @@ class ContentDataSource: ObservableObject {
                 self.canLoadMorePages = !response.last
                 self.isLoadingPage = false
                 self.currentPage += 1
+                self.last = response.last
             })
             .map({ response in
                 return self.items + response.content
@@ -1587,9 +1593,6 @@ class ContentDataSourceOrders: ObservableObject {
     }
 
 }
-
-
-
 
 class ContentDataSourceMain: ObservableObject {
     

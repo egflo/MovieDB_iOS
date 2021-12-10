@@ -400,6 +400,10 @@ struct AddressView: View {
     @State var user: User
     @State var address: Address
     @State var insert: Bool
+    @State var checkout: Bool? = false
+    
+    @State var isActive = false
+    @State var isCheckoutActive = false
     
     @State var firstNameStatus: Bool = false
     @State var lastNameStatus: Bool = false
@@ -478,15 +482,21 @@ struct AddressView: View {
                         }
                 }
             Spacer()
-            
         }
+        .background(
+            HStack {
+                NavigationLink(destination: CheckoutView(), isActive: $isActive) {EmptyView()}
+                NavigationLink(destination: UserView(), isActive: $isActive) {EmptyView()}
+            }
+        )
+
         .padding(.leading, 15)
         .padding(.trailing, 15)
         .frame(maxWidth: 600)
                 
         .navigationBarHidden(false)
         .navigationBarTitleDisplayMode(.inline)
-        .navigationBarTitle(Text("Change Address"), displayMode: .large)
+        .navigationBarTitle((insert) ? Text("Add Address") : Text("Change Address"), displayMode: .large)
         .toolbar {
             ToolbarItemGroup(placement: .bottomBar) {
                 ItemsToolbar()
@@ -612,6 +622,13 @@ struct AddressView: View {
                     }
                     //self.user = user
                     viewModel.setComplete(title: "Success", subtitle: "Address \((insert == true) ? "Added":"Updated")")
+                    if(checkout!) {
+                        self.isCheckoutActive = true
+                    }
+                    else {
+                        self.isActive = true
+
+                    }
                 }
             case .failure(let error):
                 DispatchQueue.main.async {
@@ -625,53 +642,88 @@ struct AddressView: View {
 }
 
 
+struct AddressRowView: View {
+    @State var address: Address
+    @State var user: User
+    
+    var body: some View {
+        NavigationLink(destination: AddressView(user: user, address: address, insert: false)) {
+            HStack {
+                VStack(alignment: .leading) {
+                    
+                    if(address.id == user.primaryAddressId) {
+                        
+                        Text("Primary Address").bold()
+                            .foregroundColor(Color.blue)
+                    }
+
+                    VStack(alignment: .leading) {
+                        Text("\(address.firstName) \(address.lastName)")
+                        Text("\(address.address), \(address.city) \(address.state) \(address.postcode)")
+                    }
+       
+                }
+                           
+                Spacer()
+
+                Text("Change")
+                    .foregroundColor(Color.blue)
+                
+            }.frame(height: (address.id == user.primaryAddressId) ? 80:50)
+            
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
 struct AddressesView: View {
     @EnvironmentObject var userData: UserData
     @EnvironmentObject var viewModel: AlertViewModel
     
     @State var user: User
-    @State var addresses = [Address]()
+    @State var addresses: [Address]?
     @State var isActive = false
 
     let width = (UIScreen.main.bounds.width)
 
     var body: some View {
         VStack {
+            if let addresses = addresses {
+                
+                if(addresses.count == 0) {
+                    GeometryReader {geometry in
 
-            List {
-                ForEach(self.user.addresses, id: \.id) { address in
+                        VStack {
+                            Image(systemName: "house")
+                                .font(.system(size: 56.0))
+                                .foregroundColor(.gray)
 
-                    NavigationLink(destination: AddressView(user: user, address: address, insert: false)) {
-                        HStack {
-                            VStack(alignment: .leading) {
-                                
-                                if(address.id == user.primaryAddressId) {
-                                    
-                                    Text("Primary Address").bold()
-                                        .foregroundColor(Color.blue)
-                                }
+                            Text("There are no addresses your account.")
+                                .fontWeight(.semibold)
+                                .font(.system(size: 15.0))
+                                .foregroundColor(.gray)
 
-                                VStack(alignment: .leading) {
-                                    Text("\(address.firstName) \(address.lastName)")
-                                    Text("\(address.address), \(address.city) \(address.state) \(address.postcode)")
-                                }
-                   
-                            }
-                                       
-                            Spacer()
-
-                            Text("Change")
-                                .foregroundColor(Color.blue)
-                            
-                        }.frame(height: (address.id == user.primaryAddressId) ? 80:50)
-                        
+                        //-120
+                        }.offset( x:(geometry.size.width/2)-130, y: (geometry.size.height/2)-120)
                     }
-                    .buttonStyle(PlainButtonStyle())
-
                 }
-                .onDelete(perform: removeAddressData)
-            }
+                else {
+                    List {
+                        ForEach(addresses, id: \.id) { address in
+                            
+                            AddressRowView(address: address, user: user)
 
+                        }
+                        .onDelete(perform: removeAddressData)
+                    }
+                    
+                }
+
+            }
+            
+            else {
+                ProgressView()
+            }
         }
         .onAppear(perform: {
             self.getAddressData()
@@ -700,7 +752,7 @@ struct AddressesView: View {
             switch result {
             case .success(let addreses):
                 DispatchQueue.main.async {
-                    self.user.addresses = addreses
+                    self.addresses = addreses
                 }
             case .failure(let error):
                 viewModel.setError(title: "Error", subtitle: error.localizedDescription)
@@ -711,13 +763,13 @@ struct AddressesView: View {
     
     func removeAddressData(at offsets: IndexSet) {
         let index = offsets.first!
-        let address = self.user.addresses[index]
+        let address = self.addresses![index]
         
         API(user: userData).deleteAddress(address: address){ (result) in
             switch result {
             case .success(_):
                 DispatchQueue.main.async {
-                    self.user.addresses.remove(at: index)
+                    self.addresses!.remove(at: index)
 
                 }
             case .failure(let error):
@@ -870,7 +922,9 @@ struct UserView: View {
                     self.user = user
                 }
             case .failure(let error):
-                viewModel.setError(title: "Error", subtitle: error.localizedDescription)
+                DispatchQueue.main.async {
+                    viewModel.setError(title: "Error", subtitle: error.localizedDescription)
+                }
             }
         }
     }

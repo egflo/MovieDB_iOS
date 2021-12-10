@@ -12,57 +12,109 @@ import SDWebImageSwiftUI
 import Combine
 import WrappingHStack
 
-struct SimplifiedMovieView: View {
-    @Environment(\.verticalSizeClass) var verticalSizeClass: UserInterfaceSizeClass?
-    @Environment(\.horizontalSizeClass) var horizontalSizeClass: UserInterfaceSizeClass?
-    
-    var user: UserData
-    var meta: MovieMeta
-    @State var isActive = false;
 
-    @State var movie = Movie()
+struct SearchMovieView: View {
+    var width: CGFloat
+    var height: CGFloat
+    var user: UserData
+    
+    @State var isActive = false;
+    @State var movie: Movie
 
     var body: some View {
-        NavigationLink(destination: MovieView(movie: movie), isActive: $isActive) {
-            let m = MovieDecode(movie: movie)
+        VStack {
+            if let movie = movie {
+                NavigationLink(destination: MovieView(movie: movie), isActive: $isActive) {
+                    let m = MovieDecode(movie: movie)
+                    
+                    VStack {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color(.systemGray5))
+
+                            WebImage(url: m.posterURL())
+                                    .resizable()
+                                    .renderingMode(.original)
+                                    .placeholder(Image("no_image"))
+                                    //.aspectRatio(contentMode: .fit)
+                                    .clipped()
+                                    .cornerRadius(8)
+                        
+                        }.frame(width: width, height: height*0.75)
+                            //.border(Color.green)
+
+
+                        
+                        Text(movie.title)
+                            .bold()
+                            .foregroundColor(Color.white)
+                            .frame(width: width, height: 15, alignment: .leading)
+
+                        Text(String(movie.year))
+                            .foregroundColor(Color.gray)
+                            .frame(width: width, alignment: .leading)
+                        
+                    }
+                }
+            }
             
-            if horizontalSizeClass == .compact && verticalSizeClass == .regular {
-                WebImage(url: m.posterURL())
-                        .resizable()
-                        .renderingMode(.original)
-                        .placeholder(Image("no_image"))
-                        .aspectRatio(contentMode: .fit)
-                        .cornerRadius(8)
-                        .frame(width: 80, height: 115)
-                
-
+            else {
+                ProgressView()
             }
-            else if horizontalSizeClass == .regular && verticalSizeClass == .compact {
-                
-                WebImage(url: m.posterURL())
-                        .resizable()
-                        .renderingMode(.original)
-                        .placeholder(Image("no_image"))
-                        .aspectRatio(contentMode: .fit)
-                        .cornerRadius(8)
-                        .frame(width: 150, height: 200)
-
-
-            }
-            else if horizontalSizeClass == .regular && verticalSizeClass == .regular {
-                
-                WebImage(url: m.posterURL())
-                        .resizable()
-                        .renderingMode(.original)
-                        .placeholder(Image("no_image"))
-                        .aspectRatio(contentMode: .fit)
-                        .cornerRadius(8)
-                        .frame(width: 150, height: 200)
-
-            }
+            
         }
-        .padding(.top, 5)
+        .frame(width: width, height: height)
+    }
+}
+
+
+struct SimplifiedMovieView: View {
+    
+    var width: CGFloat
+    var height: CGFloat
+    var user: UserData
+    var meta: MovieMeta
+    
+    @State var isActive = false;
+    @State var movie: Movie?
+
+    var body: some View {
+        VStack {
+            if let movie = movie {
+                NavigationLink(destination: MovieView(movie: movie), isActive: $isActive) {
+                    let m = MovieDecode(movie: movie)
+                    
+                    VStack {
+                        WebImage(url: m.posterURL())
+                                .resizable()
+                                .renderingMode(.original)
+                                .placeholder(Image("no_image"))
+                                .aspectRatio(contentMode: .fit)
+                                .cornerRadius(8)
+                                .frame(width: width)
+                        
+                        Text(movie.title)
+                            .bold()
+                            .foregroundColor(Color.white)
+                            .frame(width: width, height: 15, alignment: .leading)
+
+                        Text(String(movie.year))
+                            .foregroundColor(Color.gray)
+                            .frame(width: width, alignment: .leading)
+                        
+                    }
+                }
+            }
+            
+            else {
+                ProgressView()
+            }
+            
+        }
+        .frame(width: width, height: height)
+        .padding(.bottom, 10)
         .onAppear(perform: {self.getMovieData()})
+            
     }
     
     func getMovieData() {
@@ -81,9 +133,13 @@ struct SimplifiedMovieView: View {
 
 //https://github.com/dkk/WrappingHStack
 struct MostSearchedView: View {
+    @Environment(\.verticalSizeClass) var verticalSizeClass: UserInterfaceSizeClass?
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass: UserInterfaceSizeClass?
+    
     @EnvironmentObject var user: UserData
     @State var movies = [MovieMeta]()
     let width = UIScreen.main.bounds.width
+    let height = UIScreen.main.bounds.height
 
 
     var body: some View {
@@ -92,11 +148,44 @@ struct MostSearchedView: View {
             VStack {
                 Text("Top Searches").font(.title2).bold()
                     .frame(width:width, alignment: .leading)
+                
+                GeometryReader{ geo in
+                    WrappingHStack(movies, id: \.self) { meta in
+                        
+                        VStack{
+                            if horizontalSizeClass == .compact && verticalSizeClass == .regular {
+                                 //let width = geo.size.width*0.25
+                                 //let height = geo.size.height*0.20
+                                let width = CGFloat(100)
+                                let height = CGFloat(250)
                                 
-                WrappingHStack(movies, id: \.self) { meta in
-                        SimplifiedMovieView(user: user, meta: meta)
-                }
-            }.frame(width: width ,alignment: .center)
+                                SimplifiedMovieView(width: width, height: height, user: user, meta: meta)
+                                
+                            }
+                            else if horizontalSizeClass == .regular && verticalSizeClass == .compact {
+                                //let width = geo.size.width*0.14
+                                //let height = geo.size.height*0.20
+                                let width = CGFloat(100)
+                                let height = CGFloat(250)
+                                
+                                SimplifiedMovieView(width: width, height: height, user: user, meta: meta)
+                                
+
+                            }
+                            else if horizontalSizeClass == .regular && verticalSizeClass == .regular {
+                                //let width = geo.size.width*0.14
+                                //let height = geo.size.height*0.35
+                                let width = CGFloat(150)
+                                let height = CGFloat(300)
+                                
+                                SimplifiedMovieView(width: width, height: height, user: user, meta: meta)
+                            }
+                        }
+
+                   }
+                }.frame(width: width, height: height ,alignment: .center)
+
+            }
             
         }
         .frame(width: width ,alignment: .center)
@@ -128,20 +217,20 @@ struct SearchBar: View {
         HStack {
             HStack {
                 TextField("Search...", text: $text)
-                    .padding(.leading,24)
+                    .padding(.leading,25)
+                    //.border(Color.red)
                     
                 }
                     .padding()
-
                     .background(Color(.systemGray5))
                     .cornerRadius(8)
-                    .padding(.horizontal)
+                    //.padding(.horizontal)
                     .overlay(
                         HStack {
                             Image(systemName: "magnifyingglass")
                                 .foregroundColor(.gray)
                                 .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
-                                .padding(.leading, 24)
+                                .padding(.leading, 20)
                      
                             if self.isSearching {
                                                         
@@ -169,8 +258,8 @@ struct SearchBar: View {
                     .transition(.move(edge: .trailing))
                     .animation(.default)
                 }
-            }
-          
+            
+        }
       }
    
 }
@@ -179,8 +268,6 @@ struct MovieRow: View {
     @State var movie: Movie
     @State var isActive = false;
 
-
-    
     var body: some View {
                 
         NavigationLink(destination: MovieView(movie: movie), isActive: $isActive) {
@@ -218,6 +305,9 @@ struct MovieRow: View {
 }
 
 struct SearchView: View {
+    @Environment(\.verticalSizeClass) var verticalSizeClass: UserInterfaceSizeClass?
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass: UserInterfaceSizeClass?
+    
     
     @EnvironmentObject var user: UserData
     
@@ -228,6 +318,7 @@ struct SearchView: View {
     @State var isActive = false;
     
     let width = (UIScreen.main.bounds.width - 33)
+    let height = UIScreen.main.bounds.height
     
     var body: some View {
         
@@ -248,37 +339,88 @@ struct SearchView: View {
                 else {
                     ScrollView{
                             LazyVStack {
-                                ForEach(dataSource.items, id: \.uuid) { movie in
-                                    if(dataSource.items.last == movie){
-                                        MovieRow(movie: movie)
-                                            .padding(.leading,24)
-                                            .padding(.trailing, 20)
-                                            //.onTapGesture{self.isActive = true}
-                                            .frame(width: (UIScreen.main.bounds.width - 15), height: 80)
-                                            .onAppear {
-                                                print("Load More")
-                                                dataSource.loadMoreContent(user: user)
-                                            }
+                                if horizontalSizeClass == .compact && verticalSizeClass == .regular {
+                                    ForEach(dataSource.items, id: \.uuid) { movie in
+                                        if(dataSource.items.last == movie){
+                                            MovieRow(movie: movie)
+                                                .padding(.leading,24)
+                                                .padding(.trailing, 20)
+                                                //.onTapGesture{self.isActive = true}
+                                                .frame(width: (UIScreen.main.bounds.width - 15), height: 80)
+                                                .onAppear {
+                                                    print("Load More")
+                                                    dataSource.loadMoreContent(user: user)
+                                                }
+                                                
+                                        }
                                             
+                                        else {
+                                            MovieRow(movie: movie)
+                                                .padding(.leading,24)
+                                                .padding(.trailing, 20)
+                                                .frame(width: (UIScreen.main.bounds.width), height: 80)
+                                            
+                                            Divider()
+                                        }
+                                  
                                     }
-                                        
-                                    else {
-                                        MovieRow(movie: movie)
-                                            .padding(.leading,24)
-                                            .padding(.trailing, 20)
-                                            .frame(width: (UIScreen.main.bounds.width), height: 80)
-                                        
-                                        Divider()
+                                    
+                                    if dataSource.isLoadingPage {
+                                        ProgressView() //A view that shows the progress towards completion of a task.
                                     }
-                              
+                                    
                                 }
-                                
-                                if dataSource.isLoadingPage {
-                                    ProgressView() //A view that shows the progress towards completion of a task.
-                                }
-                                
-                            }
+                                    
+                                else {
+                                    GeometryReader{ geo in
+                                        WrappingHStack(dataSource.items, id: \.self) { movie in
+                                            
+                                            VStack {
+                                                let width = CGFloat(150)
+                                                let height = CGFloat(300)
+                                                
+                                                if(dataSource.items.last == movie && !dataSource.last){
+                                                    
+                                                    Button {
+                                                        dataSource.loadMoreContent(user: user)
 
+                                                    } label: {
+                                                        Text("Load More")
+                                                            .padding(20)
+                                                            
+                                                    }
+                                                    .contentShape(Rectangle())
+
+                                                    
+                                                    //SearchMovieView(width: width, height: height, user: user, movie: movie)
+                                                    //    .border(Color.red)
+                                                    //    .onAppear {
+                                                     //       print("Load More")
+                                                      //      dataSource.loadMoreContent(user: user)
+                                                    //    }
+                                                        
+                                                }
+                                                    
+                                                else {
+                                                    
+                                                    SearchMovieView(width: width, height: height, user: user, movie: movie)
+                                                    
+                                                }
+                                                
+                                            }
+
+                                            
+                                       }
+                                        
+                                    }.frame(width: width, height: CGFloat(dataSource.items.count/6 * 300), alignment: .center)
+                                    
+                                    if dataSource.isLoadingPage {
+                                        ProgressView() //A view that shows the progress towards completion of a task.
+                                    }
+
+                                }
+
+                            }
                       }
                 }
 

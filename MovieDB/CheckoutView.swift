@@ -48,6 +48,7 @@ struct StripePaymentCardTextField: UIViewRepresentable {
     }
 }
 
+
 struct AddressChangeView: View {
     @EnvironmentObject var userData: UserData
     @EnvironmentObject var viewModel: AlertViewModel
@@ -58,10 +59,10 @@ struct AddressChangeView: View {
     
     var body: some View {
         List(selection: $selection) {
-            ForEach(self.addresses, id: \.id) { address in
+            ForEach(self.checkout.addresses, id: \.id) { address in
 
                 HStack {
-                    if address == self.selection {
+                    if address == self.selection || address.id == checkout.defaultId{
                         Image(systemName: "checkmark.circle")
                             .foregroundColor(Color.blue)
                     }
@@ -126,6 +127,7 @@ struct CheckoutContentView: View {
     @EnvironmentObject var viewModel: AlertViewModel
 
     @State var isActive = false
+    @State var isEnabled = true
     @State var checkout: Checkout
     
     let width = (UIScreen.main.bounds.width - 33)
@@ -166,13 +168,14 @@ struct CheckoutContentView: View {
                         }
                         .frame(width: width, height: 50)
                         .foregroundColor(Color.white)
-                        .background(Color.blue)
+                        .background(isEnabled ? Color.blue: Color.gray)
                         .cornerRadius(8)
                         .disabled(loading)
                         .paymentConfirmationSheet(isConfirmingPayment: $loading,
                                                                              paymentIntentParams: paymentIntent,
                                                                              onCompletion: onCompletion)
                     }
+                    .disabled(!isEnabled)
 
                     
                 } else {
@@ -189,38 +192,52 @@ struct CheckoutContentView: View {
                     
                     VStack {
                         
-                        NavigationLink(destination: AddressChangeView(checkout: $checkout), isActive: $isActive) {
-                            HStack {
             
-                                VStack(alignment: .leading){
-                                    Text("Shipping Address").font(.headline).bold()
-                                    Text("\(checkout.address.firstName) \(checkout.address.lastName)")
-                                    if(checkout.address.unit.count > 0) {
-                                        Text(checkout.address.unit).font(.subheadline)
-                                    }
-                                    Text(checkout.address.address).font(.subheadline)
-                                    Text("\(checkout.address.city), \(checkout.address.state), \(checkout.address.postcode)").font(.subheadline)
-                                    Text("United States").font(.subheadline)
-                                
-                                }
-                                
-                                Spacer()
-                                
-                                Image(systemName: "chevron.right")
-                                    .font(Font.system(size: 30))
-                                    .foregroundColor(Color.blue)
+                            VStack(alignment: .leading){
+                                Text("Shipping Address").font(.headline).bold()
+                                if let address = checkout.addresses.first(where: {$0.id == checkout.defaultId}) {
+                                    NavigationLink(destination: AddressChangeView(checkout: $checkout), isActive: $isActive) {
+                                        HStack {
+                                            VStack(alignment: .leading) {
+                                                // do something with foo
+                                                 Text("\(address.firstName) \(address.lastName)")
+                                                 if(address.unit.count > 0) {
+                                                     Text(address.unit).font(.subheadline)
+                                                 }
+                                                 Text(address.address).font(.subheadline)
+                                                 Text("\(address.city), \(address.state), \(address.postcode)").font(.subheadline)
+                                                 Text("United States").font(.subheadline)
+                                            }
+                                            
+                                            Spacer()
+                                            
+                                            Image(systemName: "chevron.right")
+                                                .font(Font.system(size: 30))
+                                                .foregroundColor(Color.blue)
 
+                                        }
+                                        
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+
+                                } else {
+                                   // item could not be found'
+                                    HStack {
+                                        Text("Add Address")
+                                        Spacer()
+                                        Image(systemName: "plus")
+                                            .font(Font.system(size: 30))
+                                            .foregroundColor(Color.blue)
+                                    }
+                                    .onTapGesture(perform: {
+                                        
+                                    })
+                                    //.background(isEnabled = false)
+                                }
                             }.contentShape(Rectangle())
 
 
-                        }
-                        .buttonStyle(PlainButtonStyle())
-
-
-                    }.onTapGesture(perform: {
-                        self.isActive = true
-                    })
-
+                    }
                     Divider()
                         .padding(.bottom, 15)
                     
@@ -283,13 +300,19 @@ struct CheckoutContentView: View {
             
                                 VStack(alignment: .leading){
                                     Text("Shipping Address").font(.headline).bold()
-                                    Text("\(checkout.address.firstName) \(checkout.address.lastName)")
-                                    if(checkout.address.unit.count > 0) {
-                                        Text(checkout.address.unit).font(.subheadline)
+                                    if let address = checkout.addresses.first(where: {$0.id == checkout.defaultId}) {
+                                       // do something with foo
+                                        Text("\(address.firstName) \(address.lastName)")
+                                        if(address.unit.count > 0) {
+                                            Text(address.unit).font(.subheadline)
+                                        }
+                                        Text(address.address).font(.subheadline)
+                                        Text("\(address.city), \(address.state), \(address.postcode)").font(.subheadline)
+                                        Text("United States").font(.subheadline)
+                                        
+                                    } else {
+                                       // item could not be found
                                     }
-                                    Text(checkout.address.address).font(.subheadline)
-                                    Text("\(checkout.address.city), \(checkout.address.state), \(checkout.address.postcode)").font(.subheadline)
-                                    Text("United States").font(.subheadline)
                                 
                                 }
                                 
@@ -343,13 +366,19 @@ struct CheckoutContentView: View {
             
                                 VStack(alignment: .leading){
                                     Text("Shipping Address").font(.headline).bold()
-                                    Text("\(checkout.address.firstName) \(checkout.address.lastName)")
-                                    if(checkout.address.unit.count > 0) {
-                                        Text(checkout.address.unit).font(.subheadline)
+                                    if let address = checkout.addresses.first(where: {$0.id == checkout.defaultId}) {
+                                       // do something with foo
+                                        Text("\(address.firstName) \(address.lastName)")
+                                        if(address.unit.count > 0) {
+                                            Text(address.unit).font(.subheadline)
+                                        }
+                                        Text(address.address).font(.subheadline)
+                                        Text("\(address.city), \(address.state), \(address.postcode)").font(.subheadline)
+                                        Text("United States").font(.subheadline)
+                                        
+                                    } else {
+                                       // item could not be found
                                     }
-                                    Text(checkout.address.address).font(.subheadline)
-                                    Text("\(checkout.address.city), \(checkout.address.state), \(checkout.address.postcode)").font(.subheadline)
-                                    Text("United States").font(.subheadline)
                                 
                                 }
                                 
@@ -460,10 +489,10 @@ struct CheckoutContentView: View {
         }
     }
     
-    func uploadOrder() {
+    func uploadOrder(order: ProcessOrder) {
         STPAPIClient.shared.publishableKey = MyVariables.STRIPE_PUBLIC_KEY
 
-        API(user: user).uploadOrder(checkout: checkout, paymentIntent: paymentIntentParams!) { (result) in
+        API(user: user).uploadOrder(order: order) { (result) in
             switch result {
             case .success(let sale):
                 DispatchQueue.main.async {
@@ -479,8 +508,17 @@ struct CheckoutContentView: View {
     
     func onCompletion(status: STPPaymentHandlerActionStatus, pi: STPPaymentIntent?, error: NSError?) {
         if status == .succeeded {
-            uploadOrder()
-            self.PaymentActive = true
+            if let address = checkout.addresses.first(where: {$0.id == checkout.defaultId}) {
+               // do something with foo
+                let order = ProcessOrder(total: checkout.total, subtotal: checkout.subTotal, salesTax: checkout.salesTax, cart: checkout.cart, address: address, customerId: user.id, stripeId: paymentIntentParams!.stripeId!)
+                uploadOrder(order: order)
+                self.PaymentActive = true
+                
+            } else {
+               // item could not be found
+                print("Should not be here. Address should be set already")
+            }
+            
         }
         
         if status == .failed {
@@ -522,7 +560,7 @@ struct CheckoutView: View {
             
         }
         .onAppear(perform: {getCheckoutData()})
-        .navigationBarTitle(Text("My Cart"), displayMode: .large)
+        .navigationBarTitle(Text("Checkout"), displayMode: .large)
     }
     
     func getCheckoutData() {

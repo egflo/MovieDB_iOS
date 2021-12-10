@@ -355,7 +355,9 @@ struct CartView: View {
     let height = UIScreen.main.bounds.height
     
     @State var CheckOutActive = false
+    @State var AddressActive = false
     @State var cart:[Cart]?
+    @State var addresses: [Address] = [Address]()
     
     var body: some View {
         VStack {
@@ -377,8 +379,8 @@ struct CartView: View {
                                 .foregroundColor(.gray)
 
                         //-120
-                        }.offset( x:(geometry.size.width/2), y: (geometry.size.height/2))
-                    
+                        }.offset( x:(geometry.size.width/2)-120, y: (geometry.size.height/2)-120)
+
                     }
                     
                 }
@@ -391,7 +393,12 @@ struct CartView: View {
                         
                         Button(action: {
                             print("checkout")
-                            self.CheckOutActive = true
+                            if(addresses.count == 0) {
+                                self.AddressActive = true
+                            }
+                            else {
+                                self.CheckOutActive = true
+                            }
                         }) {
                             VStack {
                                 Text("Checkout").bold()
@@ -401,12 +408,15 @@ struct CartView: View {
                             .background(Color.blue)
                             .cornerRadius(8)
                         }
-
                     
                     }
                         .frame(width: width, height: 50)
                         .background(
-                            NavigationLink(destination:CheckoutView(),isActive: $CheckOutActive) {EmptyView()}
+                            VStack {
+                                NavigationLink(destination:CheckoutView(),isActive: $CheckOutActive) {EmptyView()}
+                                NavigationLink(destination:AddressView(user: user.data, address: Address(), insert: true, checkout: true), isActive: $AddressActive) {EmptyView()}
+                            }
+    
                         )
                     
                     ScrollView (showsIndicators: false){
@@ -445,6 +455,7 @@ struct CartView: View {
         }
         .onAppear(perform: {
             self.getCartData()
+            self.getAddressData()
         })
         
         .navigationBarHidden(true)
@@ -477,6 +488,22 @@ struct CartView: View {
                 DispatchQueue.main.async {
                     UserCart.items = cart
                     self.cart = cart
+                }
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    viewModel.subtitle = error.localizedDescription
+                    viewModel.show = true
+                }
+            }
+        }
+    }
+    
+    func getAddressData() {
+        API(user: user).getAddresses(){ (result) in
+            switch result {
+            case .success(let addreses):
+                DispatchQueue.main.async {
+                    self.addresses = addreses
                 }
             case .failure(let error):
                 DispatchQueue.main.async {
