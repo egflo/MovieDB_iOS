@@ -78,7 +78,7 @@ struct iPhoneCartView: View {
                         HStack{
                             Button(action: {
                                 print("Qty - button was tapped")
-                                updateCartData(cartId: item.id, qty: item.quantity - 1)
+                                updateCartData(cartId: item.id, movieId: item.movieId, qty: item.quantity - 1)
                      
                             }) {
                                 Image(systemName: "minus")
@@ -89,7 +89,7 @@ struct iPhoneCartView: View {
                             
                             Button(action: {
                                 print("Qty + button was tapped")
-                                updateCartData(cartId: item.id, qty: item.quantity + 1)
+                                updateCartData(cartId: item.id, movieId: item.movieId, qty: item.quantity + 1)
 
                             }) {
                                 Image(systemName: "plus")
@@ -114,16 +114,16 @@ struct iPhoneCartView: View {
     }
     
     func deleteCartData(cartId: Int) {
-        API(user: user).deleteCart(cartId: cartId){ (result) in
+        API(user: user).deleteCart(id: cartId){ (result) in
             switch result {
-            case .success(let item):
+            case .success(let response ):
                 DispatchQueue.main.async {
                     
-                    if let index = self.cart!.firstIndex(where: {$0.id == item.id}) {
+                    if let index = self.cart!.firstIndex(where: {$0.id == response.data!.id}) {
                         cart!.remove(at: index)
                     }
-                    
                     self.getCartQtyData()
+
                 }
             case .failure(let error):
                 DispatchQueue.main.async {
@@ -133,11 +133,13 @@ struct iPhoneCartView: View {
         }
     }
     
-    func updateCartData(cartId: Int, qty: Int) {
-        API(user: user).updateCart(cartId: cartId, qty: qty) { (result) in
+    func updateCartData(cartId: Int, movieId: String, qty: Int) {
+        API(user: user).updateCart(id: cartId, movieId: movieId, userId: user.id, qty: qty) { (result) in
             switch result {
-            case .success(let item):
+            case .success(let response):
                 DispatchQueue.main.async {
+                    
+                    let item = response.data!
                     
                     if let index = self.cart!.firstIndex(where: {$0.id == item.id}) {
                         cart![index].quantity = item.quantity
@@ -193,7 +195,7 @@ struct iPadCartView: View {
                         HStack{
                             Button(action: {
                                 print("Remove button pressed...")
-                                self.deleteCartData(cartId: item.id)
+                                self.deleteCartData(id: item.id)
                                 self.getCartQtyData()
 
                             })
@@ -242,7 +244,7 @@ struct iPadCartView: View {
                                     HStack{
                                         Button(action: {
                                             print("Qty - button was tapped")
-                                            updateCartData(cartId: item.id, qty: item.quantity - 1)
+                                            updateCartData(cartId: item.id, movieId: item.movieId, qty: item.quantity - 1)
 
                                         }) {
                                             Image(systemName: "minus")
@@ -253,7 +255,7 @@ struct iPadCartView: View {
                                         
                                         Button(action: {
                                             print("Qty + button was tapped")
-                                            updateCartData(cartId: item.id, qty: item.quantity + 1)
+                                            updateCartData(cartId: item.id, movieId: item.movieId, qty: item.quantity + 1)
                                             
                                         }) {
                                             Image(systemName: "plus")
@@ -277,13 +279,13 @@ struct iPadCartView: View {
         }
     }
     
-    func deleteCartData(cartId: Int) {
-        API(user: user).deleteCart(cartId: cartId){ (result) in
+    func deleteCartData(id: Int) {
+        API(user: user).deleteCart(id: id){ (result) in
             switch result {
-            case .success(let item):
+            case .success(let response):
                 DispatchQueue.main.async {
                     
-                    if let index = self.cart!.firstIndex(where: {$0.id == item.id}) {
+                    if let index = self.cart!.firstIndex(where: {$0.id == response.data!.id}) {
                         cart!.remove(at: index)
                     }
                     self.getCartQtyData()
@@ -298,11 +300,13 @@ struct iPadCartView: View {
         }
     }
     
-    func updateCartData(cartId: Int, qty: Int) {
-        API(user: user).updateCart(cartId: cartId, qty: qty) { (result) in
+    func updateCartData(cartId: Int, movieId: String, qty: Int) {
+        API(user: user).updateCart(id: cartId, movieId: movieId, userId: user.id, qty: qty) { (result) in
             switch result {
-            case .success(let item):
+            case .success(let response):
                 DispatchQueue.main.async {
+                    
+                    let item = response.data!
                     
                     if let index = self.cart!.firstIndex(where: {$0.id == item.id}) {
                         cart![index].quantity = item.quantity
@@ -313,11 +317,12 @@ struct iPadCartView: View {
             case .failure(let error):
                 DispatchQueue.main.async {
                     viewModel.setError(title: "Cart Error", subtitle: error.localizedDescription)
-
                 }
+                
             }
         }
     }
+
     
     func getCartQtyData() {
         API(user: user).getCartQty(){ (result) in
@@ -414,7 +419,7 @@ struct CartView: View {
                         .background(
                             VStack {
                                 NavigationLink(destination:CheckoutView(),isActive: $CheckOutActive) {EmptyView()}
-                                NavigationLink(destination:AddressView(user: user.data, address: Address(), insert: true, checkout: true), isActive: $AddressActive) {EmptyView()}
+                                NavigationLink(destination:ShippingView(), isActive: $AddressActive) {EmptyView()}
                             }
     
                         )

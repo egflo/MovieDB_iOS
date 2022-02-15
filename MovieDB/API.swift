@@ -15,9 +15,7 @@ import Stripe
 //https://github.com/callicoder/spring-boot-react-oauth2-social-login-demo/blob/master/react-social/src/app/App.js
 
 struct MyVariables {
-    //static var API_IP = "http://10.81.1.123:8080/moviedb_api"
-    static var API_IP = ""
-    //static var API_IP = "http://10.81.1.108:8080"
+    static var API_IP = "http://10.81.1.123:8080"
     static var STRIPE_PUBLIC_KEY = ""
 }
 
@@ -28,15 +26,13 @@ struct UserCart {
 }
 
 class UserData: ObservableObject {
-    @Published var data = User()
+    //@Published var data: User 
     @Published var isLoggedin = false
     @Published var showToolBar = true
     @Published var id = 0
     @Published var username = ""
     @Published var token = ""
     @Published var qty = 0
-    
-    
 }
 
 enum APIError: Error {
@@ -46,6 +42,7 @@ enum APIError: Error {
     case invalidQty
     case invalidURL
     case invalidCredentials
+    case invalidInventory
 }
 
 
@@ -64,6 +61,8 @@ extension APIError: LocalizedError {
             return NSLocalizedString("Invalid URL", comment: "Bad URL")
         case .invalidCredentials:
             return NSLocalizedString("Incorrect Email/Password", comment: "Bad Username/Password")
+        case .invalidInventory:
+            return NSLocalizedString("Exceeds Current Inventory", comment: "Quantity exceeds Inventory")
 
         }
     }
@@ -243,9 +242,10 @@ class API: ObservableObject {
 
     
     
-    func updateBookmark(id: String, completion: @escaping (Result<Bookmark,Error>) -> Void) {
+    func updateBookmark(id: String, completion: @escaping (Result<BookmarkResponse,Error>) -> Void) {
         
         let url = "\(MyVariables.API_IP)/bookmark/"
+        print(url)
         let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
 
         guard let url = URL(string: encoded_url!) else {
@@ -255,7 +255,7 @@ class API: ObservableObject {
         
         var request = URLRequest(url: url)
         request.setValue("Bearer \(self.token)", forHTTPHeaderField: "Authorization")
-        request.httpMethod = "PUT"
+        request.httpMethod = "POST"
         request.allHTTPHeaderFields = [
             "Content-Type": "application/json",
             "Accept": "application/json"
@@ -288,11 +288,18 @@ class API: ObservableObject {
                     return
                 }
                 
-                //if let responseJSONData = try? JSONSerialization.jsonObject(with: responseData, options: .allowFragments) {
-                if let response = try? JSONDecoder().decode(Bookmark.self, from: responseData) {
-                    print("Response JSON data = \(response)")
-                    completion(.success(response))
+                do {
+                    let decodedResponse = try JSONDecoder().decode(BookmarkResponse.self, from: responseData)
+                    print("Response JSON data = \(decodedResponse)")
+                    
+                    completion(.success(decodedResponse))
+                    return
+       
+                } catch {
+                    completion(.failure(error))
+                    return
                 }
+
             }
         }.resume()
         
@@ -302,6 +309,7 @@ class API: ObservableObject {
     func getBookmark(id: String, completion: @escaping (Result<Bookmark,Error>) -> Void) {
         
         let url = "\(MyVariables.API_IP)/bookmark/\(id)"
+        print(url)
         let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
 
         guard let url = URL(string: encoded_url!) else {
@@ -322,25 +330,30 @@ class API: ObservableObject {
             if let responseCode = (response as? HTTPURLResponse)?.statusCode, let responseData = data {
                 guard responseCode == 200 else {
                     
-                    if responseCode == 404 {
-                        //Return Empty Bookmark (i.e not found)
-                        completion(.success(Bookmark(id: 0, customerId: 0, movieId: id, created: 0)))
-                        return
-                    }
-                    
-                    else {
-                        completion(.failure(APIError.invalidResponeCode))
-                        return
-                    }
-
+                   // if responseCode == 404 {
+                   //     //Return Empty Bookmark (i.e not found)
+                    //    completion(.success(Bookmark(id: 0, customerId: 0, movieId: id, created: 0)))
+                    //    return
+                   // }
+                
+                    completion(.failure(APIError.invalidResponeCode))
+                    return
                 }
                 
                 do {
-                    let bookmark = try JSONDecoder().decode(Bookmark.self, from: responseData)
-                    print("Response JSON data = \(bookmark)")
-                    completion(.success(bookmark))
-                    return
+                    let decodedResponse = try JSONDecoder().decode(BookmarkResponse.self, from: responseData)
+                    print("Response JSON data = \(decodedResponse)")
                     
+                    if(decodedResponse.success) {
+                        completion(.success(decodedResponse.bookmark!))
+                        return
+                    }
+                    
+                    //Return Empty Bookmark (i.e not found)
+                     //
+                    completion(.success(Bookmark(id: 0, customerId: 0, movieId: id, created: 0)))
+                    return
+
                 } catch {
                     completion(.failure(error))
                     return
@@ -595,17 +608,17 @@ class API: ObservableObject {
         
         var request = URLRequest(url: url)
         request.setValue("Bearer \(self.token)", forHTTPHeaderField: "Authorization")
-        request.httpMethod = (insert == true) ? "Post" : "Put"
+        request.httpMethod = (insert == true) ? "Put" : "Post"
         request.allHTTPHeaderFields = [
             "Content-Type": "application/json",
             "Accept": "application/json"
         ]
         
         let uploadDataModel = Address(
-                                        id: address.id,
-                                      firstName: address.firstName,
-                                      lastName: address.lastName,
-                                      address: address.address,
+                                      id: address.id,
+                                      firstname: address.firstname,
+                                      lastname: address.lastname,
+                                      street: address.street,
                                       unit: address.unit,
                                       city: address.city,
                                       state: address.state,
@@ -662,9 +675,9 @@ class API: ObservableObject {
         
         struct Shipping: Codable {
             let customerId: Int
-            let firstName: String
-            let lastName: String
-            let address: String
+            let firstname: String
+            let lastname: String
+            let street: String
             let unit: String
             let city: String
             let state: String
@@ -679,11 +692,12 @@ class API: ObservableObject {
             let customerId: Int
             let stripeId: String
             let shipping: Shipping
+            let device: String
         }
         
-        let uploadShippingModel = Shipping(customerId: order.customerId, firstName: order.address.firstName, lastName: order.address.lastName, address: order.address.address, unit: order.address.unit, city: order.address.city, state: order.address.state, postcode: order.address.postcode)
+        let uploadShippingModel = Shipping(customerId: order.customerId, firstname: order.address.firstname, lastname: order.address.lastname, street: order.address.street, unit: order.address.unit, city: order.address.city, state: order.address.state, postcode: order.address.postcode)
         
-        let uploadDataModel = UploadData(total: order.total, subTotal: order.subtotal, salesTax: order.salesTax, customerId: order.customerId, stripeId: order.stripeId, shipping: uploadShippingModel)
+        let uploadDataModel = UploadData(total: order.total, subTotal: order.subtotal, salesTax: order.salesTax, customerId: order.customerId, stripeId: order.stripeId, shipping: uploadShippingModel, device: "ios")
 
         
         guard let data = try? JSONEncoder().encode(uploadDataModel) else {
@@ -839,7 +853,7 @@ class API: ObservableObject {
         
         var request = URLRequest(url: url)
         request.setValue("Bearer \(self.token)", forHTTPHeaderField: "Authorization")
-        request.httpMethod = "POST"
+        request.httpMethod = "PUT"
         request.allHTTPHeaderFields = [
             "Content-Type": "application/json",
             "Accept": "application/json"
@@ -857,6 +871,8 @@ class API: ObservableObject {
         guard let data = try? JSONEncoder().encode(uploadDataModel) else {
             completion(.failure(APIError.invalidJSON))
             return
+            
+            
          }
 
         URLSession.shared.uploadTask(with: request, from: data) { (responseData, response, error) in
@@ -867,7 +883,13 @@ class API: ObservableObject {
             }
             
             if let responseCode = (response as? HTTPURLResponse)?.statusCode, let responseData = responseData {
-                guard responseCode < 300 else {
+                guard responseCode <= 201 else {
+                    
+                    if(responseCode == 400){
+                        completion(.failure(APIError.invalidInventory))
+                        return
+                    }
+                    
                     completion(.failure(APIError.invalidResponeCode))
                     return
                 }
@@ -878,13 +900,17 @@ class API: ObservableObject {
                     completion(.success(cart))
                     return
                 }
+                else {
+                    completion(.failure(APIError.invalidJSONResponse))
+                    return
+                }
             }
         }.resume()
     }
     
-    func deleteCart(cartId: Int, completion: @escaping (Result<CartDelete,Error>) -> Void) {
+    func deleteCart(id: Int, completion: @escaping (Result<CartResponse,Error>) -> Void) {
         
-        let url = "\(MyVariables.API_IP)/cart/"
+        let url = "\(MyVariables.API_IP)/cart/\(id)"
         let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
 
         guard let url = URL(string: encoded_url!) else {
@@ -904,13 +930,14 @@ class API: ObservableObject {
             let id: Int
         }
         
-        let uploadDataModel = UploadData(id: cartId)
+        let uploadDataModel = UploadData(id: id)
         
         
         guard let data = try? JSONEncoder().encode(uploadDataModel) else {
             completion(.failure(APIError.invalidJSON))
             return
          }
+        
 
         URLSession.shared.uploadTask(with: request, from: data) { (responseData, response, error) in
             if let error = error {
@@ -925,23 +952,24 @@ class API: ObservableObject {
                     return
                 }
                 
-                //if let responseJSONData = try? JSONSerialization.jsonObject(with: responseData, options: .allowFragments) {
-                if let cart = try? JSONDecoder().decode(CartDelete.self, from: responseData) {
-                    //print("Response JSON data = \(cart)")
-                    completion(.success(cart))
+                do {
+                    //var dataString = String(data: responseData, encoding: .utf8) ?? ""
+                    let decodedResponse = try JSONDecoder().decode(CartResponse.self, from: responseData)
+                    completion(.success(decodedResponse))
                     return
-                }
-                else {
-                    completion(.failure(APIError.invalidJSONResponse))
+
+                    
+                } catch let jsonError {
+                    completion(.failure(jsonError))
                     return
                 }
             }
         }.resume()
     }
 
-    func updateCart(cartId: Int, qty: Int, completion: @escaping (Result<Cart,Error>) -> Void) {
+    func updateCart(id: Int, movieId: String, userId: Int, qty: Int, completion: @escaping (Result<CartResponse,Error>) -> Void) {
         
-        if(qty > 4 || qty < 1) {
+        if(qty <= 0) {
             completion(.failure(APIError.invalidQty))
             return
         }
@@ -956,7 +984,7 @@ class API: ObservableObject {
         
         var request = URLRequest(url: url)
         request.setValue("Bearer \(self.token)", forHTTPHeaderField: "Authorization")
-        request.httpMethod = "PUT"
+        request.httpMethod = "POST"
         request.allHTTPHeaderFields = [
             "Content-Type": "application/json",
             "Accept": "application/json"
@@ -964,11 +992,16 @@ class API: ObservableObject {
         
         struct UploadData: Codable {
             let id: Int
+            let movieId: String
+            let userId: Int
             let qty: Int
         }
         
-        
-        let uploadDataModel = UploadData(id: cartId, qty: qty)
+        let uploadDataModel = UploadData(
+            id: id,
+            movieId: movieId,
+            userId: userId,
+            qty: qty)
         
         
         guard let data = try? JSONEncoder().encode(uploadDataModel) else {
@@ -985,13 +1018,19 @@ class API: ObservableObject {
             
             if let responseCode = (response as? HTTPURLResponse)?.statusCode, let responseData = responseData {
                 guard responseCode == 200 else {
+                    
+                    if(responseCode == 400){
+                        completion(.failure(APIError.invalidInventory))
+                        return
+                    }
+                    
                     completion(.failure(APIError.invalidResponeCode))
                     return
                 }
                 
                 //if let responseJSONData = try? JSONSerialization.jsonObject(with: responseData, options: .allowFragments) {
-                if let cart = try? JSONDecoder().decode(Cart.self, from: responseData) {
-                    completion(.success(cart))
+                if let decdodedResponse = try? JSONDecoder().decode(CartResponse.self, from: responseData) {
+                    completion(.success(decdodedResponse))
                     return
                 }
             }
@@ -1025,6 +1064,7 @@ class API: ObservableObject {
                 }
                 
                 do {
+                    //var dataString = String(data: responseData, encoding: .utf8) ?? ""
                     let decodedResponse = try JSONDecoder().decode(User.self, from: responseData)
                     completion(.success(decodedResponse))
                     return
@@ -1205,7 +1245,7 @@ class API: ObservableObject {
         
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
-                completion(.failure(error.localizedDescription as! Error))
+                completion(.failure(error))
                 return
             }
             
@@ -1258,7 +1298,7 @@ class API: ObservableObject {
     
     func getCast(id: String, completion: @escaping (Result<Star,Error>) -> Void) {
         
-        let url = "\(MyVariables.API_IP)/star/\(id)"
+        let url = "\(MyVariables.API_IP)/cast/\(id)"
         let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
 
         guard let url = URL(string: encoded_url!) else {
@@ -1273,7 +1313,7 @@ class API: ObservableObject {
         
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
-                completion(.failure(error.localizedDescription as! Error))
+                completion(.failure(error))
                 return
             }
             
@@ -1283,7 +1323,7 @@ class API: ObservableObject {
                 print(star)
                 
             } catch let jsonError {
-                completion(.failure(jsonError.localizedDescription as! Error))
+                completion(.failure(jsonError))
             }
         }.resume()
     
@@ -1307,7 +1347,7 @@ class API: ObservableObject {
         
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
-                completion(.failure(error.localizedDescription as! Error))
+                completion(.failure(error))
                 return
             }
             
@@ -1317,7 +1357,7 @@ class API: ObservableObject {
                 return
                 
             } catch let jsonError {
-                completion(.failure(jsonError.localizedDescription as! Error))
+                completion(.failure(jsonError))
             }
         }.resume()
     

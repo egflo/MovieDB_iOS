@@ -68,8 +68,8 @@ struct AddressChangeView: View {
                     }
 
                     VStack(alignment: .leading) {
-                        Text("\(address.firstName) \(address.lastName)")
-                        Text("\(address.address), \(address.city) \(address.state) \(address.postcode)")
+                        Text("\(address.firstname) \(address.lastname)")
+                        Text("\(address.street), \(address.city) \(address.state) \(address.postcode)")
                     }
            
                     Spacer()
@@ -139,7 +139,7 @@ struct CheckoutContentView: View {
     @State var PaymentActive = false
     @State var paymentIntentParams: STPPaymentIntentParams?
     @State var paymentMethodParams: STPPaymentMethodParams?
-    @State var sale: Sale = Sale(id: 0, customerId: 0, saleDate: 0, salesTax: 0.00, subTotal: 0.00, total: 0.00, stripeId: "", orders: [Order](), shipping: nil)
+    @State var sale: Sale = Sale(id: 0, customerId: 0, saleDate: 0, salesTax: 0.00, subTotal: 0.00, total: 0.00, stripeId: "", status:"", device:"ios",orders: [Order](), shipping: nil)
 
     var body: some View {
         
@@ -200,11 +200,11 @@ struct CheckoutContentView: View {
                                         HStack {
                                             VStack(alignment: .leading) {
                                                 // do something with foo
-                                                 Text("\(address.firstName) \(address.lastName)")
+                                                Text("\(address.firstname) \(address.lastname)")
                                                  if(address.unit.count > 0) {
                                                      Text(address.unit).font(.subheadline)
                                                  }
-                                                 Text(address.address).font(.subheadline)
+                                                 Text(address.street).font(.subheadline)
                                                  Text("\(address.city), \(address.state), \(address.postcode)").font(.subheadline)
                                                  Text("United States").font(.subheadline)
                                             }
@@ -302,11 +302,11 @@ struct CheckoutContentView: View {
                                     Text("Shipping Address").font(.headline).bold()
                                     if let address = checkout.addresses.first(where: {$0.id == checkout.defaultId}) {
                                        // do something with foo
-                                        Text("\(address.firstName) \(address.lastName)")
+                                        Text("\(address.firstname) \(address.lastname)")
                                         if(address.unit.count > 0) {
                                             Text(address.unit).font(.subheadline)
                                         }
-                                        Text(address.address).font(.subheadline)
+                                        Text(address.street).font(.subheadline)
                                         Text("\(address.city), \(address.state), \(address.postcode)").font(.subheadline)
                                         Text("United States").font(.subheadline)
                                         
@@ -368,11 +368,11 @@ struct CheckoutContentView: View {
                                     Text("Shipping Address").font(.headline).bold()
                                     if let address = checkout.addresses.first(where: {$0.id == checkout.defaultId}) {
                                        // do something with foo
-                                        Text("\(address.firstName) \(address.lastName)")
+                                        Text("\(address.firstname) \(address.lastname)")
                                         if(address.unit.count > 0) {
                                             Text(address.unit).font(.subheadline)
                                         }
-                                        Text(address.address).font(.subheadline)
+                                        Text(address.street).font(.subheadline)
                                         Text("\(address.city), \(address.state), \(address.postcode)").font(.subheadline)
                                         Text("United States").font(.subheadline)
                                         

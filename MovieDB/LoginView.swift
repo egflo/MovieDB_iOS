@@ -158,8 +158,7 @@ struct LoginView: View {
                 }
             case .failure(let error):
                 DispatchQueue.main.async {
-                    viewModel.subtitle = error.localizedDescription
-                    viewModel.show = true
+                    viewModel.setError(title: "Login Error", subtitle: error.localizedDescription)
                     self.loading = false
                 }
 

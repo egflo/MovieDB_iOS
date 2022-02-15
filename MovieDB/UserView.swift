@@ -400,7 +400,6 @@ struct AddressView: View {
     @State var user: User
     @State var address: Address
     @State var insert: Bool
-    @State var checkout: Bool? = false
     
     @State var isActive = false
     @State var isCheckoutActive = false
@@ -426,13 +425,13 @@ struct AddressView: View {
     var body: some View {
         ScrollView {
                 Group {
-                    LabelTextField(label: "Firstname", placeHolder: "", input: $address.firstName, error: $firstNameStatus, error_message: $errorFirstName)
+                    LabelTextField(label: "Firstname", placeHolder: "", input: $address.firstname, error: $firstNameStatus, error_message: $errorFirstName)
                     
-                    LabelTextField(label: "Lastname", placeHolder: "", input: $address.lastName, error: $lastNameStatus, error_message: $errorLastName)
+                    LabelTextField(label: "Lastname", placeHolder: "", input: $address.lastname, error: $lastNameStatus, error_message: $errorLastName)
                         
                     LabelTextField(label: "Unit", placeHolder: "Aot, Suite, Unit, Building (Optional)", input: $address.unit, error: $unitStatus, error_message: $errorUnit)
                     
-                    LabelTextField(label: "Address", placeHolder: "Street Number, Stree Address", input: $address.address, error: $addressStatus, error_message: $errorAddress)
+                    LabelTextField(label: "Address", placeHolder: "Street Number, Stree Address", input: $address.street, error: $addressStatus, error_message: $errorAddress)
                     
                     LabelTextField(label: "City", placeHolder: "City, Town", input: $address.city, error: $cityStatus, error_message: $errorCity)
                     
@@ -485,7 +484,7 @@ struct AddressView: View {
         }
         .background(
             HStack {
-                NavigationLink(destination: CheckoutView(), isActive: $isActive) {EmptyView()}
+                //NavigationLink(destination: CheckoutView(), isActive: $isActive) {EmptyView()}
                 NavigationLink(destination: UserView(), isActive: $isActive) {EmptyView()}
             }
         )
@@ -497,6 +496,7 @@ struct AddressView: View {
         .navigationBarHidden(false)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarTitle((insert) ? Text("Add Address") : Text("Change Address"), displayMode: .large)
+        //.navigationBarTitle((insert) ? Text("Add Address") : Text("Change Address"), displayMode: .large)
         .toolbar {
             ToolbarItemGroup(placement: .bottomBar) {
                 ItemsToolbar()
@@ -513,7 +513,7 @@ struct AddressView: View {
     func validate() {
         var points = 0
         
-        let firstName = address.firstName.trimmingCharacters(in: .whitespaces)
+        let firstName = address.firstname.trimmingCharacters(in: .whitespaces)
         if(firstName.count == 0) {
             firstNameStatus = true
 
@@ -524,7 +524,7 @@ struct AddressView: View {
 
         }
         
-        let lastName = address.lastName.trimmingCharacters(in: .whitespaces)
+        let lastName = address.lastname.trimmingCharacters(in: .whitespaces)
         if(lastName.count == 0) {
             lastNameStatus = true
 
@@ -535,7 +535,7 @@ struct AddressView: View {
 
         }
         
-        let addressAddress = address.address.trimmingCharacters(in: .whitespaces)
+        let addressAddress = address.street.trimmingCharacters(in: .whitespaces)
         if(addressAddress.count == 0) {
             addressStatus = true
 
@@ -580,7 +580,7 @@ struct AddressView: View {
         }
         
         if(points >= 6) {
-            let address = Address(id: address.id, firstName: address.firstName, lastName: address.lastName, address: address.address, unit: address.unit, city: address.city, state: address.state, postcode: address.postcode)
+            let address = Address(id: address.id, firstname: address.firstname, lastname: address.lastname, street: address.street, unit: address.unit, city: address.city, state: address.state, postcode: address.postcode)
             uploadAddress(address: address)
         }
         
@@ -605,39 +605,36 @@ struct AddressView: View {
     }
     
     func uploadAddress(address: Address) {
-        API(user: userData).uploadAddress(address: address, insert: insert) { (result) in
-            switch result {
-            case .success(let address):
-                DispatchQueue.main.async {
-                    if(insert) {
-                        user.addresses.append(address)
-                        self.mode.wrappedValue.dismiss()
-                    }
-                    
-                    else {
-                        //if let index = self.user.addresses.firstIndex(where: {$0.id == address.id}) {
-                        //    user.addresses[index] = address
-                        //}
-                        self.address = address
-                    }
-                    //self.user = user
-                    viewModel.setComplete(title: "Success", subtitle: "Address \((insert == true) ? "Added":"Updated")")
-                    if(checkout!) {
-                        self.isCheckoutActive = true
-                    }
-                    else {
-                        self.isActive = true
+        
+         API(user: userData).uploadAddress(address: address, insert: insert) { (result) in
+             switch result {
+             case .success(let address):
+                 DispatchQueue.main.async {
+                     if(insert) {
+                         user.addresses.append(address)
+                         self.mode.wrappedValue.dismiss()
+                     }
+                     
+                     else {
+                         //if let index = self.user.addresses.firstIndex(where: {$0.id == address.id}) {
+                         //    user.addresses[index] = address
+                         //}
+                         self.address = address
+                     }
+                     //self.user = user
+                     viewModel.setComplete(title: "Success", subtitle: "Address \((insert == true) ? "Added":"Updated")")
+                     self.isActive = true
+                     
+                 }
+             case .failure(let error):
+                 DispatchQueue.main.async {
+                     viewModel.setError(title: "Error", subtitle: error.localizedDescription)
 
-                    }
-                }
-            case .failure(let error):
-                DispatchQueue.main.async {
-                    viewModel.setError(title: "Error", subtitle: error.localizedDescription)
+                     
+                 }
+             }
+         }
 
-                    
-                }
-            }
-        }
     }
 }
 
@@ -651,15 +648,15 @@ struct AddressRowView: View {
             HStack {
                 VStack(alignment: .leading) {
                     
-                    if(address.id == user.primaryAddressId) {
+                    if(address.id == user.primaryAddress) {
                         
                         Text("Primary Address").bold()
                             .foregroundColor(Color.blue)
                     }
 
                     VStack(alignment: .leading) {
-                        Text("\(address.firstName) \(address.lastName)")
-                        Text("\(address.address), \(address.city) \(address.state) \(address.postcode)")
+                        Text("\(address.firstname) \(address.lastname)")
+                        Text("\(address.street), \(address.city) \(address.state) \(address.postcode)")
                     }
        
                 }
@@ -669,7 +666,7 @@ struct AddressRowView: View {
                 Text("Change")
                     .foregroundColor(Color.blue)
                 
-            }.frame(height: (address.id == user.primaryAddressId) ? 80:50)
+            }.frame(height: (address.id == user.primaryAddress) ? 80:50)
             
         }
         .buttonStyle(PlainButtonStyle())
@@ -822,17 +819,23 @@ struct UserView: View {
                     }.buttonStyle(PlainButtonStyle())
 
             
+                    /**
+                     
+                     
+                     
+                     */
                     NavigationLink(destination: AddressesView(user: user)) {
                         HStack {
                             VStack(alignment: .leading) {
                                 Text("Primary Address").bold()
                                     .foregroundColor(Color.blue)
 
-                                if let address = user.addresses.first(where: {$0.id == user.primaryAddressId}) {
-                                    Text("\(address.address), \(address.city) \(address.state) \(address.postcode)")
+                                if let address = user.addresses.first(where: {$0.id == user.primaryAddress}) {
+                                    Text("\(address.street), \(address.city) \(address.state) \(address.postcode)")
                                 } else {
                                    Text("No primary address selected.")
                                 }
+                            
                             }
                                        
                             Spacer()

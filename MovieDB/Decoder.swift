@@ -55,11 +55,6 @@ struct UserToken: Codable {
 }
 
 
-struct Authority: Codable, Hashable {
-    let authority: String
-}
-
-
 /*
     CART DATA STRUCTURE
  */
@@ -73,10 +68,11 @@ struct Cart: Codable {
     var quantity: Int
 }
 
-struct CartDelete: Codable {
-    let id: Int
-    let status: Bool
+struct CartResponse: Codable {
+    let status: Int
     let message: String
+    let success: Bool
+    let data: Cart?
 }
 
 /*
@@ -98,9 +94,9 @@ struct Password: Codable {
 
 struct Address: Codable, Hashable, Equatable{
     var id: Int = 0
-    var firstName: String = ""
-    var lastName: String = ""
-    var address: String = ""
+    var firstname: String = ""
+    var lastname: String = ""
+    var street: String = ""
     var unit: String = ""
     var city: String = ""
     var state: String = ""
@@ -120,15 +116,21 @@ struct Address: Codable, Hashable, Equatable{
 
 
 struct User: Codable {
-    var id: Int = 0
-    var firstName: String = ""
-    var lastName: String = ""
-    var email: String = ""
-    var primaryAddressId: Int = 0
+    let id: Int
+    let firstname: String
+    let lastname: String
+    let email: String
+    let primaryAddress: Int
+    let created: Int
     var sales: [Sale] = [Sale]()
     var addresses: [Address] = [Address]()
     var reviews: [Review] = [Review]()
-    //let authorities: [Set<Authority>]
+    let authorities: [Authority]
+}
+
+struct Authority: Codable {
+    let authority: String
+    
 }
 
 /*
@@ -158,6 +160,8 @@ struct Sale: Codable, Equatable {
     let subTotal: Double
     let total: Double
     let stripeId: String
+    let status: String
+    let device: String
     let orders: [Order]?
     let shipping: Shipping?
     
@@ -177,9 +181,9 @@ struct Order: Codable {
 
 struct Shipping: Codable {
     var id: Int
-    var firstName: String
-    var lastName: String
-    var address: String
+    var firstname: String
+    var lastname: String
+    var street: String
     var unit: String = ""
     var city: String
     var state: String
@@ -262,6 +266,7 @@ struct Movie:Codable, Equatable, Hashable, Identifiable{
     var cast: [Cast] = [Cast]()
     var ratings: Rating?
     var price: Double?
+    let inventory: Inventory
     
     enum CodingKeys: String, CodingKey {
         
@@ -284,6 +289,7 @@ struct Movie:Codable, Equatable, Hashable, Identifiable{
         case ratings
         case price
         case background
+        case inventory
 
     }
     
@@ -326,6 +332,28 @@ struct Rating:Codable {
     var rottenTomatoesAudienceStatus: String?
 }
 
+struct Inventory: Codable {
+    let quantity: Int
+    let status: String
+}
+
+struct CustomerSimplified: Codable {
+    let firstname: String
+    let lastname: String
+    let id: Int
+    let email: String
+}
+
+struct MovieSimplified: Codable {
+    let id: String
+    let title: String
+    let poster: String?
+    let runtime: String
+    let year: Int
+    let rated: String?
+}
+
+
 struct Review: Codable, Equatable {
     let id: Int
     let movieId: String
@@ -334,7 +362,9 @@ struct Review: Codable, Equatable {
     let rating: Int
     let sentiment: String
     let title: String
-    let customerName: String
+    let created: Int
+    let customer: CustomerSimplified
+    let movie: MovieSimplified
     
     static func ==(lhs: Review, rhs: Review) -> Bool {
         return lhs.id == rhs.id
@@ -455,14 +485,19 @@ struct ProcessOrder: Codable {
 /*
     BOOKMARK STRUCTURE
  */
+
+struct BookmarkResponse: Codable {
+    let bookmark: Bookmark?
+    let success: Bool
+    let message: String
+}
+
 struct Bookmark: Codable {
     var id: Int
     var customerId: Int
     var movieId: String
     var created: Int?
-    
 }
-
 
 
 /*
@@ -827,7 +862,7 @@ class MovieDecode {
         }
         
         
-        let sub = String(self.movie.year) + " - " + rated + " - " + runtime
+        let sub = String(self.movie.year) + " \u{2022} " + rated + " \u{2022} " + runtime
         return sub
     }
     
@@ -931,6 +966,42 @@ class MovieDecode {
             return "N/A"
         }
     }
+    
+    
+    func inventoryStatus() -> AnyView {
+        let inventory = self.movie.inventory
+        let quantity = inventory.quantity
+        let status = inventory.status.uppercased()
+        var color = Color(UIColor(red: 0.07, green: 0.55, blue: 0.13, alpha: 1.00))
+        
+        if(status == "LIMITED") {
+            color = Color(UIColor(red: 0.92, green: 0.59, blue: 0.01, alpha: 1.00))
+        }
+        
+        if(status == "OUT OF STOCK") {
+            color = Color.red
+        }
+        
+        return AnyView(
+            Text(status)
+                .padding(.leading,5)
+                .padding(.trailing,5)
+                .foregroundColor(.white)
+                .background(Capsule().fill(color))
+            //ZStack{
+            //    RoundedRectangle(cornerRadius: 8)/
+            //        .foregroundColor(color)
+            //    HStack{
+            //        Text(status).font(.headline).foregroundColor(.white)
+            //    }
+           // }.fixedSize()
+            //    .border(Color.red)
+            //
+            //Text(status.uppercased())
+            //    .background(color)
+             //   .clipShape(Capsule())
+        )
+    }
 }
     
 class RatingDecode {
@@ -950,9 +1021,12 @@ class RatingDecode {
         //var text = Group{Text("N/A").font(.system(size: 12)).bold()}
         
         if let unwrapped = ratings.imdb {
-            let split = unwrapped.components(separatedBy: "/")
-            let text = Group{Text(split[0]).font(.system(size: 14)).bold() + Text("/\(split[1])").font(.system(size: 10)).bold().foregroundColor(.gray)}
+            //let split = unwrapped.components(separatedBy: "/")
+            //let text = Group{Text(split[0]).font(.system(size: 14)).bold() + Text("/\(split[1])").font(.system(size: 10)).bold().foregroundColor(.gray)}
            
+            let text = Group{Text(unwrapped).font(.system(size: 14)).bold() + Text("/10").font(.system(size: 10)).bold().foregroundColor(.gray)}
+                
+            
             return AnyView(
                 HStack(spacing: 0) {
                     Image("imdb")
@@ -961,10 +1035,11 @@ class RatingDecode {
                         .frame(width: 50, height: 27)
 
                     text.padding(.leading,5).padding(.trailing,5).shadow(radius: 5)
+                        //.background(RoundedRectangle(cornerRadius: 2).fill(Color.white))
                 }
                 .overlay(
                     RoundedRectangle(cornerRadius: 2)
-                        .strokeBorder(Color.yellow, lineWidth: 2)
+                        .strokeBorder(Color(UIColor(red: 0.93, green: 0.71, blue: 0.04, alpha: 1.00)), lineWidth: 2)
                         //.background(RoundedRectangle(cornerRadius: 2).fill(Color.white))
                     )
             )
@@ -1030,7 +1105,7 @@ class RatingDecode {
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                         .frame(width: 30, height: 30)
-                    Text("\(score)%").font(.system(size: 18)).bold().shadow(radius: 5)
+                    Text("\(score)%").font(.system(size: 18)).bold().shadow(radius: 5).padding(.leading,2)
                 }
                 
                 if(aud_score != "N/A") {
@@ -1039,7 +1114,7 @@ class RatingDecode {
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 28, height: 28)
                         .padding(.leading, 5)
-                    Text("\(aud_score)%").font(.system(size: 18)).bold().shadow(radius: 5)
+                    Text("\(aud_score)%").font(.system(size: 18)).bold().shadow(radius: 5).padding(.leading,2)
                     
                 }
             }
@@ -1070,7 +1145,7 @@ class RatingDecode {
                         .frame(width: 28, height: 28)
 
                     Text(score).font(.system(size: 18)).bold().shadow(radius: 5)
-                        .padding(.leading,2)
+                        .padding(.leading,4)
                 }
             )
         }
@@ -1143,7 +1218,7 @@ class UserDecode {
     }
     
     func firstName() -> String {
-        let f_name = user.firstName
+        let f_name = user.firstname
         if(f_name.isEmpty) {
             return "First Name"
         }
@@ -1152,7 +1227,7 @@ class UserDecode {
     }
     
     func lastName() -> String {
-        let l_name = user.lastName
+        let l_name = user.lastname
         if(l_name.isEmpty) {
             return "Last Name"
         }

@@ -272,7 +272,43 @@ struct MainView: View {
         //Use this if NavigationBarTitle is with displayMode = .inline
         //UINavigationBar.appearance().titleTextAttributes = [.foregroundColor: UIColor.red]
         
-        UIToolbar.appearance().isTranslucent = false
+        
+        /*
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithTransparentBackground()
+        UINavigationBar.appearance().scrollEdgeAppearance = appearance
+        
+        UINavigationBar.appearance().standardAppearance = appearance
+        UINavigationBar.appearance().compactAppearance = appearance
+        UINavigationBar.appearance().scrollEdgeAppearance = appearance
+        
+        
+        let coloredAppearance = UINavigationBarAppearance()
+        coloredAppearance.configureWithOpaqueBackground()
+        coloredAppearance.backgroundColor = .systemPink
+        coloredAppearance.titleTextAttributes = [.foregroundColor: UIColor.white]
+        coloredAppearance.largeTitleTextAttributes = [.foregroundColor: UIColor.white]
+               
+        UINavigationBar.appearance().standardAppearance = coloredAppearance
+        UINavigationBar.appearance().scrollEdgeAppearance = coloredAppearance
+        */
+        
+        
+        if #available(iOS 15, *) {
+            let appear = UIToolbarAppearance()
+            appear.configureWithTransparentBackground()
+            appear.backgroundColor = .systemGray6
+
+            
+            UIToolbar.appearance().standardAppearance = appear
+            UIToolbar.appearance().compactAppearance = appear
+            UIToolbar.appearance().scrollEdgeAppearance = appear
+        }
+        
+
+
+        
+        //UIToolbar.appearance().isTranslucent = false
         //UIToolbar.appearance().barTintColor = UIColor.systemGray6
         //UIToolbar.appearance().setBackgroundImage(UIImage(), forToolbarPosition: .any, barMetrics: .default)
         //UIToolbar.appearance().setShadowImage(UIImage(), forToolbarPosition: .any)
@@ -285,14 +321,13 @@ struct MainView: View {
         
         ScrollView
         {
-            //MovieMainView(title: "Your Watchlist", path: "/bookmark/?limit=\(5)")
-            MovieMainView(title: "Your Watchlist", path: "bookmark/")
+
+            MovieMainView(title: "Your Watchlist", path: "bookmark/all")
             
-            //MovieMainView(title: "Top Sellers", path: "/order/sellers?limit=\(5)"
+            MovieMainView(title: "Top Rated", path: "rating/rated")
+            
             MovieMainView(title: "Top Sellers", path: "order/sellers")
            
-           //MovieMainView(title: "Top Rated", path:"/rating/rated?limit=\(5)")
-            MovieMainView(title: "Top Rated", path: "rating/rated")
                         
             Text("Genres").font(.title).bold().padding(.leading,15).frame(width: UIScreen.main.bounds.width, alignment:.leading)
 

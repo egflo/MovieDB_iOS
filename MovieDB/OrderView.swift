@@ -113,12 +113,12 @@ struct OrderDetailsView: View {
                 HStack {
                     VStack(alignment: .leading) {
                         Text("Shipping Address").font(.headline).bold()
-                        
+                                                
                         if(details.sale.shipping!.unit.count > 0) {
                             Text(details.sale.shipping!.unit).font(.subheadline)
                         }
                         
-                        Text(details.sale.shipping!.address).font(.subheadline)
+                        Text(details.sale.shipping!.street).font(.subheadline)
                         
                         Text("\(details.sale.shipping!.city), \(details.sale.shipping!.state) \(details.sale.shipping!.postcode)").font(.subheadline)
                        
