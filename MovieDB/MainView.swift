@@ -296,13 +296,29 @@ struct MainView: View {
         
         if #available(iOS 15, *) {
             let appear = UIToolbarAppearance()
-            appear.configureWithTransparentBackground()
-            appear.backgroundColor = .systemGray6
-
+            appear.configureWithDefaultBackground()
+            appear.shadowImage = UIImage()
+            appear.backgroundImage =
+            UIImage()
+                .sd_blurredImage(withRadius: 20)
+                
+            //appear.backgroundColor = .systemGray6
+            
+            
+            //UIToolbar.appearance().setBackgroundImage(UIImage(),
+            //                                forToolbarPosition: .any,
+            //                                barMetrics: .default)
+            //UIToolbar.appearance().setShadowImage(UIImage(), forToolbarPosition: .any)
             
             UIToolbar.appearance().standardAppearance = appear
             UIToolbar.appearance().compactAppearance = appear
             UIToolbar.appearance().scrollEdgeAppearance = appear
+            UIToolbar.appearance().isTranslucent = true
+            
+            let tb = UIToolbar()
+            tb.isTranslucent = true
+            tb.sizeToFit()
+
         }
         
 
