@@ -304,16 +304,116 @@ struct MovieRow: View {
     }
 }
 
+struct SearchCastRow: View {
+    @Environment(\.defaultMinListRowHeight) var minRowHeight
+    @EnvironmentObject var user: UserData
+    @EnvironmentObject var viewModel: AlertViewModel
+    
+    
+    @Binding var text: String
+    @State var cast = [Star]()
+    @State var isLoading = false
+    
+    let rowHeight = 65
+    let width = (UIScreen.main.bounds.width-33)
+
+    var body: some View {
+        VStack {
+            
+            if cast.count > 0 && !isLoading {
+                Text("Cast & Crew").font(.system(size: 15)).bold().frame(width:width, alignment: .leading)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 25) {
+                        ForEach(cast, id: \.starId) { cast in
+                            let c = StarDecode(cast: cast)
+                            let d = Cast(starId: cast.starId)
+                            NavigationLink(destination: CastView(cast: d)) {
+                                VStack {
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                            .fill(Color(.systemGray6))
+                                            .frame(width: 100, height: 145)
+
+                                        
+                                        WebImage(url: URL(string: c.photo()))
+                                                .resizable()
+                                                .renderingMode(.original)
+                                                .placeholder(Image(systemName: "person"))
+                                                .aspectRatio(contentMode: .fit)
+                                                .cornerRadius(8)
+                                                .frame(width: 100, height: 145)
+
+                                    }
+                                    .frame(width: 100, height: 145)
+                                    
+                                    Text(c.name())
+                                            .foregroundColor(Color.blue)
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                            .lineLimit(1)
+
+                                    /*
+                                     Text(c.subStringCast())
+                                         .font(.subheadline)
+                                         .foregroundColor(.gray)
+                                         .frame(maxWidth: .infinity, alignment: .leading)
+                                         .lineLimit(1)
+                                     */
+
+                                    
+                                }.frame(width: 100)
+                            }
+                        
+                        }
+                        
+                    }
+                    
+                }
+                .padding(.bottom, 5)
+                .padding(.leading, 15)
+                .padding(.trailing, 15)
+            }
+            else {
+                ProgressView()
+            }
+
+        }
+        .onChange(of: text, perform: { value in
+                isLoading = true
+                getCastSearch(name: value)
+          })
+        
+    }
+    
+    func getCastSearch(name: String) {
+        API(user: user).searchCast(name: name){ (result) in
+            switch result {
+            case .success(let cast):
+                DispatchQueue.main.async {
+                    self.cast = cast
+                    isLoading = false
+                }
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    viewModel.subtitle = error.localizedDescription
+                    viewModel.show = true
+                }
+            }
+        }
+    }
+}
+
+
 struct SearchView: View {
     @Environment(\.verticalSizeClass) var verticalSizeClass: UserInterfaceSizeClass?
     @Environment(\.horizontalSizeClass) var horizontalSizeClass: UserInterfaceSizeClass?
-    
-    
     @EnvironmentObject var user: UserData
+    @EnvironmentObject var viewModel: AlertViewModel
+    
     
     @State var text = ""
     @State var isSearching = false
-    
+    @State var cast: [Star]?
     @StateObject var dataSource = ContentDataSource()
     @State var isActive = false;
     
@@ -372,56 +472,42 @@ struct SearchView: View {
                                 }
                                     
                                 else {
-                                    GeometryReader{ geo in
-                                        WrappingHStack(dataSource.items, id: \.self) { movie in
-                                            
-                                            VStack {
-                                                let width = CGFloat(150)
-                                                let height = CGFloat(300)
-                                                
-                                                if(dataSource.items.last == movie && !dataSource.last){
+                                    
+                                    VStack {
+                                        
+                                        SearchCastRow(text: $text)
+                                        
+                                        VStack {
+                                            Text("Movies").font(.headline).bold().frame(width:width, alignment: .leading)
+                        
+                                            GeometryReader{ geo in
+                                                WrappingHStack(dataSource.items, id: \.self) { movie in
                                                     
-                                                    Button {
-                                                        dataSource.loadMoreContent(user: user)
+                                                    VStack {
+                                                        let width = CGFloat(150)
+                                                        let height = CGFloat(300)
+                                                        
 
-                                                    } label: {
-                                                        Text("Load More")
-                                                            .padding(20)
+                                                        SearchMovieView(width: width, height: height, user: user, movie: movie)
                                                             
                                                     }
-                                                    .contentShape(Rectangle())
 
-                                                    
-                                                    //SearchMovieView(width: width, height: height, user: user, movie: movie)
-                                                    //    .border(Color.red)
-                                                    //    .onAppear {
-                                                     //       print("Load More")
-                                                      //      dataSource.loadMoreContent(user: user)
-                                                    //    }
-                                                        
-                                                }
-                                                    
-                                                else {
-                                                    
-                                                    SearchMovieView(width: width, height: height, user: user, movie: movie)
-                                                    
-                                                }
+                                               }
                                                 
                                             }
-
+                                            .frame(width: width, height: CGFloat(dataSource.items.count/6 * 300 ), alignment: .center)
                                             
-                                       }
+                                            if dataSource.isLoadingPage {
+                                                ProgressView() //A view that shows the progress towards completion of a task.
+                                            }
+
+                                        }
                                         
-                                    }.frame(width: width, height: CGFloat(dataSource.items.count/6 * 300), alignment: .center)
-                                    
-                                    if dataSource.isLoadingPage {
-                                        ProgressView() //A view that shows the progress towards completion of a task.
                                     }
 
                                 }
-
                             }
-                      }
+                      }.frame(height: height)
                 }
 
             }
@@ -434,5 +520,5 @@ struct SearchView: View {
             }
         }
     }
-
+    
 }

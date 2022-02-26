@@ -15,13 +15,14 @@ import Stripe
 //https://github.com/callicoder/spring-boot-react-oauth2-social-login-demo/blob/master/react-social/src/app/App.js
 
 struct MyVariables {
-    static var API_IP = "http://10.81.1.123:8080"
-    static var STRIPE_PUBLIC_KEY = ""
+    //static var API_IP = "http://10.81.1.131:8080/moviedb_api"
+    //static var API_IP = "https://dataflixapi.azurewebsites.net"
+    static var API_IP = "http://10.81.1.111:8080"
+    static var STRIPE_PUBLIC_KEY = "pk_test_51J3qCqBVPvYzs7uWw0nbrKwdIZWg0hmaYHEABbUirTZqQR2TftCxjMBRJhBlVIQbvYLTWDrUXt2WZnzVbY2BNfye0055McVHXT"
 }
 
 struct UserCart {
     static var items = [Cart]()
-    
     private init() {}
 }
 
@@ -1330,9 +1331,42 @@ class API: ObservableObject {
     }
     
     
+    func searchCast(name: String, completion: @escaping (Result<[Star],Error>) -> Void) {
+        
+        let url = "\(MyVariables.API_IP)/cast/name/\(name)"
+        let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
+
+        guard let url = URL(string: encoded_url!) else {
+            completion(.failure(APIError.invalidURL))
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("Bearer \(self.token)", forHTTPHeaderField: "Authorization")
+        
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
+            
+            do {
+                let response = try JSONDecoder().decode(CastResponse.self, from: data!)
+                completion(.success(response.content))
+                return
+                
+            } catch let jsonError {
+                completion(.failure(jsonError))
+            }
+        }.resume()
+    
+    }
+    
     func getCastMovie(id: String, completion: @escaping (Result<Star,Error>) -> Void) {
         
-        let url = "\(MyVariables.API_IP)/star/\(id)"
+        let url = "\(MyVariables.API_IP)/cast/\(id)"
         let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
 
         guard let url = URL(string: encoded_url!) else {
@@ -1457,7 +1491,7 @@ class ContentDataSource: ObservableObject {
     
     private var canLoadMorePages = true
     private var currentPage = 0
-    private let pageSize = 10
+    private let pageSize = 14
     
     private var text = ""
     var query = ""

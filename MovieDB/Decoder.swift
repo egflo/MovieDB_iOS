@@ -406,6 +406,20 @@ struct Star: Codable {
 }
 
 
+struct CastResponse: Codable {
+    var content: [Star] = [Star]()
+    var pageable: Pagable
+    var totalPages: Int
+    var totalElements: Int
+    var last: Bool
+    var size: Int
+    var number: Int
+    var sort: Sort
+    var numberOfElements: Int
+    var first: Bool
+    var empty: Bool
+}
+
 
 /*
     META INFORMATION STRUCTURE
