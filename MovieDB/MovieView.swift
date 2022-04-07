@@ -12,6 +12,7 @@ import SPAlert
 import AlertToast
 import MapKit
 import PopupView
+import StripeCore
 
 
 
@@ -509,7 +510,7 @@ struct GenreRow: View {
     var body: some View {
         VStack {
             HStack {
-                ForEach(movie.genres, id: \.name) { genre in
+                ForEach(movie.genres!, id: \.name) { genre in
                         VStack{
                             NavigationLink(destination: GenreView(genre: genre)){
                                 Text(genre.name)
@@ -556,7 +557,7 @@ struct CastRowiPad: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 
                 HStack(spacing: 25) {
-                    ForEach(movie.cast, id: \.starId) { cast in
+                    ForEach(movie.cast!, id: \.starId) { cast in
                         let c = CastDecode(cast: cast)
                     
                         NavigationLink(destination: CastView(cast: cast)) {
@@ -630,48 +631,57 @@ struct CastRow: View {
             
             if(expand) {
                 VStack {
-                    ForEach(movie.cast, id: \.starId) { cast in
-                        let c = CastDecode(cast: cast)
                     
-                        VStack {
-                            NavigationLink(destination: CastView(cast: cast)) {
-                                HStack {
-                                    VStack {
-                                        WebImage(url: URL(string: c.photo()))
-                                                .resizable()
-                                                .renderingMode(.original)
-                                                .placeholder(Image(systemName: "person"))
-                                                .aspectRatio(contentMode: .fit)
-                                                .cornerRadius(8)
-                                        
-                                    }
-                                    .frame(width: 35, height: 70)
-                                    
-                                    VStack(alignment: .leading) {
-                                        
-                                        Text(c.name())
-                                            .foregroundColor(Color.blue)
-
-                                        Text(c.subStringCast()).font(.subheadline).foregroundColor(.gray)
-
-                                    }
-                                    Spacer()
-                                    Text("Details")
-                                        .foregroundColor(Color.blue)
-                                    
-                                    Image(systemName: "chevron.right")
-                                        .font(Font.system(size: 15))
-                                        .foregroundColor(Color.gray)
-
-                                }
-                            }
-                                                
-                        }
-                        .frame(height: CGFloat(rowHeight))
-                        .padding(.leading, 15)
-                        .padding(.trailing, 15)
+                    if let cast = movie.cast {
                         
-                        Divider().frame(width: UIScreen.main.bounds.width)
+                        ForEach(cast, id: \.starId) { cast in
+                            let c = CastDecode(cast: cast)
+                        
+                            VStack {
+                                NavigationLink(destination: CastView(cast: cast)) {
+                                    HStack {
+                                        VStack {
+                                            WebImage(url: URL(string: c.photo()))
+                                                    .resizable()
+                                                    .renderingMode(.original)
+                                                    .placeholder(Image(systemName: "person"))
+                                                    .aspectRatio(contentMode: .fit)
+                                                    .cornerRadius(8)
+                                            
+                                        }
+                                        .frame(width: 35, height: 70)
+                                        
+                                        VStack(alignment: .leading) {
+                                            
+                                            Text(c.name())
+                                                .foregroundColor(Color.blue)
+
+                                            Text(c.subStringCast()).font(.subheadline).foregroundColor(.gray)
+
+                                        }
+                                        Spacer()
+                                        Text("Details")
+                                            .foregroundColor(Color.blue)
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .font(Font.system(size: 15))
+                                            .foregroundColor(Color.gray)
+
+                                    }
+                                }
+                                                    
+                            }
+                            .frame(height: CGFloat(rowHeight))
+                            .padding(.leading, 15)
+                            .padding(.trailing, 15)
+                            
+                            Divider().frame(width: UIScreen.main.bounds.width)
+                        }
+
+                    }
+                    else {
+                        
+                        ProgressView()
                     }
                 }
                 
@@ -746,92 +756,102 @@ struct BackgroundView: View {
                             
                             Divider()
                             
-                            if let unwrapped = movie.ratings!.rating {
-                                VStack(spacing:2) {
-                                    Spacer()
-                                    Image(systemName: "star.fill")
-                                        .font(.system(size: 25.0))
-                                        .foregroundColor(Color.yellow)
-                                    let rating = String(format: "%.1f", unwrapped)
-                                    Group{Text("\(rating)").font(.system(size: 14)).bold() + Text("/10").font(.system(size: 10)).bold().foregroundColor(.gray)}
-                                    Spacer()
-                                }
-                            }
-
-                            if let unwrapped = movie.ratings!.metacritic {
+                            if let ratings = movie.ratings {
                                 
-                                VStack(spacing:2) {
-                                    Spacer()
-                                    
+                                if let unwrapped = ratings.rating {
+                                    VStack(spacing:2) {
+                                        Spacer()
+                                        Image(systemName: "star.fill")
+                                            .font(.system(size: 25.0))
+                                            .foregroundColor(Color.yellow)
+                                        let rating = String(format: "%.1f", unwrapped)
+                                        Group{Text("\(rating)").font(.system(size: 14)).bold() + Text("/10").font(.system(size: 10)).bold().foregroundColor(.gray)}
+                                        Spacer()
+                                    }
+                                }
 
-                                    VStack(alignment: .leading) {
-                                        let s = String(format: "%.0f", Double(unwrapped) ?? 0)
-                                        Text(s).font(.system(size: 14)).bold()
-                                            .foregroundColor(Color.white)
-                                            .background(Rectangle()
-                                            .fill(meta(score: unwrapped))
-                                            .frame(width: 25, height: 25)
-                                            .cornerRadius(4))
+                                if let unwrapped = ratings.metacritic {
+                                    
+                                    VStack(spacing:2) {
+                                        Spacer()
                                         
-                                    }.frame(width: 30, height: 30)
-                                    
-                                    Text("Metascore").font(.system(size: 12)).bold()
-                                    Spacer()
+
+                                        VStack(alignment: .leading) {
+                                            let s = String(format: "%.0f", Double(unwrapped) ?? 0)
+                                            Text(s).font(.system(size: 14)).bold()
+                                                .foregroundColor(Color.white)
+                                                .background(Rectangle()
+                                                .fill(meta(score: unwrapped))
+                                                .frame(width: 25, height: 25)
+                                                .cornerRadius(4))
+                                            
+                                        }.frame(width: 30, height: 30)
+                                        
+                                        Text("Metascore").font(.system(size: 12)).bold()
+                                        Spacer()
+
+                                    }
+
 
                                 }
+                                
+                                if let unwrapped = ratings.imdb {
+                                    VStack(spacing:2) {
+                                        Spacer()
 
+                                        Group{Text(unwrapped).font(.system(size: 14)).bold() + Text("/10").font(.system(size: 10)).bold().foregroundColor(.gray)}
+                                        
+                                        Image("imdb")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 40, height: 25)
+                                        
+                                        Spacer()
 
+                                    }
+
+                                }
+                                
+                                if let unwrapped = ratings.rottenTomatoes {
+                                    VStack(spacing:2) {
+                                        
+                                        Spacer()
+
+                                        Text("\(unwrapped)%").font(.system(size: 14)).bold()
+                                        
+                                        Image(movie.ratings!.rottenTomatoesStatus!)
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fit)
+                                            .frame(width: 25, height: 25)
+                                        
+                                        Spacer()
+
+                                        
+                                    }
+
+                                }
+                                
+                                if let unwrapped = ratings.rottenTomatoesAudience {
+                                    VStack(spacing:2) {
+                                        
+                                        Text("\(unwrapped)%").font(.system(size: 14)).bold()
+                                        
+                                        Image(movie.ratings!.rottenTomatoesAudienceStatus!)
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fit)
+                                            .frame(width: 25, height: 25)
+                                        
+                                    }
+
+                                }
+                                
+                                
                             }
                             
-                            if let unwrapped = movie.ratings!.imdb {
-                                VStack(spacing:2) {
-                                    Spacer()
-
-                                    Group{Text(unwrapped).font(.system(size: 14)).bold() + Text("/10").font(.system(size: 10)).bold().foregroundColor(.gray)}
-                                    
-                                    Image("imdb")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 40, height: 25)
-                                    
-                                    Spacer()
-
-                                }
-
+                            else {
+                                ProgressView()
                             }
                             
-                            if let unwrapped = movie.ratings!.rottenTomatoes {
-                                VStack(spacing:2) {
-                                    
-                                    Spacer()
-
-                                    Text("\(unwrapped)%").font(.system(size: 14)).bold()
-                                    
-                                    Image(movie.ratings!.rottenTomatoesStatus!)
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(width: 25, height: 25)
-                                    
-                                    Spacer()
-
-                                    
-                                }
-
-                            }
-                            
-                            if let unwrapped = movie.ratings!.rottenTomatoesAudience {
-                                VStack(spacing:2) {
-                                    
-                                    Text("\(unwrapped)%").font(.system(size: 14)).bold()
-                                    
-                                    Image(movie.ratings!.rottenTomatoesAudienceStatus!)
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(width: 25, height: 25)
-                                    
-                                }
-
-                            }
                                      
                         }
                         .frame(height: 60)
@@ -912,20 +932,28 @@ struct iPhonePortraitMovieView: View {
                 
                 VStack {
                     HStack {
-                        ForEach(movie.genres, id: \.name) { genre in
-                                VStack{
-                                    NavigationLink(destination: GenreView(genre: genre)){
-                                        Text(genre.name)
-                                            .padding(.leading,4)
-                                            .padding(.trailing,4)
-                                            .padding(.top, 2)
-                                            .padding(.bottom,2)
-                                            .font(.system(size: 17, design: .default))
-                                            .foregroundColor(.white)
-                                            .background(Capsule().fill(Color.blue))
+                        if let genres = movie.genres {
+                            
+                            ForEach(genres, id: \.name) { genre in
+                                    VStack{
+                                        NavigationLink(destination: GenreView(genre: genre)){
+                                            Text(genre.name)
+                                                .padding(.leading,4)
+                                                .padding(.trailing,4)
+                                                .padding(.top, 2)
+                                                .padding(.bottom,2)
+                                                .font(.system(size: 17, design: .default))
+                                                .foregroundColor(.white)
+                                                .background(Capsule().fill(Color.blue))
+                                        }
                                     }
-                                }
-                           }
+                               }
+                            
+                        }
+                        else {
+                            ProgressView()
+                        }
+
                     }
                 }
                 

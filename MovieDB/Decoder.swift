@@ -244,6 +244,22 @@ struct Sort:Codable {
     Movie STRUCTURE
  */
 
+struct MovieSimplified {
+    var id: String = ""
+    var title: String = "No Title Found"
+    var year: Int = 0
+    var director: String = "Not Director Found"
+    var poster: String?
+    var plot: String?
+    var rated: String?
+    var runtime: String?
+    var background: String?
+    var price: Double?
+    var updated: Int?
+    
+}
+
+
 struct Movie:Codable, Equatable, Hashable, Identifiable{
     var uuid: UUID = UUID()
     
@@ -262,11 +278,12 @@ struct Movie:Codable, Equatable, Hashable, Identifiable{
     var production: String?
     var country: String?
     var background: String?
-    var genres: [Genre] = [Genre]()
-    var cast: [Cast] = [Cast]()
+    var genres: [Genre]?
+    var cast: [Cast]?
     var ratings: Rating?
     var price: Double?
     let inventory: Inventory
+    let updated: Int?
     
     enum CodingKeys: String, CodingKey {
         
@@ -290,6 +307,7 @@ struct Movie:Codable, Equatable, Hashable, Identifiable{
         case price
         case background
         case inventory
+        case updated
 
     }
     
@@ -344,15 +362,6 @@ struct CustomerSimplified: Codable {
     let email: String
 }
 
-struct MovieSimplified: Codable {
-    let id: String
-    let title: String
-    let poster: String?
-    let runtime: String
-    let year: Int
-    let rated: String?
-}
-
 
 struct Review: Codable, Equatable {
     let id: Int
@@ -364,7 +373,7 @@ struct Review: Codable, Equatable {
     let title: String
     let created: Int
     let customer: CustomerSimplified
-    let movie: MovieSimplified
+    let movie: Movie
     
     static func ==(lhs: Review, rhs: Review) -> Bool {
         return lhs.id == rhs.id

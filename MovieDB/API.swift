@@ -17,7 +17,7 @@ import Stripe
 struct MyVariables {
     //static var API_IP = "http://10.81.1.131:8080/moviedb_api"
     //static var API_IP = "https://dataflixapi.azurewebsites.net"
-    static var API_IP = "http://10.81.1.111:8080"
+    static var API_IP = "http://10.81.1.104:8080"
     static var STRIPE_PUBLIC_KEY = "pk_test_51J3qCqBVPvYzs7uWw0nbrKwdIZWg0hmaYHEABbUirTZqQR2TftCxjMBRJhBlVIQbvYLTWDrUXt2WZnzVbY2BNfye0055McVHXT"
 }
 
