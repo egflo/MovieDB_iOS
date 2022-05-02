@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "D416CAD26FD12768B6898F0898166FA7"
-               BuildableName = "Pods_MovieDB.framework"
-               BlueprintName = "Pods-MovieDB"
+               BlueprintIdentifier = "2F2745F4FABCC3C8D07F78FE199F16EE"
+               BuildableName = "NotificationBannerSwift.framework"
+               BlueprintName = "NotificationBannerSwift"
                ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>

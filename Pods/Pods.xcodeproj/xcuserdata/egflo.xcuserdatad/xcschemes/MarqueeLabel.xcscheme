@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "D416CAD26FD12768B6898F0898166FA7"
-               BuildableName = "Pods_MovieDB.framework"
-               BlueprintName = "Pods-MovieDB"
+               BlueprintIdentifier = "C23DB88E45B0ED14F0C8827BE9C46C95"
+               BuildableName = "MarqueeLabel.framework"
+               BlueprintName = "MarqueeLabel"
                ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
