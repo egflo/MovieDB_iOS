@@ -24,7 +24,7 @@ struct SearchMovieView: View {
     var body: some View {
         VStack {
             if let movie = movie {
-                NavigationLink(destination: MovieView(movie: movie), isActive: $isActive) {
+                NavigationLink(destination: MovieView(movieId: movie.id), isActive: $isActive) {
                     let m = MovieDecode(movie: movie)
                     
                     VStack {
@@ -81,7 +81,7 @@ struct SimplifiedMovieView: View {
     var body: some View {
         VStack {
             if let movie = movie {
-                NavigationLink(destination: MovieView(movie: movie), isActive: $isActive) {
+                NavigationLink(destination: MovieView(movieId: movie.id), isActive: $isActive) {
                     let m = MovieDecode(movie: movie)
                     
                     VStack {
@@ -118,7 +118,9 @@ struct SimplifiedMovieView: View {
     }
     
     func getMovieData() {
-        API(user: user).getMovie(id: meta.movieId!) { (result) in
+        let URL = "\(MyVariables.API_IP)/movie/\(meta.movieId!)"
+        
+        NetworkManager.shared.getRequest(of: Movie.self, url: URL) { (result) in
             switch result {
             case .success(let movie):
                 DispatchQueue.main.async {
@@ -195,7 +197,8 @@ struct MostSearchedView: View {
     }
     
     func getMovieData() {
-        API(user: user).getTopSearches() { (result) in
+        let URL = "\(MyVariables.API_IP)/rating/rated?limit=28"
+        NetworkManager.shared.getRequest(of: [MovieMeta].self, url: URL) { (result) in
             switch result {
             case .success(let movies):
                 DispatchQueue.main.async {
@@ -270,7 +273,7 @@ struct MovieRow: View {
 
     var body: some View {
                 
-        NavigationLink(destination: MovieView(movie: movie), isActive: $isActive) {
+        NavigationLink(destination: MovieView(movieId: movie.id), isActive: $isActive) {
             HStack {
                 let m = MovieDecode(movie:movie)
                 
@@ -327,8 +330,7 @@ struct SearchCastRow: View {
                     HStack(spacing: 25) {
                         ForEach(cast, id: \.starId) { cast in
                             let c = StarDecode(cast: cast)
-                            let d = Cast(starId: cast.starId)
-                            NavigationLink(destination: CastView(cast: d)) {
+                            NavigationLink(destination: CastView(castId: cast.starId)) {
                                 VStack {
                                     ZStack {
                                         RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -386,7 +388,9 @@ struct SearchCastRow: View {
     }
     
     func getCastSearch(name: String) {
-        API(user: user).searchCast(name: name){ (result) in
+        let URL = "\(MyVariables.API_IP)/cast/name/\(name)"
+
+        NetworkManager.shared.getRequest(of: [Star].self, url: URL){ (result) in
             switch result {
             case .success(let cast):
                 DispatchQueue.main.async {
@@ -405,10 +409,63 @@ struct SearchCastRow: View {
 
 
 struct SearchView: View {
+    @StateObject private var dataSource = ContentDataSourceTest<Movie>()
+    @State private var query = ""
+    
+    var body: some View {
+        VStack {
+            ScrollView{
+                LazyVStack {
+                    ForEach(dataSource.items, id: \.uuid) { movie in
+                        MovieRow(movie: movie)
+                            .padding(.leading,24)
+                            .padding(.trailing, 20)
+                            .frame(width: (UIScreen.main.bounds.width - 15), height: 80)
+                            .onAppear(perform: {
+                                if !self.dataSource.endOfList && !query.isEmpty {
+                                    if self.dataSource.shouldLoadMore(item: movie) {
+                                        self.dataSource.fetch(path: "movie/title/\(query)")
+                                    }
+                                }
+                            })
+                }
+            }
+
+        
+        }.searchable(text: $query, prompt: "Search Movies")
+            .onChange(of: query) { value in
+                if !value.isEmpty && value.count > 2 {
+                    self.dataSource.items.removeAll()
+                    self.dataSource.fetch(path: "movie/title/\(query)")
+                }
+            }
+        }
+        .navigationTitle("Search Movies")
+        .toolbar {
+            ToolbarItemGroup(placement: .bottomBar) {
+                ItemsToolbar()
+            }
+        }
+
+
+    }
+}
+
+
+
+
+struct SearchViewT: View {
     @Environment(\.verticalSizeClass) var verticalSizeClass: UserInterfaceSizeClass?
     @Environment(\.horizontalSizeClass) var horizontalSizeClass: UserInterfaceSizeClass?
     @EnvironmentObject var user: UserData
     @EnvironmentObject var viewModel: AlertViewModel
+    
+    
+    
+    @State var query = ""
+    
+    
+    
     
     
     @State var text = ""
@@ -432,12 +489,14 @@ struct SearchView: View {
             }
             
             VStack {
-                if (!isSearching) {
+                //if (!isSearching) {
+                if(false) {
                     MostSearchedView()
                 }
 
                 else {
                     ScrollView{
+                            /*
                             LazyVStack {
                                 if horizontalSizeClass == .compact && verticalSizeClass == .regular {
                                     ForEach(dataSource.items, id: \.uuid) { movie in
@@ -507,6 +566,7 @@ struct SearchView: View {
 
                                 }
                             }
+                        */
                       }.frame(height: height)
                 }
 

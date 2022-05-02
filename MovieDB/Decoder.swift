@@ -14,11 +14,13 @@ import Foundation
 
 
 /*
-    API NON-DATA RESPONSE
+    API GENERIC RESPONSE
  */
-struct ResponseStatus: Codable {
+struct ResponseStatus<T: Codable>: Codable {
+    var success: Bool
     var message: String
     var status: Int
+    var data: T?
 }
 
 /*
@@ -50,7 +52,9 @@ struct PaymentIntent: Codable {
 struct UserToken: Codable {
     let id: Int
     let username: String
-    let token: String
+    let accessToken: String
+    let refreshToken: String
+    let type: String
     //let roles: [Set<Authority>]
 }
 
@@ -153,6 +157,8 @@ struct Card: Codable {
 }
 
 struct Sale: Codable, Equatable {
+    var uuid: UUID = UUID()
+
     let id: Int
     let customerId: Int
     let saleDate: Int
@@ -162,8 +168,24 @@ struct Sale: Codable, Equatable {
     let stripeId: String
     let status: String
     let device: String
-    let orders: [Order]?
+    var orders: [Order] = [Order]()
     let shipping: Shipping?
+    
+    
+    enum CodingKeys: String, CodingKey {
+        
+        case id
+        case customerId
+        case saleDate
+        case salesTax
+        case subTotal
+        case total
+        case stripeId
+        case status
+        case device
+        case orders
+        case shipping
+    }
     
     static func ==(lhs: Sale, rhs: Sale) -> Bool {
         return lhs.id == rhs.id
@@ -177,6 +199,7 @@ struct Order: Codable {
     let movieId: String
     let quantity: Int
     let listPrice: Double
+    let movie: Movie?
 }
 
 struct Shipping: Codable {
@@ -195,8 +218,8 @@ struct Shipping: Codable {
     PAGABLE STRUCTURE
  */
 
-struct Response: Codable {
-    var content: [Movie] = [Movie]()
+struct Response<T: Codable>: Codable {
+    var content: [T]
     var pageable: Pagable
     var totalPages: Int
     var totalElements: Int
@@ -209,20 +232,6 @@ struct Response: Codable {
     var empty: Bool
 }
 
-
-struct ResponseOrders: Codable {
-    var content: [Sale] = [Sale]()
-    var pageable: Pagable
-    var last: Bool
-    var totalPages: Int
-    var totalElements: Int
-    var numberOfElements: Int
-    var first: Bool
-    var sort: Sort
-    var size: Int
-    var number: Int
-    var empty: Bool
-}
 
 struct Pagable:Codable {
     var sort: Sort
@@ -244,11 +253,11 @@ struct Sort:Codable {
     Movie STRUCTURE
  */
 
-struct MovieSimplified {
-    var id: String = ""
-    var title: String = "No Title Found"
-    var year: Int = 0
-    var director: String = "Not Director Found"
+struct MovieSimplified: Codable {
+    var id: String
+    var title: String
+    var year: Int
+    var director: String?
     var poster: String?
     var plot: String?
     var rated: String?
@@ -256,17 +265,17 @@ struct MovieSimplified {
     var background: String?
     var price: Double?
     var updated: Int?
-    
+    var inventory: Inventory?
 }
 
 
-struct Movie:Codable, Equatable, Hashable, Identifiable{
+struct Movie:Codable, Equatable, Hashable, Identifiable, Comparable{
     var uuid: UUID = UUID()
     
-    var id: String = ""
-    var title: String = "No Title Found"
-    var year: Int = 0
-    var director: String = "Not Director Found"
+    var id: String
+    var title: String
+    var year: Int
+    var director: String?
     var poster: String?
     var plot: String?
     var rated: String?
@@ -318,24 +327,37 @@ struct Movie:Codable, Equatable, Hashable, Identifiable{
     static func ==(lhs: Movie, rhs: Movie) -> Bool {
         return lhs.id == rhs.id
     }
+    
+    static func < (lhs: Movie, rhs: Movie) -> Bool {
+        return lhs.id < rhs.id
+    }
+    
 }
 
-
-struct Genre:Codable {
-    var id: Int
-    //var genreId: Int
-    //var movieId: String?
-    var name: String
-}
 
 struct Cast:Codable {
     //var id: Int
+    var uuid: UUID = UUID()
+    
     var starId: String
-    //var movieId: String
+    var movieId: String?
     var category: String?
     var characters: String?
     var name: String?
     var photo: String?
+    var movie: Movie?
+    
+    enum CodingKeys: String, CodingKey {
+        
+        case starId
+        case movieId
+        case category
+        case characters
+        case name
+        case photo
+        case movie
+
+    }
 }
 
 
@@ -450,6 +472,12 @@ struct ResponseMeta: Codable {
 }
 
 
+struct Genre: Codable {
+    let id: Int
+    let name: String
+}
+
+
 struct MovieMeta: Codable, Equatable, Hashable, Identifiable {
     var uuid: UUID = UUID()
 
@@ -459,6 +487,7 @@ struct MovieMeta: Codable, Equatable, Hashable, Identifiable {
     let name: String?
     let id: Int?
     let movieId: String?
+    let movie: Movie?
     
     enum CodingKeys: String, CodingKey {
         
@@ -468,6 +497,7 @@ struct MovieMeta: Codable, Equatable, Hashable, Identifiable {
         case rottenTomatoes
         case votes
         case sales
+        case movie
     }
     
     func hash(into hasher: inout Hasher) {
@@ -510,7 +540,7 @@ struct ProcessOrder: Codable {
  */
 
 struct BookmarkResponse: Codable {
-    let bookmark: Bookmark?
+    var bookmark: Bookmark?
     let success: Bool
     let message: String
 }
@@ -714,7 +744,7 @@ class MovieDecode {
     }
     
     func director() -> String {
-        return movie.director
+        return movie.director ?? ""
     }
     
     func year() -> Int {
@@ -1366,7 +1396,7 @@ class SaleDecode {
     }
     
     func getNumItems() -> Int {
-        let total = sale.orders!.reduce(0) {$0 + ($1.quantity)}
+        let total = sale.orders.reduce(0) {$0 + ($1.quantity)}
         return total
     }
     

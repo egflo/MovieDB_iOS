@@ -216,12 +216,12 @@ struct PasswordView: View {
     }
     
     func uploadPassword(password: Password) {
-        API(user: userData).uploadPassword(password: password) { (result) in
+        NetworkManager.shared.uploadPassword(password: password) { (result) in
             switch result {
-            case .success(let user):
+            case .success(let response):
                 DispatchQueue.main.async {
                     viewModel.setComplete(title: "Password Updated", subtitle: "Re-login with updated password.")
-                    self.user = user
+                    self.user = response.data!
                     userData.isLoggedin = false
 
                 }
@@ -370,13 +370,11 @@ struct EmailView: View {
     }
     
     func uploadEmail(email: Email) {
-        API(user: userData).uploadEmail(email: email) { (result) in
+        NetworkManager.shared.uploadEmail(email: email){ (result) in
             switch result {
-            case .success(let user):
+            case .success(let _ ):
                 DispatchQueue.main.async {
                     viewModel.setComplete(title: "Email Updated", subtitle: "Re-login with updated email.")
-
-                    self.user = user
                     userData.isLoggedin = false
                 }
             case .failure(let error):
@@ -587,11 +585,11 @@ struct AddressView: View {
     }
     
     func uploadDefaultAddress(address: Address) {
-        API(user: userData).uploadPrimaryAddressId(id: address.id) { (result) in
+        NetworkManager.shared.uploadPrimaryAddressId(userId: user.id, primaryId: address.id) { (result) in
             switch result {
-            case .success(let user):
+            case .success(let response):
                 DispatchQueue.main.async {
-                    self.user = user
+                    self.user = response.data!
                     viewModel.setComplete(title: "Success", subtitle: "Address is now primary address.")
                 }
             case .failure(let error):
@@ -606,10 +604,12 @@ struct AddressView: View {
     
     func uploadAddress(address: Address) {
         
-         API(user: userData).uploadAddress(address: address, insert: insert) { (result) in
+        NetworkManager.shared.uploadAddress(address: address, insert: insert) { (result) in
              switch result {
-             case .success(let address):
+             case .success(let response):
                  DispatchQueue.main.async {
+                     
+                     let address = response.data!
                      if(insert) {
                          user.addresses.append(address)
                          self.mode.wrappedValue.dismiss()
@@ -745,7 +745,9 @@ struct AddressesView: View {
     }
     
     func getAddressData() {
-        API(user: userData).getAddresses(){ (result) in
+        let URL = "\(MyVariables.API_IP)/address/"
+
+        NetworkManager.shared.getRequest(of:[Address].self, url: URL){ (result) in
             switch result {
             case .success(let addreses):
                 DispatchQueue.main.async {
@@ -762,7 +764,7 @@ struct AddressesView: View {
         let index = offsets.first!
         let address = self.addresses![index]
         
-        API(user: userData).deleteAddress(address: address){ (result) in
+        NetworkManager.shared.deleteAddress(address: address){ (result) in
             switch result {
             case .success(_):
                 DispatchQueue.main.async {
@@ -794,7 +796,7 @@ struct UserView: View {
     var body: some View {
         //let user_decode = UserDecode(user: self.data)
         VStack{
-            Text("Account Settings").font(.title).bold().frame(width: width, alignment: .leading)
+            //Text("Account Settings").font(.title).bold().frame(width: width, alignment: .leading)
 
             if let user = user {
                 
@@ -875,11 +877,8 @@ struct UserView: View {
                 })
                 
                 Button(action: {
-                    print("Logout")
                     userData.isLoggedin = false
                     viewModel.setComplete(title: "Logged Out", subtitle: "You have been logged out.")
-                    keychain["JWT"] = nil
-
 
                 }) {
                     
@@ -894,21 +893,21 @@ struct UserView: View {
                         
                     }
 
-                Spacer()
+                //Spacer()
             }
             
             else {
                 ProgressView()
             }
             
-            Spacer()
+            //Spacer()
             
         }
         .onAppear(perform:{
             self.getUserData()
         })
         
-        .navigationBarHidden(true)
+        .navigationBarHidden(false)
         .navigationBarTitle(Text("Account Settings"), displayMode: .large)
         .toolbar {
             ToolbarItemGroup(placement: .bottomBar) {
@@ -918,7 +917,9 @@ struct UserView: View {
     }
     
     func getUserData() {
-        API(user: userData).getUser(){ (result) in
+        let URL = "\(MyVariables.API_IP)/customer/"
+
+        NetworkManager.shared.getRequest(of: User.self, url: URL){ (result) in
             switch result {
             case .success(let user):
                 DispatchQueue.main.async {

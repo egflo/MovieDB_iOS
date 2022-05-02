@@ -18,13 +18,13 @@ extension Color {
 }
 
 struct GenreMainRow: View {
-    var genre: MovieMeta
+    var genre:Genre
     @State var isActive = false
 
     var body: some View {
         
         //let genre_data = Genre(id: genre.id!, genreId: genre.id!, name: genre.name!)
-        let genre_data = Genre(id: genre.id!, name: genre.name!)
+        let genre_data = Genre(id: genre.id, name: genre.name)
         ZStack{
             Image("background")
                 .renderingMode(.original)
@@ -40,7 +40,7 @@ struct GenreMainRow: View {
                 .frame(width: 200, height: 100)
                 .opacity(0.6)
 
-            Text(genre.name!).font(.system(size: 30)).bold().foregroundColor(.white).shadow(radius: 5)
+            Text(genre.name).font(.system(size: 30)).bold().foregroundColor(.white).shadow(radius: 5)
             
         }
         .onTapGesture {
@@ -60,7 +60,7 @@ struct GenreMain: View {
     @EnvironmentObject var user: UserData
 
     var path: String
-    @State private var genres = [MovieMeta]()
+    @State private var genres = [Genre]()
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -77,7 +77,9 @@ struct GenreMain: View {
     
     
     func getGenresData() {
-        API(user: user).getMetaMovie(path: path) {(result) in
+        let URL = "\(MyVariables.API_IP)\(path)"
+        
+        NetworkManager.shared.getRequest(of: [Genre].self, url: URL) {(result) in
             switch result {
             case .success(let genres):
                 DispatchQueue.main.async {
@@ -102,10 +104,14 @@ struct MovieRowView: View {
     var body: some View {
         
         VStack{
-            if let movie = movie {
-                let m = MovieDecode(movie:movie)
+           // if let movie = movie {
+            
+            //let meta_movie = meta.movie!
+            //let s = Movie(id: meta_movie.id, title: meta_movie.title, year: meta_movie.year, inventory: meta_movie.inventory!, updated: meta_movie.updated)
+            
+            let m = MovieDecode(movie: meta.movie!)
 
-                NavigationLink(destination: MovieView(movie: movie), isActive: $isActive){
+            NavigationLink(destination: MovieView(movieId: meta.movieId!), isActive: $isActive){
                     ZStack (alignment: .bottomLeading){
                             WebImage(url: URL(string: m.background()))
                                     .resizable()
@@ -131,11 +137,11 @@ struct MovieRowView: View {
                     
                 }
                 .onTapGesture{self.isActive = true}
-            }
+            //}
             
-            else {
-                ProgressView()
-            }
+           // else {
+            //    ProgressView()
+           // }
 
 
         }
@@ -146,7 +152,7 @@ struct MovieRowView: View {
     }
      
     func getMovieData() {
-        API(user: user).getMovie(id: meta.movieId!) { (result) in
+        NetworkManager.shared.getRequest(of: Movie.self, url: "\(MyVariables.API_IP)/movie/\(meta.movieId!)") { (result) in
             switch result {
             case .success(let movie):
                 DispatchQueue.main.async {
@@ -163,17 +169,16 @@ struct MovieMainView: View {
     @EnvironmentObject var user: UserData
     @EnvironmentObject var viewModel: AlertViewModel
 
-    @StateObject var dataSource = ContentDataSourceMain()
-
+    @StateObject var dataSource = ContentDataSourceTest<MovieMeta>()
     @State var metas = [MovieMeta]()
-
-    let title: String
-    let path: String
     let width = (UIScreen.main.bounds.width)
-
+    
+    var title: String
+    var path: String
 
     @Environment(\.verticalSizeClass) var verticalSizeClass: UserInterfaceSizeClass?
     @Environment(\.horizontalSizeClass) var horizontalSizeClass: UserInterfaceSizeClass?
+    
 
     var body: some View {
         /* Disabled for IPhone (Portrait Mode Only)*/
@@ -187,38 +192,7 @@ struct MovieMainView: View {
                     LazyHStack (spacing: 10){
                         ForEach(dataSource.items, id: \.uuid) { meta in
                             
-                            if(dataSource.items.last! == meta){
-                                
-                                VStack {
-                                    
-                                    if horizontalSizeClass == .compact && verticalSizeClass == .regular {
-                                            MovieRowView(meta: meta)
-                                                .frame(width: 330, height: 180, alignment: .center)
-                                        
-
-                                    }
-                                    else if horizontalSizeClass == .regular && verticalSizeClass == .compact {
-                                        
-                                            MovieRowView(meta: meta)
-                                                .frame(width: 400, height: 220, alignment: .center)
-                                        
-
-                                    }
-                                    else if horizontalSizeClass == .regular && verticalSizeClass == .regular {
-                                        
-                                            MovieRowView(meta: meta)
-                                                .frame(width: 400, height: 220, alignment: .center)
-                                        
-                                    }
-                                    
-                                }.onAppear {
-                                    print("Load More")
-                                    dataSource.loadMoreContent(user: user, path: path)
-                                }
-
-
-                            }
-                            else {
+                            VStack {
                                 
                                 if horizontalSizeClass == .compact && verticalSizeClass == .regular {
                                         MovieRowView(meta: meta)
@@ -238,18 +212,20 @@ struct MovieMainView: View {
                                         MovieRowView(meta: meta)
                                             .frame(width: 400, height: 220, alignment: .center)
                                     
-
                                 }
                                 
                             }
 
+                            .onAppear(perform: {
+                                if !self.dataSource.endOfList {
+                                    if self.dataSource.shouldLoadMore(item: meta) {
+                                        self.dataSource.fetch(path: path)
+                                    }
+                                }
+                            })
                         
                         }
 
-                        if dataSource.isLoadingPage {
-                            ProgressView() //A view that shows the progress towards completion of a task.
-                        }
-                        
                     }
                     
                 }
@@ -258,8 +234,7 @@ struct MovieMainView: View {
             
         }.padding(.leading, 20)
         .onAppear {
-            print("Initial Load")
-            dataSource.loadMoreContent(user: user, path: path)
+            dataSource.fetch(path: path)
         }
     }
 }

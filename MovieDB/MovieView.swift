@@ -35,13 +35,12 @@ extension View {
 }
 
 
-
 struct BookmarkView: View {
     @EnvironmentObject var user: UserData
     @EnvironmentObject var viewModel: AlertViewModel
 
-    @Binding var movie: Movie
-    @State var bookmark: Bookmark?
+    @State var movie: Movie
+    @State var bookmark: BookmarkResponse?
 
     var body: some View {
         VStack {
@@ -54,10 +53,9 @@ struct BookmarkView: View {
                     
                 })
                 {
-                    Image(systemName:(bookmark.id == 0) ? "plus.circle" : "minus.circle")
+                    Image(systemName:(bookmark.success) ? "minus.circle" : "plus.circle")
                             .font(.system(size: 25.0))
                             .foregroundColor(Color.blue)
-                  
                 }
             }
             
@@ -75,11 +73,12 @@ struct BookmarkView: View {
     }
     
     func getBookmarkData() {
-        API(user: user).getBookmark(id: movie.id) { (result) in
+        let URL = "\(MyVariables.API_IP)/bookmark/\(movie.id)"
+        NetworkManager.shared.getRequest(of: BookmarkResponse.self, url: URL){ (result) in
             switch result {
-            case .success(let bookmark):
+            case .success(let response):
                 DispatchQueue.main.async {
-                    self.bookmark = bookmark
+                    bookmark = response
                 }
             case .failure(let error):
                 print(error.localizedDescription)
@@ -88,7 +87,7 @@ struct BookmarkView: View {
     }
     
     func updateBookmark() {
-        API(user: user).updateBookmark(id: movie.id) { (result) in
+        NetworkManager.shared.updateBookmark(id: movie.id, userId: user.id) { (result) in
             switch result {
             case .success(let response):
                 DispatchQueue.main.async {
@@ -193,14 +192,14 @@ struct ReviewsView: View {
     @EnvironmentObject var viewModel: AlertViewModel
 
 
-    @Binding var movie: Movie
-    @StateObject var dataSource = ContentDataSourceReviews()
+    @State var movie: Movie
+    @StateObject var dataSource = ContentDataSourceTest<Review>()
 
     let width = (UIScreen.main.bounds.width - 33)
 
     var body: some View {
         VStack {
-            if(dataSource.totalElements == 0) {
+            if(dataSource.items.count == 0) {
                 EmptyView()
             }
             else {
@@ -223,33 +222,24 @@ struct ReviewsView: View {
                     ScrollView{
                         LazyVStack {
                             ForEach(dataSource.items, id: \.id) { review in
-                                if(dataSource.items.last == review){
                                     ReviewRow(review: review)
                                         .frame(width: width, height: 170)
-
-                                        .onAppear {
-                                            print("Load More")
-                                            dataSource.loadMoreContent(user: user, movie: movie)
-                                        }
-                                }
-                                else {
-                                    ReviewRow(review: review)
-                                        .frame(width: width, height: 170)
-
-                                    Divider()
-                                }
+                                        .onAppear(perform: {
+                                            if !self.dataSource.endOfList {
+                                                if self.dataSource.shouldLoadMore(item: review) {
+                                                    self.dataSource.fetch(path: "review/movie/\(movie.id)")
+                                                }
+                                            }
+                                        })
                                 
                             }
                             
                         }
                         
-                        if dataSource.isLoadingPage {
-                            ProgressView() //A view that shows the progress towards completion of a task.
-                        }
-                        
                    }
 
                 }
+                
                 else if horizontalSizeClass == .regular && verticalSizeClass == .compact {
                     
                     ScrollView(.horizontal, showsIndicators: false){
@@ -258,17 +248,14 @@ struct ReviewsView: View {
                                 if(dataSource.items.last == review){
                                     ReviewRow(review: review)
                                         .frame(width: 400, height: 200)
-
-                                        .onAppear {
-                                            print("Load More")
-                                            dataSource.loadMoreContent(user: user, movie: movie)
-                                        }
-                                }
-                                else {
-                                    ReviewRow(review: review)
-                                        .frame(width: 400, height: 200)
-
-                                    Divider()
+                                        .onAppear(perform: {
+                                            if !self.dataSource.endOfList {
+                                                if self.dataSource.shouldLoadMore(item: review) {
+                                                    self.dataSource.fetch(path: "review/movie/\(movie.id)")
+                                                }
+                                            }
+                                        })
+                 
                                 }
                                 
                             }
@@ -284,22 +271,16 @@ struct ReviewsView: View {
                     ScrollView(.horizontal, showsIndicators: false){
                         HStack {
                             ForEach(dataSource.items, id: \.id) { review in
-                                if(dataSource.items.last == review){
-                                    ReviewRow(review: review)
-                                        .frame(width: 400, height: 200)
-
-                                        .onAppear {
-                                            print("Load More")
-                                            dataSource.loadMoreContent(user: user, movie: movie)
+                                ReviewRow(review: review)
+                                    .frame(width: 400, height: 200)
+                                    .onAppear(perform: {
+                                        if !self.dataSource.endOfList {
+                                            if self.dataSource.shouldLoadMore(item: review) {
+                                                self.dataSource.fetch(path: "review/movie/\(movie.id)")
+                                            }
                                         }
-                                }
-                                else {
-                                    ReviewRow(review: review)
-                                        .frame(width: 400, height: 200)
+                                    })
 
-                                    Divider()
-                                }
-                                
                             }
                         }
                         .padding(.leading, 15)
@@ -312,7 +293,7 @@ struct ReviewsView: View {
             
         }
         .onAppear {
-            dataSource.loadMoreContent(user: user, movie: movie)
+            self.dataSource.fetch(path: "review/movie/\(movie.id)")
         }
         .frame(width: UIScreen.main.bounds.width)
 
@@ -321,7 +302,7 @@ struct ReviewsView: View {
 }
 
 struct DropDownMovie: View {
-    @Binding var movie: Movie
+    @State var movie: Movie
     @State var expand = false
     
     let width = (UIScreen.main.bounds.width - 33)
@@ -426,7 +407,7 @@ struct DropDownMovie: View {
 
 //Modified From: https://www.hackingwithswift.com/books/ios-swiftui/adding-a-custom-star-rating-component
 struct RatingRow: View {
-    @Binding var movie: Movie
+    @State var movie: Movie
     
     var maximumRating = 5
 
@@ -504,7 +485,7 @@ struct RatingRow: View {
 }
 
 struct GenreRow: View {
-    @Binding var movie: Movie
+    @State var movie: Movie
     @State var isLinkActive = false    
     
     var body: some View {
@@ -539,7 +520,7 @@ struct GenreRow: View {
 struct CastRowiPad: View {
     @Environment(\.defaultMinListRowHeight) var minRowHeight
 
-    @Binding var movie: Movie
+    @State var movie: Movie
     
     let rowHeight = 65
     let width = (UIScreen.main.bounds.width-33)
@@ -560,7 +541,7 @@ struct CastRowiPad: View {
                     ForEach(movie.cast!, id: \.starId) { cast in
                         let c = CastDecode(cast: cast)
                     
-                        NavigationLink(destination: CastView(cast: cast)) {
+                        NavigationLink(destination: CastView(castId: cast.starId)) {
                             VStack {
                                 ZStack {
                                     RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -608,7 +589,7 @@ struct CastRowiPad: View {
 struct CastRow: View {
     @Environment(\.defaultMinListRowHeight) var minRowHeight
 
-    @Binding var movie: Movie
+    @State var movie: Movie
     @State var expand = false
 
     let rowHeight = 65
@@ -638,7 +619,7 @@ struct CastRow: View {
                             let c = CastDecode(cast: cast)
                         
                             VStack {
-                                NavigationLink(destination: CastView(cast: cast)) {
+                                NavigationLink(destination: CastView(castId: cast.starId)) {
                                     HStack {
                                         VStack {
                                             WebImage(url: URL(string: c.photo()))
@@ -704,7 +685,7 @@ struct CastRow: View {
 struct BackgroundView: View {
     @EnvironmentObject var user: UserData
 
-    @Binding var movie: Movie
+    @State var movie: Movie
         
     let width = (UIScreen.main.bounds.width)
 
@@ -741,7 +722,7 @@ struct BackgroundView: View {
                         HStack {
                             VStack(spacing:2) {
                                 Spacer()
-                                BookmarkView(movie: $movie)
+                                BookmarkView(movie: movie)
                                 Text("My List").font(.system(size: 12)).bold()
                                 Spacer()
 
@@ -749,7 +730,7 @@ struct BackgroundView: View {
                             
                             VStack(spacing:2) {
                                 Spacer()
-                                RateView(movie: $movie)
+                                RateView(movie: movie)
                                 Text("Rate").font(.system(size: 12)).bold()
                                 Spacer()
                             }
@@ -818,8 +799,8 @@ struct BackgroundView: View {
                                         Spacer()
 
                                         Text("\(unwrapped)%").font(.system(size: 14)).bold()
-                                        
-                                        Image(movie.ratings!.rottenTomatoesStatus!)
+                                                                                
+                                        Image(ratings.rottenTomatoesStatus ?? "Fresh")
                                             .resizable()
                                             .aspectRatio(contentMode: .fit)
                                             .frame(width: 25, height: 25)
@@ -836,7 +817,7 @@ struct BackgroundView: View {
                                         
                                         Text("\(unwrapped)%").font(.system(size: 14)).bold()
                                         
-                                        Image(movie.ratings!.rottenTomatoesAudienceStatus!)
+                                        Image(movie.ratings!.rottenTomatoesAudienceStatus ?? "Upright")
                                             .resizable()
                                             .aspectRatio(contentMode: .fit)
                                             .frame(width: 25, height: 25)
@@ -901,7 +882,7 @@ struct BackgroundView: View {
 
 
 struct iPhonePortraitMovieView: View {
-    @Binding var movie: Movie
+    @State var movie: Movie
     @State var scrollText = false
     
     @State var index = 0
@@ -915,7 +896,7 @@ struct iPhonePortraitMovieView: View {
 
         VStack {
             
-            BackgroundView(movie: $movie)
+            BackgroundView(movie: movie)
             
             VStack(alignment:.leading) {
                 
@@ -966,59 +947,6 @@ struct iPhonePortraitMovieView: View {
     }
 }
 
-struct iPhoneLandscapeMovieView: View {
-    @Binding var movie: Movie
-    
-    let width = (UIScreen.main.bounds.width)
-    
-    var body: some View {
-        let m = MovieDecode(movie:movie)
-        VStack {
-                
-            HStack{
-                WebImage(url: m.posterURL())
-                    .resizable()
-                    .renderingMode(.original)
-                    .placeholder(Image("no_image"))
-                    .aspectRatio(contentMode: .fit)
-                    .cornerRadius(8)
-                    .frame(width: 160, height: 220)
-                
-                VStack (alignment: .leading){
-                    Text(m.title()).font(.title)
-                    
-                    Text(m.subString()).font(.subheadline).foregroundColor(.gray)
-                    
-                    Text(m.director())
-
-                    HStack {
-                        let reviews = RatingDecode(movie: movie)
-                        let imdb = reviews.getIMDB()
-                        let rotten = reviews.getRottenTomatoes()
-                        let meta = reviews.getMetaCritic()
-                        
-                        BookmarkView(movie: $movie)
-                            .padding(.trailing, 10)
-                        
-                        imdb.padding(.trailing, 10)
-                        
-                        rotten.padding(.trailing, 10)
-                        
-                        meta
-                    }
-
-                    Text(m.plot())
-                                
-                }
-                
-            }
-            .frame(width: width, height: 200)
-            
-        }
-    }
-}
-
-
 
 struct RatingIcon: View {
     var filled: Bool = false
@@ -1031,7 +959,7 @@ struct RatingIcon: View {
 
 
 struct RateView: View {
-    @Binding var movie: Movie
+    @State var movie: Movie
     @State var popupOpen:Bool = false
     @State var stars:Int = 0
     
@@ -1086,7 +1014,7 @@ struct RateView: View {
 
 
 struct iPadMovieView: View {
-    @Binding var movie: Movie
+    @State var movie: Movie
     @EnvironmentObject var user: UserData
     
     let width = UIScreen.main.bounds.width
@@ -1123,26 +1051,9 @@ struct iPadMovieView: View {
                         
                         HStack {
                             
-                            BookmarkView(movie: $movie)
-                            RateView(movie: $movie)
-
-                            /**
-                             Divider()
-                             
-                             if let unwrapped = movie.ratings!.rating {
-                                 VStack(spacing:2) {
-                                     Spacer()
-                                     Image(systemName: "star.fill")
-                                         .font(.system(size: 25.0))
-                                         .foregroundColor(Color.yellow)
-                                     let rating = String(format: "%.1f", unwrapped)
-                                     Group{Text("\(rating)").font(.system(size: 14)).bold() + Text("/10").font(.system(size: 10)).bold().foregroundColor(.gray)}
-                                     Spacer()
-                                 }
-                             }
-                             
-                             */
-
+                            BookmarkView(movie: movie)
+                            RateView(movie: movie)
+                            
                         }
                         .padding(.leading,5)
                         .padding(.trailing,5)
@@ -1172,9 +1083,9 @@ struct iPadMovieView: View {
                         Text(m.subString()).font(.system(size: 15)).bold().foregroundColor(.white).shadow(radius: 5)
                             .padding(.bottom, 1)
 
-                        GenreRow(movie: $movie)
+                        GenreRow(movie: movie)
 
-                        RatingRow(movie: $movie).padding(.bottom, 1)
+                        RatingRow(movie: movie).padding(.bottom, 1)
                         
                         Text(m.plot()).font(.system(size: 15)).bold().foregroundColor(.white).shadow(radius: 5)
                             .padding(.bottom, 1)
@@ -1211,8 +1122,11 @@ struct MovieView: View {
 
     @Environment(\.verticalSizeClass) var verticalSizeClass: UserInterfaceSizeClass?
     @Environment(\.horizontalSizeClass) var horizontalSizeClass: UserInterfaceSizeClass?
+    
+    
+    var movieId: String
 
-    @State var movie: Movie
+    @State var movie: Movie?
     @State private var addedToCartAlert = false
 
     let height = (UIScreen.main.bounds.height)
@@ -1225,34 +1139,41 @@ struct MovieView: View {
                     ScrollView(.vertical, showsIndicators: false) {
                         VStack (spacing: 0) {
                             
-                            if horizontalSizeClass == .compact && verticalSizeClass == .regular {
-                                iPhonePortraitMovieView(movie: $movie)
-                                DropDownMovie(movie: $movie)
-                                Divider()
-                                CastRow(movie: $movie)
-                                Divider()
-                                ReviewsView(movie: $movie)
+                            if let movie = movie {
+                                if horizontalSizeClass == .compact && verticalSizeClass == .regular {
+                                    iPhonePortraitMovieView(movie: movie)
+                                    DropDownMovie(movie: movie)
+                                    Divider()
+                                    CastRow(movie: movie)
+                                    Divider()
+                                    ReviewsView(movie: movie)
 
-                            }
-                            else if horizontalSizeClass == .regular && verticalSizeClass == .compact {
-                                
-                                iPhoneLandscapeMovieView(movie: $movie)
-                                GenreRow(movie: $movie)
-                                    .padding(.bottom, 5)
-                                DropDownMovie(movie: $movie)
-                                CastRowiPad(movie: $movie)
-                                ReviewsView(movie: $movie)
+                                }
+                                else if horizontalSizeClass == .regular && verticalSizeClass == .compact {
+                                    
+                                    iPhonePortraitMovieView(movie: movie)
+                                    GenreRow(movie: movie)
+                                        .padding(.bottom, 5)
+                                    DropDownMovie(movie: movie)
+                                    CastRowiPad(movie: movie)
+                                    ReviewsView(movie: movie)
 
-                            }
-                            else if horizontalSizeClass == .regular && verticalSizeClass == .regular {
-                                iPadMovieView(movie: $movie)
-                                DropDownMovie(movie: $movie)
-                                Divider()
-                                CastRowiPad(movie: $movie)
-                                //Divider()
-                                ReviewsView(movie: $movie)
+                                }
+                                else if horizontalSizeClass == .regular && verticalSizeClass == .regular {
+                                    iPadMovieView(movie: movie)
+                                    DropDownMovie(movie: movie)
+                                    Divider()
+                                    CastRowiPad(movie: movie)
+                                    //Divider()
+                                    ReviewsView(movie: movie)
 
+                                }
                             }
+                            
+                            else {
+                                ProgressView()
+                            }
+
                             
                         }
                       
@@ -1265,7 +1186,7 @@ struct MovieView: View {
 
                     Button(action: {
                         print("Add button pressed...")
-                        self.addCartData(movieId: movie.id, qty: 1)
+                        self.addCartData(movieId: movieId, qty: 1)
                     })
                     {
                         HStack {
@@ -1344,7 +1265,7 @@ struct MovieView: View {
         }
         
        .navigationBarHidden(false)
-       .navigationBarTitle(Text("\(movie.title)"), displayMode: .inline)
+       .navigationBarTitle(Text("\(movieId)"), displayMode: .inline)
        .toolbar {
            ToolbarItemGroup(placement: .bottomBar) {
                ItemsToolbar()
@@ -1353,7 +1274,7 @@ struct MovieView: View {
     }
     
     func addCartData(movieId: String, qty: Int) {
-        API(user: user).addCart(movieId: movieId, qty: qty){ (result) in
+        NetworkManager.shared.addCart(movieId: movieId, qty: qty){ (result) in
             switch result {
             case .success( _ ):
                 DispatchQueue.main.async {
@@ -1371,7 +1292,8 @@ struct MovieView: View {
     }
 
     func getMovieData() {
-        API(user: user).getMovie(id: movie.id) { (result) in
+        let URL = "\(MyVariables.API_IP)/movie/\(movieId)"
+        NetworkManager.shared.getRequest(of: Movie.self, url: URL) { (result) in
             switch result {
             case .success(let movie):
                 DispatchQueue.main.async {
@@ -1388,15 +1310,19 @@ struct MovieView: View {
     }
     
     func getCartQtyData() {
-        API(user: user).getCartQty(){ (result) in
+        let URL = "\(MyVariables.API_IP)/cart/qty/"
+        
+        NetworkManager.shared.getRequest(of: Int.self, url: URL){ (result) in
             switch result {
             case .success(let qty):
                 DispatchQueue.main.async {
                     user.qty = qty
                 }
             case .failure(let error):
-                viewModel.subtitle = error.localizedDescription
-                viewModel.show = true
+                DispatchQueue.main.async {
+                    viewModel.setError(title: "Cart Error", subtitle: error.localizedDescription)
+
+                }
             }
         }
     }

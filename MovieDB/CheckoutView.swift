@@ -91,7 +91,9 @@ struct AddressChangeView: View {
     }
     
     func getAddressData() {
-        API(user: userData).getAddresses(){ (result) in
+        let URL = "\(MyVariables.API_IP)/address/"
+
+        NetworkManager.shared.getRequest(of:[Address].self, url: URL){ (result) in
             switch result {
             case .success(let addreses):
                 DispatchQueue.main.async {
@@ -104,7 +106,7 @@ struct AddressChangeView: View {
     }
     
     func uploadAddressData(address: Address) {
-        API(user: userData).uploadCheckoutAddress(address: address){ (result) in
+        NetworkManager.shared.uploadCheckoutAddress(address: address){ (result) in
             switch result {
             case .success(let checkout):
                 DispatchQueue.main.async {
@@ -477,7 +479,7 @@ struct CheckoutContentView: View {
     func getPaymentIntent() {
         STPAPIClient.shared.publishableKey = MyVariables.STRIPE_PUBLIC_KEY
 
-        API(user: user).preparePaymentIntent(amount: checkout.total, currency: "USD", description: "TEST IOS CHARGE") { (result) in
+        NetworkManager.shared.preparePaymentIntent(amount: checkout.total, currency: "USD", description: "TEST IOS CHARGE") { (result) in
             switch result {
             case .success(let paymentIntent):
                 DispatchQueue.main.async {
@@ -492,7 +494,7 @@ struct CheckoutContentView: View {
     func uploadOrder(order: ProcessOrder) {
         STPAPIClient.shared.publishableKey = MyVariables.STRIPE_PUBLIC_KEY
 
-        API(user: user).uploadOrder(order: order) { (result) in
+        NetworkManager.shared.uploadOrder(order: order) { (result) in
             switch result {
             case .success(let sale):
                 DispatchQueue.main.async {
@@ -564,7 +566,9 @@ struct CheckoutView: View {
     }
     
     func getCheckoutData() {
-        API(user: user).getCheckout() { (result) in
+        let URL = "\(MyVariables.API_IP)/checkout/"
+
+        NetworkManager.shared.getRequest(of: Checkout.self, url: URL) { (result) in
             switch result {
             case .success(let checkout):
                 DispatchQueue.main.async {

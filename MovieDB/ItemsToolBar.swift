@@ -87,8 +87,13 @@ struct ItemsToolbar: View {
         }
     }
     
+    
+
+    
     func getCartQtyData() {
-        API(user: user).getCartQty(){ (result) in
+        let URL = "\(MyVariables.API_IP)/cart/qty/"
+
+        NetworkManager.shared.getRequest(of: Int.self, url: URL){ (result) in
             switch result {
             case .success(let qty):
                 DispatchQueue.main.async {

@@ -142,16 +142,22 @@ struct LoginView: View {
     }
     
     func authUser() {
-        API(user: user).authUser(username: email, password: password) { (result) in
+        NetworkManager.shared.authUser(username: email, password: password) { (result) in
             switch result {
             case .success(let userToken):
                 DispatchQueue.main.async {
                     user.isLoggedin = true
                     user.id = userToken.id
                     user.username = userToken.username
-                    user.token = userToken.token
-                    let keychain = Keychain(service: "com.dataflix-token")
-                    keychain["JWT"] = userToken.token
+                    //user.token = userToken.accessToken
+                    //user.accessToken = userToken.accessToken
+                                        
+                    print("Response Token: \(userToken.accessToken)")
+                    print("User Token: \(user.token)")
+                    let keychain = Keychain(service: "com.dataflix")
+                    keychain["id"] = String(userToken.id)
+                    keychain["accessToken"] = userToken.accessToken
+                    keychain["refreshToken"] = userToken.refreshToken
                     
                     self.loading = false
                     
@@ -177,10 +183,8 @@ struct ContentView: View {
     
     var body: some View {
         NavigationView {
-            
-            let token = keychain["JWT"]
-            
-             if !user.isLoggedin || token == nil {
+                        
+             if !user.isLoggedin{
                    //return AnyView(LoginView())
                    //AnyView(LoginView())
                   LoginView()
@@ -192,7 +196,6 @@ struct ContentView: View {
                      //.transition(.move(edge: .trailing))
                      //.animation(Animation.linear(duration: 2))
                      .navigationBarHidden(true)
-                     .onAppear(perform: {user.token = token!})
 
               }
            
@@ -210,7 +213,9 @@ struct ContentView: View {
     
     
     func authToken() {
-        API(user: user).authToken() { (result) in
+        let URL = "\(MyVariables.API_IP)/user/validate"
+        
+        NetworkManager.shared.getRequest(of:ResponseStatus<User>.self, url: URL){ (result) in
             switch result {
             case .success( _ ):
                 DispatchQueue.main.async {

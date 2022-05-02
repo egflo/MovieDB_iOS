@@ -15,7 +15,7 @@ struct OrderRowDetailView: View {
     @EnvironmentObject var user: UserData
 
     @State var order: Order
-    @State var movieData: Movie?
+    //@State var movieData: Movie?
     @State var isActive = false;
 
     let width = (UIScreen.main.bounds.width - 33)
@@ -24,10 +24,9 @@ struct OrderRowDetailView: View {
     var body: some View {
         
         VStack {
-            if let movie = movieData {
-                NavigationLink(destination: MovieView(movie: movie), isActive: $isActive) {
+             NavigationLink(destination: MovieView(movieId: order.movieId), isActive: $isActive) {
                     HStack {
-                        let m = MovieDecode(movie:movie)
+                        let m = MovieDecode(movie: order.movie!)
                         
                         VStack {
                             WebImage(url: m.posterURL())
@@ -59,13 +58,8 @@ struct OrderRowDetailView: View {
                     .frame(height: 90)
                     .onTapGesture{self.isActive = true}
                }
-            }
-            
-            else {
-                ProgressView()
-            }
+
         }
-        .onAppear(perform: {getMovieData()})
     }
     
     
@@ -79,18 +73,6 @@ struct OrderRowDetailView: View {
         return formatter.string(from: NSNumber(value: num))!
     }
     
-    func getMovieData() {
-        API(user: user).getMovie(id: order.movieId) { (result) in
-            switch result {
-            case .success(let movie):
-                DispatchQueue.main.async {
-                    self.movieData = movie
-                }
-            case .failure(let error):
-                print(error.localizedDescription)
-            }
-        }
-    }
 }
 
 struct OrderDetailsView: View {
@@ -150,7 +132,7 @@ struct OrderDetailsView: View {
                 }.frame(width:width, height: 100)
                 
                                 
-                List(sale.orders!, id: \.id) { order in
+                List(sale.orders, id: \.id) { order in
                     OrderRowDetailView(order:order)
                 }.listStyle(GroupedListStyle())
                 
@@ -185,7 +167,8 @@ struct OrderDetailsView: View {
     
     
     func getSaleData() {
-        API(user: user).getSale(id: sale.id) { (result) in
+        let URL = "\(MyVariables.API_IP)/sale/\(sale.id)"
+        NetworkManager.shared.getRequest(of: SaleDetails.self, url: URL) { (result) in
             switch result {
             case .success(let details):
                 DispatchQueue.main.async {
@@ -202,69 +185,43 @@ struct OrderDetailsView: View {
 
 
 
-struct OrderContentView: View {
+struct OrderRowItem: View {
     @EnvironmentObject var user: UserData
-
     @State var order: Order
-    @State var movieData: Movie?
     
     let width = (UIScreen.main.bounds.width - 33)
     var body: some View {
         
         VStack {
             
-            if let movie = movieData {
-                HStack {
-                    let m = MovieDecode(movie:movie)
-                    
-                    VStack {
-                        WebImage(url: m.posterURL())
-                                .resizable()
-                                .renderingMode(.original)
-                                .placeholder(Image("no_image"))
-                                .aspectRatio(contentMode: .fit)
-                                .cornerRadius(8)
-                        
-                    }
-                    .frame(width: 40, height: 70)
-                    
-                    VStack(alignment: .leading) {
-                        
-                        Text(m.title()).font(.headline).foregroundColor(.blue)
-                        Text(m.subString()).font(.subheadline).foregroundColor(.gray)
-
-                    }
-                    
-                }
-                .frame(height: 75)
-                .onAppear(perform:{getMovieData()})
-
-            }
-            
-            else {
+            HStack {
+                let m = MovieDecode(movie: order.movie!)
                 
-                ProgressView()
-         
-            }
-            
-        }
-        .onAppear(perform: {getMovieData()})
-        
-    }
-    
-    func getMovieData() {
-        API(user: user).getMovie(id: order.movieId) { (result) in
-            switch result {
-            case .success(let movie):
-                DispatchQueue.main.async {
-                    self.movieData = movie
+                VStack {
+                    WebImage(url: m.posterURL())
+                            .resizable()
+                            .renderingMode(.original)
+                            .placeholder(Image("no_image"))
+                            .aspectRatio(contentMode: .fit)
+                            .cornerRadius(8)
+                    
                 }
-            case .failure(let error):
-                print(error.localizedDescription)
+                .frame(width: 40, height: 70)
+                
+                VStack(alignment: .leading) {
+                    
+                    Text(m.title()).font(.headline).foregroundColor(.blue)
+                    Text(m.subString()).font(.subheadline).foregroundColor(.gray)
+
+                }
+                
             }
+            .frame(height: 75)
+
         }
+            
     }
-    
+            
 }
 
 
@@ -305,9 +262,9 @@ struct OrderRowView: View {
                     
                     Text("Total: \(decode.getTotal())").bold()
 
-                    ForEach(decode.sale.orders ?? [Order](), id: \.id) { order in
+                    ForEach(decode.sale.orders, id: \.id) { order in
                  
-                        OrderContentView(order: order)
+                        OrderRowItem(order: order)
                  
                     }
                         
@@ -328,14 +285,14 @@ struct OrderRowView: View {
 struct OrderView: View {
     @EnvironmentObject var user: UserData
     
-    @StateObject var dataSource = ContentDataSourceOrders()
+    @StateObject var dataSource = ContentDataSourceTest<Sale>()
     let width = (UIScreen.main.bounds.width)
 
     var body: some View {
         
         VStack {
         
-            Text("My Orders").font(.title).bold().frame(width:width-33, alignment: .leading)
+            //Text("My Orders").font(.title).bold().frame(width:width-33, alignment: .leading)
 
             if(dataSource.items.count == 0) {
                 GeometryReader {geometry in
@@ -360,36 +317,16 @@ struct OrderView: View {
                 
                 ScrollView {
                     LazyVStack{
-                        ForEach(dataSource.items, id: \.id) { sale in
+                        ForEach(dataSource.items, id: \.uuid) { sale in
                             let decode = SaleDecode(sale: sale)
-
-                            if(dataSource.items.last == sale){
-                                
-                                VStack {
-
-                                    OrderRowView(decode: decode)
-                                }
-                                .onAppear {
-                                    print("Load More")
-                                    dataSource.loadMoreContent(user: user)
-                                }
-                                .buttonStyle(PlainButtonStyle())
-                                
-
-                            }
-                            else {
-                                
-                                VStack {
-
-                                    OrderRowView(decode: decode)
-                                }
-                                //.onAppear {
-                                //    print("Load More")
-                               //     dataSource.loadMoreContent(user: user)
-                               // }
-                                .buttonStyle(PlainButtonStyle())
-                                
-                            }
+                            OrderRowView(decode: decode)
+                                .onAppear(perform: {
+                                    if !self.dataSource.endOfList {
+                                        if self.dataSource.shouldLoadMore(item: sale) {
+                                            self.dataSource.fetch(path: "sale/")
+                                        }
+                                    }
+                                })
 
                         }
                         
@@ -399,14 +336,11 @@ struct OrderView: View {
             }
             
         }
-        //.offset(y: 15)
+        .onAppear(perform: {
+            dataSource.fetch(path: "sale/")
+        })
         
-        .onAppear {
-            print("Load More")
-            dataSource.loadMoreContent(user: user)
-        }
-        
-        .navigationBarHidden(true)
+        .navigationBarHidden(false)
         .navigationBarTitle(Text("Orders"), displayMode: .large)
         .toolbar {
             ToolbarItemGroup(placement: .bottomBar) {

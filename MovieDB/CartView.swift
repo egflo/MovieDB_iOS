@@ -45,7 +45,7 @@ struct iPhoneCartView: View {
                             }
 
                       
-                        NavigationLink(destination: MovieView(movie: m.movie)) {
+                        NavigationLink(destination: MovieView(movieId: item.movieId)) {
                             HStack {
                                 VStack {
                                     WebImage(url: URL(string: m.poster()))
@@ -112,11 +112,11 @@ struct iPhoneCartView: View {
             
         }
     }
-    
+
     func deleteCartData(cartId: Int) {
-        API(user: user).deleteCart(id: cartId){ (result) in
+        NetworkManager.shared.deleteCart(id: cartId){ (result) in
             switch result {
-            case .success(let response ):
+            case .success(let response):
                 DispatchQueue.main.async {
                     
                     if let index = self.cart!.firstIndex(where: {$0.id == response.data!.id}) {
@@ -128,13 +128,15 @@ struct iPhoneCartView: View {
             case .failure(let error):
                 DispatchQueue.main.async {
                     viewModel.setError(title: "Cart Error", subtitle: error.localizedDescription)
+
                 }
             }
         }
     }
     
     func updateCartData(cartId: Int, movieId: String, qty: Int) {
-        API(user: user).updateCart(id: cartId, movieId: movieId, userId: user.id, qty: qty) { (result) in
+
+        NetworkManager.shared.updateCart(id: cartId, movieId: movieId, userId: user.id, qty: qty) { (result) in
             switch result {
             case .success(let response):
                 DispatchQueue.main.async {
@@ -155,9 +157,12 @@ struct iPhoneCartView: View {
             }
         }
     }
+
     
     func getCartQtyData() {
-        API(user: user).getCartQty(){ (result) in
+        let URL = "\(MyVariables.API_IP)/cart/qty/"
+        
+        NetworkManager.shared.getRequest(of: Int.self, url: URL){ (result) in
             switch result {
             case .success(let qty):
                 DispatchQueue.main.async {
@@ -166,10 +171,12 @@ struct iPhoneCartView: View {
             case .failure(let error):
                 DispatchQueue.main.async {
                     viewModel.setError(title: "Cart Error", subtitle: error.localizedDescription)
+
                 }
             }
         }
     }
+
     
 }
 
@@ -211,7 +218,7 @@ struct iPadCartView: View {
                       
                             HStack {
                                 
-                                NavigationLink(destination: MovieView(movie: m.movie)) {
+                                NavigationLink(destination: MovieView(movieId: item.movieId)) {
 
                                 VStack {
                                     WebImage(url: URL(string: m.poster()))
@@ -280,7 +287,7 @@ struct iPadCartView: View {
     }
     
     func deleteCartData(id: Int) {
-        API(user: user).deleteCart(id: id){ (result) in
+        NetworkManager.shared.deleteCart(id: id){ (result) in
             switch result {
             case .success(let response):
                 DispatchQueue.main.async {
@@ -301,7 +308,8 @@ struct iPadCartView: View {
     }
     
     func updateCartData(cartId: Int, movieId: String, qty: Int) {
-        API(user: user).updateCart(id: cartId, movieId: movieId, userId: user.id, qty: qty) { (result) in
+
+        NetworkManager.shared.updateCart(id: cartId, movieId: movieId, userId: user.id, qty: qty) { (result) in
             switch result {
             case .success(let response):
                 DispatchQueue.main.async {
@@ -325,7 +333,9 @@ struct iPadCartView: View {
 
     
     func getCartQtyData() {
-        API(user: user).getCartQty(){ (result) in
+        let URL = "\(MyVariables.API_IP)/cart/qty/"
+        
+        NetworkManager.shared.getRequest(of: Int.self, url: URL){ (result) in
             switch result {
             case .success(let qty):
                 DispatchQueue.main.async {
@@ -487,7 +497,7 @@ struct CartView: View {
     
     
     func getCartData() {
-        API(user: user).getCart { (result) in
+        NetworkManager.shared.getRequest(of: [Cart].self, url:"\(MyVariables.API_IP)/cart/") { (result) in
             switch result {
             case .success(let cart):
                 DispatchQueue.main.async {
@@ -504,7 +514,9 @@ struct CartView: View {
     }
     
     func getAddressData() {
-        API(user: user).getAddresses(){ (result) in
+        let URL = "\(MyVariables.API_IP)/address/"
+
+        NetworkManager.shared.getRequest(of:[Address].self, url: URL){ (result) in
             switch result {
             case .success(let addreses):
                 DispatchQueue.main.async {

@@ -194,9 +194,9 @@ struct ShippingView: View {
     
     func uploadAddress(address: Address) {
         
-         API(user: userData).uploadAddress(address: address, insert: true) { (result) in
+        NetworkManager.shared.uploadAddress(address: address, insert: true) { (result) in
              switch result {
-             case .success(let address):
+             case .success(let response):
                  DispatchQueue.main.async {
                      isCheckoutActive = true
                      

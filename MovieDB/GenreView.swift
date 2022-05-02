@@ -16,13 +16,14 @@ struct GenreView: View {
     var genre: Genre
     
     @State var movies = [Movie]()
-    @StateObject var dataSource = ContentDataSource()
+    @StateObject var dataSource = ContentDataSourceTest<Movie>()
     
 
     var body: some View {
             
         ScrollView{
             LazyVStack {
+                /*
                 ForEach(dataSource.items, id: \.id) { movie in
                     if(dataSource.items.last == movie){
                         MovieRow(movie: movie)
@@ -41,10 +42,11 @@ struct GenreView: View {
                 }
                 
                 .navigationBarTitle("\(genre.name)")
+                 */
                 
             } .onAppear {
-                dataSource.query = "genre"
-                dataSource.setText(text: genre.name, user: user)
+                //dataSource.query = "genre"
+                //dataSource.setText(text: genre.name, user: user)
                 
             }
             

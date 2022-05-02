@@ -10,6 +10,7 @@ import CoreData
 import UIKit
 import Combine
 import Stripe
+import KeychainAccess
 
 //https://github.com/exyte/PopupView/blob/master/Example/Common/ContentView.swift
 //https://github.com/callicoder/spring-boot-react-oauth2-social-login-demo/blob/master/react-social/src/app/App.js
@@ -17,7 +18,7 @@ import Stripe
 struct MyVariables {
     //static var API_IP = "http://10.81.1.131:8080/moviedb_api"
     //static var API_IP = "https://dataflixapi.azurewebsites.net"
-    static var API_IP = "http://10.81.1.104:8080"
+    static var API_IP = "http://10.81.1.139:8080"
     static var STRIPE_PUBLIC_KEY = "pk_test_51J3qCqBVPvYzs7uWw0nbrKwdIZWg0hmaYHEABbUirTZqQR2TftCxjMBRJhBlVIQbvYLTWDrUXt2WZnzVbY2BNfye0055McVHXT"
 }
 
@@ -34,9 +35,11 @@ class UserData: ObservableObject {
     @Published var username = ""
     @Published var token = ""
     @Published var qty = 0
+    @Published var accessToken = ""
 }
 
 enum APIError: Error {
+    case invalidAuthorization
     case invalidJSON
     case invalidJSONResponse
     case invalidResponeCode
@@ -50,6 +53,8 @@ enum APIError: Error {
 extension APIError: LocalizedError {
     public var errorDescription: String? {
         switch self {
+        case .invalidAuthorization:
+            return NSLocalizedString("Unauthorized Access", comment: "Invalid Authentication")
         case .invalidJSON:
             return NSLocalizedString("Unable to Encode Data Model", comment: "Invalid JSON")
         case .invalidJSONResponse:
@@ -71,16 +76,38 @@ extension APIError: LocalizedError {
 
 
 
+struct Token: Codable {
+    let accessToken: String
+    let refreshToken: String
+    let tokenType: String
+}
+
+struct RefreshTokenRequest: Codable {
+    let refreshToken: String
+}
+
+enum AuthError:Error {
+    case missingToken
+    case invalidToken
+}
+
+
+
 class API: ObservableObject {
     var userId: Int
     var token: String
     
     init(user: UserData) {
+        //let keychain = Keychain(service: "com.dataflix")
         self.userId = user.id
-        self.token = user.token
+        self.token = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI4NCxhZG1pbkBleGFtcGxlLmNvbSIsImlzcyI6ImRhdGFmbGl4LmlvIiwiaWF0IjoxNjUwOTQ2NzM3LCJleHAiOjE2NTE1NTE1Mzd9.KPtzFqVCi0LIcQRqic4P7AFVjdOuLdChmqzklu7Mt6M84zjMwfnVrmy8neajeMWg_CCuCLNLKeXyb0VR3g3emA" //user.accessToken//keychain["accessToken"]!
     }
     
+    /*
+     
+     
     func getTopSearches(completion: @escaping (Result<[MovieMeta],Error>) -> Void) {
+        
         
         let url = "\(MyVariables.API_IP)/rating/rated?limit=28"
         let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
@@ -111,6 +138,7 @@ class API: ObservableObject {
             }
         }.resume()
     }
+    
     
     func authUser(username: String, password: String, completion: @escaping (Result<UserToken,Error>) -> Void) {
         let url = "\(MyVariables.API_IP)/user/auth"
@@ -166,6 +194,8 @@ class API: ObservableObject {
             }
         }.resume()
     }
+    
+    
     
     func authToken(completion: @escaping (Result<ResponseStatus,Error>) -> Void) {
         let url = "\(MyVariables.API_IP)/user/validate"
@@ -306,6 +336,7 @@ class API: ObservableObject {
         
     }
 
+  
     
     func getBookmark(id: String, completion: @escaping (Result<Bookmark,Error>) -> Void) {
         
@@ -365,6 +396,7 @@ class API: ObservableObject {
     }
     
     
+    
     func getSale(id: Int, completion: @escaping (Result<SaleDetails,Error>) -> Void) {
         
         let url = "\(MyVariables.API_IP)/sale/\(id)"
@@ -397,6 +429,8 @@ class API: ObservableObject {
             }
         }.resume()
     }
+     
+
     
     func uploadEmail(email: Email, completion: @escaping (Result<User,Error>) -> Void) {
         
@@ -445,6 +479,7 @@ class API: ObservableObject {
             }
         }.resume()
     }
+  
     
     func uploadPrimaryAddressId(id: Int, completion: @escaping (Result<User,Error>) -> Void) {
         
@@ -500,6 +535,8 @@ class API: ObservableObject {
             }
         }.resume()
     }
+     
+ 
     
     func uploadCheckoutAddress(address: Address, completion: @escaping (Result<Checkout,Error>) -> Void) {
         // Prepare URL
@@ -597,6 +634,8 @@ class API: ObservableObject {
         
     }
     
+    
+    
     func uploadAddress(address: Address, insert: Bool, completion: @escaping (Result<Address,Error>) -> Void) {
         // Prepare URL
         let url = "\(MyVariables.API_IP)/address/"
@@ -653,7 +692,8 @@ class API: ObservableObject {
         }.resume()
         
     }
-    
+     
+     
     func uploadOrder(order: ProcessOrder, completion: @escaping (Result<Sale,Error>) -> Void) {
         
         // Prepare URL
@@ -808,6 +848,8 @@ class API: ObservableObject {
         task.resume()
     }
     
+  
+    
     func getCheckout(completion: @escaping (Result<Checkout,Error>) -> Void) {
         
         let url = "\(MyVariables.API_IP)/checkout/"
@@ -842,6 +884,7 @@ class API: ObservableObject {
         }.resume()
     }
     
+     
     func addCart(movieId: String, qty: Int, completion: @escaping (Result<Cart,Error>) -> Void) {
         
         let url = "\(MyVariables.API_IP)/cart/"
@@ -909,6 +952,7 @@ class API: ObservableObject {
         }.resume()
     }
     
+     
     func deleteCart(id: Int, completion: @escaping (Result<CartResponse,Error>) -> Void) {
         
         let url = "\(MyVariables.API_IP)/cart/\(id)"
@@ -1079,8 +1123,9 @@ class API: ObservableObject {
             
         }.resume()
     }
+     
     
-    func getCart(completion: @escaping (Result<[Cart],Error>) -> Void) {
+    func getCart(allowRetry: Bool = true, completion: @escaping (Result<[Cart],Error>) -> Void) {
         
         let url = "\(MyVariables.API_IP)/cart/"
         let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
@@ -1090,6 +1135,8 @@ class API: ObservableObject {
             return
         }
         
+        
+        print(self.token)
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("Bearer \(self.token)", forHTTPHeaderField: "Authorization")
@@ -1102,6 +1149,7 @@ class API: ObservableObject {
             
             if let responseCode = (response as? HTTPURLResponse)?.statusCode, let responseData = data {
                 guard responseCode == 200 else {
+                    
                     completion(.failure(APIError.invalidResponeCode))
                     return
                 }
@@ -1121,6 +1169,7 @@ class API: ObservableObject {
         }.resume()
     }
     
+
     
     func getAddresses(completion: @escaping (Result<[Address],Error>) -> Void) {
         
@@ -1163,8 +1212,8 @@ class API: ObservableObject {
         }.resume()
     }
     
+
     func getMovie(id: String, completion: @escaping (Result<Movie,Error>) -> Void) {
-        
         let url = "\(MyVariables.API_IP)/movie/\(id)"
         let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
 
@@ -1194,7 +1243,7 @@ class API: ObservableObject {
             }
         }.resume()
     }
-    
+
     func getMovies(path: String, completion: @escaping (Result<[Movie],Error>) -> Void) {
         
         let url = "\(MyVariables.API_IP)\(path)"
@@ -1228,41 +1277,8 @@ class API: ObservableObject {
             }
         }.resume()
     }
-        
-    func getSale(id: String, completion: @escaping (Result<SaleDetails,Error>) -> Void) {
-        
-        let url = "\(MyVariables.API_IP)/sale/\(id)"
-        let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
-
-        guard let url = URL(string: encoded_url!) else {
-            completion(.failure(APIError.invalidURL))
-            return
-        }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("Bearer \(self.token)", forHTTPHeaderField: "Authorization")
-
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                completion(.failure(error))
-                return
-            }
-            
-            do {
-                let sale = try JSONDecoder().decode(SaleDetails.self, from: data!)
-                completion(.success(sale))
-                print(sale)
-                return
-                
-            } catch let jsonError {
-                completion(.failure(jsonError))
-                return
-            }
-        }.resume()
     
-    }
+
     
     func getSales(completion: @escaping (Result<[Sale],Error>) -> Void) {
         
@@ -1296,6 +1312,7 @@ class API: ObservableObject {
         }.resume()
     
     }
+    
     
     func getCast(id: String, completion: @escaping (Result<Star,Error>) -> Void) {
         
@@ -1364,6 +1381,7 @@ class API: ObservableObject {
     
     }
     
+
     func getCastMovie(id: String, completion: @escaping (Result<Star,Error>) -> Void) {
         
         let url = "\(MyVariables.API_IP)/cast/\(id)"
@@ -1397,10 +1415,10 @@ class API: ObservableObject {
     
     }
     
+
     func getMetaMovie(path: String, completion: @escaping (Result<[MovieMeta],Error>) -> Void) {
         
         let url = "\(MyVariables.API_IP)\(path)"
-        print(url)
         let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
 
         guard let url = URL(string: encoded_url!) else {
@@ -1431,8 +1449,7 @@ class API: ObservableObject {
         }.resume()
     
     }
-    
-    
+        
     func deleteAddress(address: Address, completion: @escaping (Result<ResponseStatus,Error>) -> Void) {
         // Prepare URL
         let url = "\(MyVariables.API_IP)/address/"
@@ -1480,8 +1497,13 @@ class API: ObservableObject {
         }.resume()
         
     }
+     */
         
 }
+
+
+/*
+
 
 class ContentDataSource: ObservableObject {
     
@@ -1543,7 +1565,7 @@ class ContentDataSource: ObservableObject {
         URLSession.shared
             .dataTaskPublisher(for: request)
             .map(\.data)
-            .decode(type: Response.self, decoder: JSONDecoder())
+            .decode(type: Response<Movie>.self, decoder: JSONDecoder())
             .receive(on: DispatchQueue.main)
             .handleEvents(receiveOutput: { response in
                 self.canLoadMorePages = !response.last
@@ -1559,6 +1581,8 @@ class ContentDataSource: ObservableObject {
     }
 
 }
+ 
+ 
 
 class ContentDataSourceReviews: ObservableObject {
     
@@ -1668,6 +1692,9 @@ class ContentDataSourceOrders: ObservableObject {
 
 }
 
+
+
+//https://betterprogramming.pub/build-an-endless-scrolling-list-with-swiftui-combine-and-urlsession-8a697a8318cb
 class ContentDataSourceMain: ObservableObject {
     
     @Published var items = [MovieMeta]()
@@ -1720,3 +1747,4 @@ class ContentDataSourceMain: ObservableObject {
     }
 
 }
+ */
