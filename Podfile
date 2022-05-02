@@ -6,7 +6,6 @@ target 'MovieDB' do
   use_frameworks!
 
   # Pods for MovieDB
-  pod 'StripeTerminal', '1.4.0'
   pod 'NotificationBannerSwift', '~> 3.0.0'
 
 
