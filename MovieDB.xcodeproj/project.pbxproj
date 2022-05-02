@@ -41,6 +41,9 @@
 		B5A7836A267FA6BE00195728 /* CheckoutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5A78369267FA6BE00195728 /* CheckoutView.swift */; };
 		B5BB26AD27BA11880067888F /* ShippingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5BB26AC27BA11880067888F /* ShippingView.swift */; };
 		B5D40ECC26614A0100CDAECE /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5D40ECB26614A0100CDAECE /* LoginView.swift */; };
+		B5DF0CBE28163D68001ACFF1 /* StripeTerminal in Frameworks */ = {isa = PBXBuildFile; productRef = B5DF0CBD28163D68001ACFF1 /* StripeTerminal */; };
+		B5DF0CC12816E632001ACFF1 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = B5DF0CC02816E632001ACFF1 /* Alamofire */; };
+		B5DF0CC32816EB65001ACFF1 /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5DF0CC22816EB65001ACFF1 /* NetworkManager.swift */; };
 		B5DFD27E265324CE0017B5DF /* API.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5DFD27D265324CE0017B5DF /* API.swift */; };
 		B5EC6AD626844FC9007D9A47 /* OrderConfirmationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5EC6AD526844FC9007D9A47 /* OrderConfirmationView.swift */; };
 		B5EDDF152651CBCD002A0218 /* URLImageStore in Frameworks */ = {isa = PBXBuildFile; productRef = B5EDDF142651CBCD002A0218 /* URLImageStore */; };
@@ -98,6 +101,7 @@
 		B5A78369267FA6BE00195728 /* CheckoutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckoutView.swift; sourceTree = "<group>"; };
 		B5BB26AC27BA11880067888F /* ShippingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShippingView.swift; sourceTree = "<group>"; };
 		B5D40ECB26614A0100CDAECE /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		B5DF0CC22816EB65001ACFF1 /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
 		B5DFD27D265324CE0017B5DF /* API.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = API.swift; sourceTree = "<group>"; };
 		B5EC6AD526844FC9007D9A47 /* OrderConfirmationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderConfirmationView.swift; sourceTree = "<group>"; };
 		B5EDDF1826524722002A0218 /* CastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CastView.swift; sourceTree = "<group>"; };
@@ -113,6 +117,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B51E564B266ED23200B74061 /* SPAlert in Frameworks */,
+				B5DF0CBE28163D68001ACFF1 /* StripeTerminal in Frameworks */,
 				B524130127179C8B00DF204F /* WrappingHStack in Frameworks */,
 				B5A4F4C52658E89300E11879 /* SDWebImageSwiftUI in Frameworks */,
 				B540EAE02711E6D4004B0CF1 /* JWTDecode in Frameworks */,
@@ -123,6 +128,7 @@
 				B5A4F4C02658E5C700E11879 /* SDWebImage in Frameworks */,
 				B5EDDF172651CBCD002A0218 /* URLImage in Frameworks */,
 				B5A4F4C22658E5C700E11879 /* SDWebImageMapKit in Frameworks */,
+				B5DF0CC12816E632001ACFF1 /* Alamofire in Frameworks */,
 				B5EDDF152651CBCD002A0218 /* URLImageStore in Frameworks */,
 				B5F9A95527277FA7008AFB29 /* PopupView in Frameworks */,
 				B592EDE52680280F00635924 /* Stripe in Frameworks */,
@@ -206,6 +212,7 @@
 				B517C0C4270C1CDA00DEC973 /* ContextView.swift */,
 				B540EAE12712704E004B0CF1 /* ItemsToolBar.swift */,
 				B5BB26AC27BA11880067888F /* ShippingView.swift */,
+				B5DF0CC22816EB65001ACFF1 /* NetworkManager.swift */,
 			);
 			path = MovieDB;
 			sourceTree = "<group>";
@@ -282,6 +289,8 @@
 				B524130027179C8B00DF204F /* WrappingHStack */,
 				B524130327179EFE00DF204F /* WrappingStack */,
 				B5F9A95427277FA7008AFB29 /* PopupView */,
+				B5DF0CBD28163D68001ACFF1 /* StripeTerminal */,
+				B5DF0CC02816E632001ACFF1 /* Alamofire */,
 			);
 			productName = MovieDB;
 			productReference = B52F46A52650841A008E8862 /* MovieDB.app */;
@@ -370,6 +379,8 @@
 				B52412FF27179C8B00DF204F /* XCRemoteSwiftPackageReference "WrappingHStack" */,
 				B524130227179EFE00DF204F /* XCRemoteSwiftPackageReference "swiftui-wrapping-stack" */,
 				B5F9A95327277FA7008AFB29 /* XCRemoteSwiftPackageReference "PopupView" */,
+				B5DF0CBC28163D68001ACFF1 /* XCRemoteSwiftPackageReference "stripe-terminal-ios" */,
+				B5DF0CBF2816E632001ACFF1 /* XCRemoteSwiftPackageReference "Alamofire" */,
 			);
 			productRefGroup = B52F46A62650841A008E8862 /* Products */;
 			projectDirPath = "";
@@ -528,6 +539,7 @@
 				B517C0C5270C1CDA00DEC973 /* ContextView.swift in Sources */,
 				B517979B2662D864008C5752 /* CartView.swift in Sources */,
 				B5EDDF1926524722002A0218 /* CastView.swift in Sources */,
+				B5DF0CC32816EB65001ACFF1 /* NetworkManager.swift in Sources */,
 				B52F46B52650841B008E8862 /* MovieDB.xcdatamodeld in Sources */,
 				B5327FD02656343500E8B1DD /* GenreView.swift in Sources */,
 				B5EC6AD626844FC9007D9A47 /* OrderConfirmationView.swift in Sources */,
@@ -628,6 +640,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -682,6 +695,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -697,7 +711,7 @@
 				DEVELOPMENT_TEAM = 9PYZ9YNY5P;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = MovieDB/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -720,7 +734,7 @@
 				DEVELOPMENT_TEAM = 9PYZ9YNY5P;
 				ENABLE_PREVIEWS = YES;
 				INFOPLIST_FILE = MovieDB/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -942,6 +956,22 @@
 				minimumVersion = 2.0.2;
 			};
 		};
+		B5DF0CBC28163D68001ACFF1 /* XCRemoteSwiftPackageReference "stripe-terminal-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/stripe/stripe-terminal-ios";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+		B5DF0CBF2816E632001ACFF1 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
+			};
+		};
 		B5EDDF132651CBCD002A0218 /* XCRemoteSwiftPackageReference "url-image" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/dmytro-anokhin/url-image";
@@ -1015,6 +1045,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = B5A4F4C32658E89300E11879 /* XCRemoteSwiftPackageReference "SDWebImageSwiftUI" */;
 			productName = SDWebImageSwiftUI;
+		};
+		B5DF0CBD28163D68001ACFF1 /* StripeTerminal */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B5DF0CBC28163D68001ACFF1 /* XCRemoteSwiftPackageReference "stripe-terminal-ios" */;
+			productName = StripeTerminal;
+		};
+		B5DF0CC02816E632001ACFF1 /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B5DF0CBF2816E632001ACFF1 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
 		};
 		B5EDDF142651CBCD002A0218 /* URLImageStore */ = {
 			isa = XCSwiftPackageProductDependency;
