@@ -372,7 +372,7 @@ struct EmailView: View {
     func uploadEmail(email: Email) {
         NetworkManager.shared.uploadEmail(email: email){ (result) in
             switch result {
-            case .success(let _ ):
+            case .success (_):
                 DispatchQueue.main.async {
                     viewModel.setComplete(title: "Email Updated", subtitle: "Re-login with updated email.")
                     userData.isLoggedin = false

@@ -402,20 +402,6 @@ struct Review: Codable, Equatable {
     }
 }
 
-struct ResponseReviews: Codable {
-    var content: [Review] = [Review]()
-    var pageable: Pagable
-    var totalPages: Int
-    var totalElements: Int
-    var last: Bool
-    var size: Int
-    var number: Int
-    var sort: Sort
-    var numberOfElements: Int
-    var first: Bool
-    var empty: Bool
-}
-
 
 /*
     CAST INFORMATION STRUCTURE
@@ -437,39 +423,12 @@ struct Star: Codable {
 }
 
 
-struct CastResponse: Codable {
-    var content: [Star] = [Star]()
-    var pageable: Pagable
-    var totalPages: Int
-    var totalElements: Int
-    var last: Bool
-    var size: Int
-    var number: Int
-    var sort: Sort
-    var numberOfElements: Int
-    var first: Bool
-    var empty: Bool
-}
-
 
 /*
     META INFORMATION STRUCTURE
  */
 
 
-struct ResponseMeta: Codable {
-    var content: [MovieMeta] = [MovieMeta]()
-    var pageable: Pagable
-    var totalPages: Int
-    var totalElements: Int
-    var last: Bool
-    var size: Int
-    var number: Int
-    var sort: Sort
-    var numberOfElements: Int
-    var first: Bool
-    var empty: Bool
-}
 
 
 struct Genre: Codable {
