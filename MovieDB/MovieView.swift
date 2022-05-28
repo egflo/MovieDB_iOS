@@ -40,7 +40,7 @@ struct BookmarkView: View {
     @EnvironmentObject var viewModel: AlertViewModel
 
     @State var movie: Movie
-    @State var bookmark: BookmarkResponse?
+    @State var bookmark: ResponseStatus<Bookmark>?
 
     var body: some View {
         VStack {
@@ -74,7 +74,7 @@ struct BookmarkView: View {
     
     func getBookmarkData() {
         let URL = "\(MyVariables.API_IP)/bookmark/\(movie.id)"
-        NetworkManager.shared.getRequest(of: BookmarkResponse.self, url: URL){ (result) in
+        NetworkManager.shared.getRequest(of: ResponseStatus<Bookmark>.self, url: URL){ (result) in
             switch result {
             case .success(let response):
                 DispatchQueue.main.async {
@@ -202,6 +202,10 @@ struct ReviewsView: View {
             if(dataSource.items.count == 0) {
                 EmptyView()
             }
+            
+            else if(dataSource.isLoadingPage) {
+                ProgressView()
+            }
             else {
                 
                 VStack(alignment: .leading, content: {
@@ -221,13 +225,13 @@ struct ReviewsView: View {
    
                     ScrollView{
                         LazyVStack {
-                            ForEach(dataSource.items, id: \.id) { review in
+                            ForEach(dataSource.items, id: \.uuid) { review in
                                     ReviewRow(review: review)
                                         .frame(width: width, height: 170)
                                         .onAppear(perform: {
                                             if !self.dataSource.endOfList {
                                                 if self.dataSource.shouldLoadMore(item: review) {
-                                                    self.dataSource.fetch(path: "review/movie/\(movie.id)")
+                                                    //self.dataSource.fetch(path: "review/movie/\(movie.id)")
                                                 }
                                             }
                                         })
@@ -244,14 +248,14 @@ struct ReviewsView: View {
                     
                     ScrollView(.horizontal, showsIndicators: false){
                         HStack {
-                            ForEach(dataSource.items, id: \.id) { review in
+                            ForEach(dataSource.items, id: \.uuid) { review in
                                 if(dataSource.items.last == review){
                                     ReviewRow(review: review)
                                         .frame(width: 400, height: 200)
                                         .onAppear(perform: {
                                             if !self.dataSource.endOfList {
                                                 if self.dataSource.shouldLoadMore(item: review) {
-                                                    self.dataSource.fetch(path: "review/movie/\(movie.id)")
+                                                    //self.dataSource.fetch(path: "review/movie/\(movie.id)")
                                                 }
                                             }
                                         })
@@ -270,13 +274,13 @@ struct ReviewsView: View {
                     
                     ScrollView(.horizontal, showsIndicators: false){
                         HStack {
-                            ForEach(dataSource.items, id: \.id) { review in
+                            ForEach(dataSource.items, id: \.uuid) { review in
                                 ReviewRow(review: review)
                                     .frame(width: 400, height: 200)
                                     .onAppear(perform: {
                                         if !self.dataSource.endOfList {
                                             if self.dataSource.shouldLoadMore(item: review) {
-                                                self.dataSource.fetch(path: "review/movie/\(movie.id)")
+                                                //self.dataSource.fetch(path: "review/movie/\(movie.id)")
                                             }
                                         }
                                     })
@@ -329,8 +333,9 @@ struct DropDownMovie: View {
                 VStack{
                     if let unwrapped = movie.language {
                         
-                        Group {
-                            Text("Language(s): ").bold() + Text(unwrapped)
+                        VStack (alignment: .leading) {
+                            Text("Language(s) ").bold().foregroundColor(Color.gray)
+                            Text(unwrapped)
                         }
                         .padding(.bottom, 10)
                         .frame(width: width, alignment: .topLeading)
@@ -340,8 +345,9 @@ struct DropDownMovie: View {
                     
                     if let unwrapped = movie.writer {
                         
-                        Group {
-                            Text("Writer(s): ").bold() + Text(unwrapped)
+                        VStack (alignment: .leading) {
+                            Text("Writer(s) ").bold().foregroundColor(Color.gray)
+                            Text(unwrapped)
                         }
                         .padding(.bottom, 10)
                         .frame(width: width, alignment: .topLeading)
@@ -351,9 +357,9 @@ struct DropDownMovie: View {
                     }
                     
                     if let unwrapped = movie.awards {
-
-                        Group {
-                            Text("Awards(s): ").bold() + Text(unwrapped)
+                        VStack (alignment: .leading) {
+                            Text("Awards(s) ").bold().foregroundColor(Color.gray)
+                            Text(unwrapped)
                         }
                         .padding(.bottom, 10)
                         .frame(width: width, alignment: .topLeading)
@@ -362,9 +368,9 @@ struct DropDownMovie: View {
                     }
                     
                     if let unwrapped = movie.boxOffice {
-                        
-                        Group {
-                            Text("Box Office: ").bold() + Text(unwrapped)
+                        VStack (alignment: .leading) {
+                            Text("Box Office ").bold().foregroundColor(Color.gray)
+                            Text(unwrapped)
                         }
                         .padding(.bottom, 10)
                         .frame(width: width, alignment: .topLeading)
@@ -374,9 +380,9 @@ struct DropDownMovie: View {
                     }
                     
                     if let unwrapped = movie.production {
-                        
-                        Group {
-                            Text("Production: ").bold() + Text(unwrapped)
+                        VStack (alignment: .leading) {
+                            Text("Production ").bold().foregroundColor(Color.gray)
+                            Text(unwrapped)
                         }
                         .padding(.bottom, 10)
                         .frame(width: width, alignment: .topLeading)
@@ -386,9 +392,9 @@ struct DropDownMovie: View {
                     }
                     
                     if let unwrapped = movie.country {
-                        
-                        Group {
-                            Text("Country: ").bold() + Text(unwrapped)
+                        VStack (alignment: .leading) {
+                            Text("Country ").bold().foregroundColor(Color.gray)
+                            Text(unwrapped)
                         }
                         .padding(.bottom, 10)
                         .frame(width: width, alignment: .topLeading)
@@ -495,19 +501,13 @@ struct GenreRow: View {
                         VStack{
                             NavigationLink(destination: GenreView(genre: genre)){
                                 Text(genre.name)
-                                    .padding(.leading,5)
-                                    .padding(.trailing,5)
-                                    .padding(.top, 2)
-                                    .padding(.bottom,2)
+                                    .padding(.leading,10)
+                                    .padding(.trailing,10)
+                                    .padding(.top, 4)
+                                    .padding(.bottom,4)
                                     .font(.system(size: 20, design: .default))
                                     .foregroundColor(.white)
                                     .background(Capsule().fill(Color.blue))
-                                    //.padding(7)
-                                    //.font(.system(size: 25, design: .default))
-                                    //.foregroundColor(.white)
-                                   // .background(Color.blue)
-                                   // .cornerRadius(8)
-                                   // .frame(height: 50)
                             }
                         }
                    }
@@ -919,13 +919,17 @@ struct iPhonePortraitMovieView: View {
                                     VStack{
                                         NavigationLink(destination: GenreView(genre: genre)){
                                             Text(genre.name)
-                                                .padding(.leading,4)
-                                                .padding(.trailing,4)
-                                                .padding(.top, 2)
-                                                .padding(.bottom,2)
+                                                .padding(.leading,10)
+                                                .padding(.trailing,10)
+                                                .padding(.top, 4)
+                                                .padding(.bottom,4)
                                                 .font(.system(size: 17, design: .default))
                                                 .foregroundColor(.white)
-                                                .background(Capsule().fill(Color.blue))
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 20)
+                                                        .stroke(Color.blue, lineWidth: 2)
+                                                )
+                                                //.background(Capsule().fill(Color.blue))
                                         }
                                     }
                                }
@@ -1062,8 +1066,6 @@ struct iPadMovieView: View {
                         .background(RoundedRectangle(cornerRadius: 8).fill(Color(UIColor.systemGray6)))
                         
                     }.padding(.top, 50)
-                       // .border(Color.pink)
-
                     
                     VStack(alignment: .leading) {
                         

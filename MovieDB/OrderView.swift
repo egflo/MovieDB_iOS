@@ -15,7 +15,6 @@ struct OrderRowDetailView: View {
     @EnvironmentObject var user: UserData
 
     @State var order: Order
-    //@State var movieData: Movie?
     @State var isActive = false;
 
     let width = (UIScreen.main.bounds.width - 33)
@@ -86,71 +85,75 @@ struct OrderDetailsView: View {
 
     var body: some View {
 
-        VStack{
-            
-            if let details = saleDetails {
-                
-                let decode = SaleDecode(sale: details.sale, card: details.card)
+        GeometryReader {geometry in
+         
+            VStack {
+                    
+                if let details = saleDetails {
+                    
+                    let decode = SaleDecode(sale: details.sale, card: details.card)
 
-                HStack {
-                    VStack(alignment: .leading) {
-                        Text("Shipping Address").font(.headline).bold()
-                                                
-                        if(details.sale.shipping!.unit.count > 0) {
-                            Text(details.sale.shipping!.unit).font(.subheadline)
-                        }
-                        
-                        Text(details.sale.shipping!.street).font(.subheadline)
-                        
-                        Text("\(details.sale.shipping!.city), \(details.sale.shipping!.state) \(details.sale.shipping!.postcode)").font(.subheadline)
-                       
-                        Text("United States").font(.subheadline)
-                    }
-                    
-                    Spacer()
-                    
-                    VStack (alignment: .trailing) {
-                        
-                        HStack {
-                            Image(decode.getCardBrand())
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 30, height: 25)
+                    HStack {
+                        VStack(alignment: .leading) {
+                            Text("Shipping Address").font(.headline).bold()
+                                                    
+                            if(details.sale.shipping!.unit.count > 0) {
+                                Text(details.sale.shipping!.unit).font(.subheadline)
+                            }
                             
-                            Text("**** \(details.card.last4)").font(.system(size: 15)).bold()
+                            Text(details.sale.shipping!.street).font(.subheadline)
+                            
+                            Text("\(details.sale.shipping!.city), \(details.sale.shipping!.state) \(details.sale.shipping!.postcode)").font(.subheadline)
+                           
+                            Text("United States").font(.subheadline)
                         }
-                        Text("Subtotal: \(decode.getSubTotal())").font(.system(size: 15)).bold()
                         
-                        Text("Sales Tax: \(decode.getSalesTax())").font(.system(size: 15)).bold()
+                        Spacer()
                         
-                        Text("Shipping: $0.00").font(.system(size: 15)).bold()//.frame(width:width, alignment: .trailing)
-                        
-                        Text("Total: \(decode.getTotal())").font(.system(size: 22)).bold()
-                    
-                    }
-                    
-                }.frame(width:width, height: 100)
-                
+                        VStack (alignment: .trailing) {
+                            
+                            HStack {
+                                Image(decode.getCardBrand())
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 30, height: 25)
                                 
-                List(sale.orders, id: \.id) { order in
-                    OrderRowDetailView(order:order)
-                }.listStyle(GroupedListStyle())
+                                Text("**** \(details.card.last4)").font(.system(size: 15)).bold()
+                            }
+                            Text("Subtotal: \(decode.getSubTotal())").font(.system(size: 15)).bold()
+                            
+                            Text("Sales Tax: \(decode.getSalesTax())").font(.system(size: 15)).bold()
+                            
+                            Text("Shipping: $0.00").font(.system(size: 15)).bold()//.frame(width:width, alignment: .trailing)
+                            
+                            Text("Total: \(decode.getTotal())").font(.system(size: 22)).bold()
+                        
+                        }
+                        
+                    }.frame(width:geometry.size.width-33, height: 100)
+                    
+                                    
+                    List(sale.orders, id: \.id) { order in
+                        OrderRowDetailView(order:order)
+                    }.listStyle(GroupedListStyle())
+                    
+                    .onAppear(perform: {
+                        UITableView.appearance().isScrollEnabled = false
+                    })
+                    
+                          
+                }
                 
-                .onAppear(perform: {
-                    UITableView.appearance().isScrollEnabled = false
-                })
+                else {
+                    
+                    ProgressView()
+                    
+                }
                 
-                      
-            }
+                Spacer()
             
-            else {
-                
-                ProgressView()
-                
             }
-            
-            Spacer()
-        
+                
         }
         .onAppear(perform: {
             self.getSaleData()
@@ -257,10 +260,9 @@ struct OrderRowView: View {
                     Divider().frame(width: width, height: 5)
                     
                     
-                    Text(decode.getDate())
-                        .frame(width: width, alignment: .leading)
+                    Text(decode.getDate()).bold().foregroundColor(Color.white)
                     
-                    Text("Total: \(decode.getTotal())").bold()
+                    Text("Total: \(decode.getTotal())").bold().foregroundColor(Color.white)
 
                     ForEach(decode.sale.orders, id: \.id) { order in
                  
@@ -284,19 +286,13 @@ struct OrderRowView: View {
 
 struct OrderView: View {
     @EnvironmentObject var user: UserData
-    
     @StateObject var dataSource = ContentDataSourceTest<Sale>()
-    let width = (UIScreen.main.bounds.width)
 
     var body: some View {
         
-        VStack {
-        
-            //Text("My Orders").font(.title).bold().frame(width:width-33, alignment: .leading)
-
-            if(dataSource.items.count == 0) {
-                GeometryReader {geometry in
-
+        GeometryReader {geometry in
+            VStack {
+                if(dataSource.items.count == 0 && !dataSource.isLoadingPage) {
                     VStack {
                         Image(systemName: "shippingbox")
                             .font(.system(size: 56.0))
@@ -308,33 +304,37 @@ struct OrderView: View {
                             .foregroundColor(.gray)
 
                     }.offset( x:(geometry.size.width/2)-120, y: (geometry.size.height/2)-120)
+                    
+                }
                 
+                else if(dataSource.isLoadingPage) {
+                    ProgressView()
+                }
+                
+                else {
+                    ScrollView {
+                        LazyVStack{
+                            ForEach(dataSource.items, id: \.uuid) { sale in
+                                let decode = SaleDecode(sale: sale)
+                                OrderRowView(decode: decode)
+                                    .onAppear(perform: {
+                                        if !self.dataSource.endOfList {
+                                            if self.dataSource.shouldLoadMore(item: sale) {
+                                                self.dataSource.fetch(path: "sale/")
+                                            }
+                                        }
+                                    })
+
+                            }
+                            
+                        }
+                        
+                    }.frame(width:geometry.size.width)
+                    
                 }
                 
             }
-            
-            else {
-                
-                ScrollView {
-                    LazyVStack{
-                        ForEach(dataSource.items, id: \.uuid) { sale in
-                            let decode = SaleDecode(sale: sale)
-                            OrderRowView(decode: decode)
-                                .onAppear(perform: {
-                                    if !self.dataSource.endOfList {
-                                        if self.dataSource.shouldLoadMore(item: sale) {
-                                            self.dataSource.fetch(path: "sale/")
-                                        }
-                                    }
-                                })
-
-                        }
-                        
-                    }.frame(width: width)
-                    
-                }.frame(width: UIScreen.main.bounds.width)
-            }
-            
+        
         }
         .onAppear(perform: {
             dataSource.fetch(path: "sale/")

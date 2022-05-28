@@ -104,10 +104,6 @@ struct MovieRowView: View {
     var body: some View {
         
         VStack{
-           // if let movie = movie {
-            
-            //let meta_movie = meta.movie!
-            //let s = Movie(id: meta_movie.id, title: meta_movie.title, year: meta_movie.year, inventory: meta_movie.inventory!, updated: meta_movie.updated)
             
             let m = MovieDecode(movie: meta.movie!)
 
@@ -137,32 +133,12 @@ struct MovieRowView: View {
                     
                 }
                 .onTapGesture{self.isActive = true}
-            //}
-            
-           // else {
-            //    ProgressView()
-           // }
 
 
         }
         .cornerRadius(8)
-        .onAppear(perform: {
-            self.getMovieData()
-        })
     }
      
-    func getMovieData() {
-        NetworkManager.shared.getRequest(of: Movie.self, url: "\(MyVariables.API_IP)/movie/\(meta.movieId!)") { (result) in
-            switch result {
-            case .success(let movie):
-                DispatchQueue.main.async {
-                    self.movie = movie
-                }
-            case .failure(let error):
-                print(error.localizedDescription)
-            }
-        }
-    }
 }
 
 struct MovieMainView: View {
@@ -171,21 +147,29 @@ struct MovieMainView: View {
 
     @StateObject var dataSource = ContentDataSourceTest<MovieMeta>()
     @State var metas = [MovieMeta]()
-    let width = (UIScreen.main.bounds.width)
-    
     var title: String
     var path: String
 
+    @State var height: CGFloat = 180
+    
     @Environment(\.verticalSizeClass) var verticalSizeClass: UserInterfaceSizeClass?
     @Environment(\.horizontalSizeClass) var horizontalSizeClass: UserInterfaceSizeClass?
     
 
     var body: some View {
         /* Disabled for IPhone (Portrait Mode Only)*/
+        
         VStack {
+            if(dataSource.isLoadingPage) {
+                
+                ProgressView()
+            }
+            
             if(dataSource.items.count != 0) {
-                Text(title).font(.title).bold()
-                    .frame(width: width, alignment:.leading)
+                HStack {
+                    Text(title).font(.title).bold()
+                    Spacer()
+                }
                 
                 ScrollView(.horizontal, showsIndicators: false){
 
@@ -194,25 +178,27 @@ struct MovieMainView: View {
                             
                             VStack {
                                 
-                                if horizontalSizeClass == .compact && verticalSizeClass == .regular {
-                                        MovieRowView(meta: meta)
-                                            .frame(width: 330, height: 180, alignment: .center)
-                                    
+                                    if horizontalSizeClass == .compact && verticalSizeClass == .regular {
+                                            MovieRowView(meta: meta)
+                                                .frame(width: 330, height: 180, alignment: .center)
 
-                                }
-                                else if horizontalSizeClass == .regular && verticalSizeClass == .compact {
-                                    
-                                        MovieRowView(meta: meta)
-                                            .frame(width: 400, height: 220, alignment: .center)
-                                    
+                                        
 
-                                }
-                                else if horizontalSizeClass == .regular && verticalSizeClass == .regular {
-                                    
-                                        MovieRowView(meta: meta)
-                                            .frame(width: 400, height: 220, alignment: .center)
-                                    
-                                }
+                                    }
+                                    else if horizontalSizeClass == .regular && verticalSizeClass == .compact {
+                                        
+                                            MovieRowView(meta: meta)
+                                                .frame(width: 400, height: 220, alignment: .center)
+                  
+
+                                    }
+                                    else if horizontalSizeClass == .regular && verticalSizeClass == .regular {
+                                        
+                                            MovieRowView(meta: meta)
+                                                .frame(width: 400, height: 220, alignment: .center)
+      
+                                    }
+                            
                                 
                             }
 
@@ -232,11 +218,15 @@ struct MovieMainView: View {
                 
             }
             
-        }.padding(.leading, 20)
+        }
+        .padding(.leading, 20)
         .onAppear {
             dataSource.fetch(path: path)
         }
+        
     }
+            
+    
 }
 
 struct MainView: View {
@@ -310,24 +300,29 @@ struct MainView: View {
     
     var body: some View {
         
-        ScrollView
-        {
+        GeometryReader {geo in
 
-            MovieMainView(title: "Your Watchlist", path: "bookmark/all")
-            
-            MovieMainView(title: "Top Rated", path: "rating/rated")
-            
-            MovieMainView(title: "Top Sellers", path: "order/sellers")
-           
-                        
-            Text("Genres").font(.title).bold().padding(.leading,15).frame(width: UIScreen.main.bounds.width, alignment:.leading)
+            ScrollView
+            {
 
-            GenreMain(path: "/genre/all?limit=25")
-                .padding(.leading,15)
-                .padding(.bottom, 15)
+                MovieMainView(title: "Your Watchlist", path: "bookmark/all")
+                
+                MovieMainView(title: "Top Rated", path: "rating/rated")
+                
+                MovieMainView(title: "Top Sellers", path: "order/sellers")
+               
+                            
+            //Text("Genres").font(.title).bold().padding(.leading,15).frame(width: UIScreen.main.bounds.width, alignment:.leading)
+
+                GenreMain(path: "/genre/all?limit=25")
+                    .padding(.leading,15)
+                    .padding(.bottom, 15)
+                
+            }
             
         }
         
+
         .navigationBarHidden(true)
         .toolbar {
             ToolbarItemGroup(placement: .bottomBar) {

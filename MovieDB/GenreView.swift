@@ -23,14 +23,18 @@ struct GenreView: View {
             
         ScrollView{
             LazyVStack {
-                /*
-                ForEach(dataSource.items, id: \.id) { movie in
+                
+                ForEach(dataSource.items, id: \.uuid) { movie in
                     if(dataSource.items.last == movie){
                         MovieRow(movie: movie)
                             .frame(width: (UIScreen.main.bounds.width - 33), height: 80)
-                            .onAppear {
-                                dataSource.loadMoreContent(user: user)
-                            }
+                            .onAppear(perform: {
+                                if !self.dataSource.endOfList {
+                                    if self.dataSource.shouldLoadMore(item: movie) {
+                                        self.dataSource.fetch(path: "movie/genre/\(genre.name)")
+                                    }
+                                }
+                            })
                     }
                     else {
                         MovieRow(movie: movie)
@@ -41,21 +45,18 @@ struct GenreView: View {
                     
                 }
                 
-                .navigationBarTitle("\(genre.name)")
-                 */
+                if dataSource.isLoadingPage {
+                    ProgressView() //A view that shows the progress towards completion of a task.
+                }
+                
                 
             } .onAppear {
                 //dataSource.query = "genre"
-                //dataSource.setText(text: genre.name, user: user)
+                self.dataSource.fetch(path: "movie/genre/\(genre.name)")
                 
             }
-            
-        
-            if dataSource.isLoadingPage {
-                ProgressView() //A view that shows the progress towards completion of a task.
-            }
-            
-       }
+
+        }
         
         .navigationBarHidden(false)
         .navigationBarTitle(Text("\(genre.name)"), displayMode: .large)

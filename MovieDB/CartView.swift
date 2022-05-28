@@ -224,7 +224,7 @@ struct iPadCartView: View {
                                     WebImage(url: URL(string: m.poster()))
                                             .resizable()
                                             .renderingMode(.original)
-                                            .placeholder(Image("no_photo"))
+                                            .placeholder(Image("no_image"))
                                             .aspectRatio(contentMode: .fit)
                                             .cornerRadius(8)
                                     
@@ -366,7 +366,7 @@ struct CartView: View {
     @Environment(\.horizontalSizeClass) var horizontalSizeClass: UserInterfaceSizeClass?
     
     
-    let width = (UIScreen.main.bounds.width - 33)
+    let width = (UIScreen.main.bounds.width)
     let height = UIScreen.main.bounds.height
     
     @State var CheckOutActive = false
@@ -376,13 +376,10 @@ struct CartView: View {
     
     var body: some View {
         VStack {
-            Text("My Cart").font(.title).bold().frame(width:width, alignment: .leading)
-
-            if let cart = cart {
-                
-                if(cart.count == 0) {
-                    GeometryReader {geometry in
-
+            GeometryReader {geometry in
+                if let cart = cart {
+                    
+                    if(cart.count == 0) {
                         VStack {
                             Image(systemName: "cart")
                                 .font(.system(size: 56.0))
@@ -393,87 +390,86 @@ struct CartView: View {
                                 .font(.system(size: 15.0))
                                 .foregroundColor(.gray)
 
-                        //-120
                         }.offset( x:(geometry.size.width/2)-120, y: (geometry.size.height/2)-120)
+                    }
+                    else {
+                        
+                        VStack {
+                            Text("Subtotal: \(self.calc_subTotal())")
+                                .font(.headline).bold().padding(.bottom,5)
+                                .frame(width: geometry.size.width, alignment: .leading)
+
+                            VStack {
+                                
+                                Button(action: {
+                                    if(addresses.count == 0) {
+                                        self.AddressActive = true
+                                    }
+                                    else {
+                                        self.CheckOutActive = true
+                                    }
+                                }) {
+                                    VStack {
+                                        Text("Checkout").bold()
+                                    }
+                                    .frame(width: geometry.size.width, height: 50)
+                                    .foregroundColor(Color.white)
+                                    .background(Color.blue)
+                                    .cornerRadius(8)
+                                }
+                            
+                            }
+                            .background(
+                                VStack {
+                                    NavigationLink(destination:CheckoutView(),isActive: $CheckOutActive) {EmptyView()}
+                                    NavigationLink(destination:ShippingView(), isActive: $AddressActive) {EmptyView()}
+                                }
+
+                            )
+                        
+                            ScrollView (showsIndicators: true){
+                                
+                                if horizontalSizeClass == .compact && verticalSizeClass == .regular {
+                                    iPhoneCartView(cart: $cart)
+
+                                }
+                                else if horizontalSizeClass == .regular && verticalSizeClass == .compact {
+                                    
+                                    iPhoneCartView(cart: $cart)
+
+
+                                }
+                                else if horizontalSizeClass == .regular && verticalSizeClass == .regular {
+                                    
+                                    iPadCartView(cart: $cart)
+
+
+                                }
+
+                                Spacer()
+                            }
+                            
+                        }
 
                     }
-                    
                 }
+                
                 
                 else {
-                    Text("Subtotal: \(self.calc_subTotal())").font(.headline).bold().padding(.bottom,5)
-                        .frame(width: width, alignment: .leading)
-                    
-                    VStack {
-                        
-                        Button(action: {
-                            print("checkout")
-                            if(addresses.count == 0) {
-                                self.AddressActive = true
-                            }
-                            else {
-                                self.CheckOutActive = true
-                            }
-                        }) {
-                            VStack {
-                                Text("Checkout").bold()
-                            }
-                            .frame(width: width, height: 50)
-                            .foregroundColor(Color.white)
-                            .background(Color.blue)
-                            .cornerRadius(8)
-                        }
-                    
-                    }
-                        .frame(width: width, height: 50)
-                        .background(
-                            VStack {
-                                NavigationLink(destination:CheckoutView(),isActive: $CheckOutActive) {EmptyView()}
-                                NavigationLink(destination:ShippingView(), isActive: $AddressActive) {EmptyView()}
-                            }
-    
-                        )
-                    
-                    ScrollView (showsIndicators: false){
-                        
-                        if horizontalSizeClass == .compact && verticalSizeClass == .regular {
-                            iPhoneCartView(cart: $cart)
-
-                        }
-                        else if horizontalSizeClass == .regular && verticalSizeClass == .compact {
-                            
-                            iPhoneCartView(cart: $cart)
-
-
-                        }
-                        else if horizontalSizeClass == .regular && verticalSizeClass == .regular {
-                            
-                            iPadCartView(cart: $cart)
-
-
-                        }
-
-                        Spacer()
-                    }
-                    .frame(width: width)
-              
+                    ProgressView()
                 }
                 
-            }
-            
-            else {
-                
-                ProgressView()
+
             }
 
-            Spacer()
+
         }
         .onAppear(perform: {
             self.getCartData()
             self.getAddressData()
         })
         
-        .navigationBarHidden(true)
+        .navigationBarHidden(false)
         .navigationBarTitle(Text("My Cart"), displayMode: .large)
         .toolbar {
             ToolbarItemGroup(placement: .bottomBar) {
@@ -501,7 +497,6 @@ struct CartView: View {
             switch result {
             case .success(let cart):
                 DispatchQueue.main.async {
-                    UserCart.items = cart
                     self.cart = cart
                 }
             case .failure(let error):

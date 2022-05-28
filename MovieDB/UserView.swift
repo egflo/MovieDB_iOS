@@ -222,7 +222,7 @@ struct PasswordView: View {
                 DispatchQueue.main.async {
                     viewModel.setComplete(title: "Password Updated", subtitle: "Re-login with updated password.")
                     self.user = response.data!
-                    userData.isLoggedin = false
+                    userData.logout()
 
                 }
             case .failure(let error):
@@ -375,7 +375,7 @@ struct EmailView: View {
             case .success (_):
                 DispatchQueue.main.async {
                     viewModel.setComplete(title: "Email Updated", subtitle: "Re-login with updated email.")
-                    userData.isLoggedin = false
+                    userData.logout()
                 }
             case .failure(let error):
                 DispatchQueue.main.async {
@@ -494,7 +494,6 @@ struct AddressView: View {
         .navigationBarHidden(false)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarTitle((insert) ? Text("Add Address") : Text("Change Address"), displayMode: .large)
-        //.navigationBarTitle((insert) ? Text("Add Address") : Text("Change Address"), displayMode: .large)
         .toolbar {
             ToolbarItemGroup(placement: .bottomBar) {
                 ItemsToolbar()
@@ -681,51 +680,52 @@ struct AddressesView: View {
     @State var addresses: [Address]?
     @State var isActive = false
 
-    let width = (UIScreen.main.bounds.width)
 
     var body: some View {
-        VStack {
-            if let addresses = addresses {
-                
-                if(addresses.count == 0) {
-                    GeometryReader {geometry in
+        
+        GeometryReader {geometry in
+            VStack {
+                if let addresses = addresses {
+                    
+                    if(addresses.count == 0) {
+                        GeometryReader {geometry in
 
-                        VStack {
-                            Image(systemName: "house")
-                                .font(.system(size: 56.0))
-                                .foregroundColor(.gray)
+                            VStack {
+                                Image(systemName: "house")
+                                    .font(.system(size: 56.0))
+                                    .foregroundColor(.gray)
 
-                            Text("There are no addresses your account.")
-                                .fontWeight(.semibold)
-                                .font(.system(size: 15.0))
-                                .foregroundColor(.gray)
+                                Text("There are no addresses your account.")
+                                    .fontWeight(.semibold)
+                                    .font(.system(size: 15.0))
+                                    .foregroundColor(.gray)
 
-                        //-120
-                        }.offset( x:(geometry.size.width/2)-130, y: (geometry.size.height/2)-120)
+                            //-120
+                            }.offset( x:(geometry.size.width/2)-130, y: (geometry.size.height/2)-120)
+                        }
+                    }
+                    else {
+                        List {
+                            ForEach(addresses, id: \.id) { address in
+                                
+                                AddressRowView(address: address, user: user)
+
+                            }
+                            .onDelete(perform: removeAddressData)
+                        }
                     }
                 }
                 else {
-                    List {
-                        ForEach(addresses, id: \.id) { address in
-                            
-                            AddressRowView(address: address, user: user)
-
-                        }
-                        .onDelete(perform: removeAddressData)
-                    }
-                    
+                    ProgressView()
                 }
+        
+            }.frame(width: geometry.size.width)
 
-            }
-            
-            else {
-                ProgressView()
-            }
         }
+        
         .onAppear(perform: {
             self.getAddressData()
         })
-        .frame(width:width)
         
         .navigationBarHidden(false)
         .navigationBarTitle(Text("Addresses"), displayMode: .large)
@@ -877,7 +877,7 @@ struct UserView: View {
                 })
                 
                 Button(action: {
-                    userData.isLoggedin = false
+                    userData.logout()
                     viewModel.setComplete(title: "Logged Out", subtitle: "You have been logged out.")
 
                 }) {

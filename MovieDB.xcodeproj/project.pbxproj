@@ -44,7 +44,6 @@
 		B5DF0CBE28163D68001ACFF1 /* StripeTerminal in Frameworks */ = {isa = PBXBuildFile; productRef = B5DF0CBD28163D68001ACFF1 /* StripeTerminal */; };
 		B5DF0CC12816E632001ACFF1 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = B5DF0CC02816E632001ACFF1 /* Alamofire */; };
 		B5DF0CC32816EB65001ACFF1 /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5DF0CC22816EB65001ACFF1 /* NetworkManager.swift */; };
-		B5DFD27E265324CE0017B5DF /* API.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5DFD27D265324CE0017B5DF /* API.swift */; };
 		B5EC6AD626844FC9007D9A47 /* OrderConfirmationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5EC6AD526844FC9007D9A47 /* OrderConfirmationView.swift */; };
 		B5EDDF152651CBCD002A0218 /* URLImageStore in Frameworks */ = {isa = PBXBuildFile; productRef = B5EDDF142651CBCD002A0218 /* URLImageStore */; };
 		B5EDDF172651CBCD002A0218 /* URLImage in Frameworks */ = {isa = PBXBuildFile; productRef = B5EDDF162651CBCD002A0218 /* URLImage */; };
@@ -102,7 +101,6 @@
 		B5BB26AC27BA11880067888F /* ShippingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShippingView.swift; sourceTree = "<group>"; };
 		B5D40ECB26614A0100CDAECE /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		B5DF0CC22816EB65001ACFF1 /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
-		B5DFD27D265324CE0017B5DF /* API.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = API.swift; sourceTree = "<group>"; };
 		B5EC6AD526844FC9007D9A47 /* OrderConfirmationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrderConfirmationView.swift; sourceTree = "<group>"; };
 		B5EDDF1826524722002A0218 /* CastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CastView.swift; sourceTree = "<group>"; };
 		E2B4813D874CDD7FE0C767FE /* Pods-MovieDB.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MovieDB.release.xcconfig"; path = "Target Support Files/Pods-MovieDB/Pods-MovieDB.release.xcconfig"; sourceTree = "<group>"; };
@@ -192,7 +190,6 @@
 			children = (
 				B52F46AC2650841B008E8862 /* Assets.xcassets */,
 				B52F46AE2650841B008E8862 /* Preview Content */,
-				B5DFD27D265324CE0017B5DF /* API.swift */,
 				B5EDDF1826524722002A0218 /* CastView.swift */,
 				B52F46A82650841A008E8862 /* MovieDBApp.swift */,
 				B52F46AA2650841A008E8862 /* SearchView.swift */,
@@ -530,7 +527,6 @@
 				B58C349D2651ADD000B5BD4F /* MovieView.swift in Sources */,
 				B54CF4692666881E00C71053 /* OrderView.swift in Sources */,
 				B59FE8702664000200827BFB /* MainView.swift in Sources */,
-				B5DFD27E265324CE0017B5DF /* API.swift in Sources */,
 				B5A6CD9B26703D070076032E /* Decoder.swift in Sources */,
 				B52F46B22650841B008E8862 /* Persistence.swift in Sources */,
 				B5D40ECC26614A0100CDAECE /* LoginView.swift in Sources */,

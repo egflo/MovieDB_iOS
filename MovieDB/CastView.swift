@@ -233,7 +233,6 @@ struct iPadCastView: View {
 
 struct CastView: View {
     @EnvironmentObject var user: UserData
-    @EnvironmentObject var api: API
     @EnvironmentObject var viewModel: AlertViewModel
 
     @Environment(\.verticalSizeClass) var verticalSizeClass: UserInterfaceSizeClass?

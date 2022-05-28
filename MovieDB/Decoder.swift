@@ -12,7 +12,6 @@ import Combine
 import Foundation
 
 
-
 /*
     API GENERIC RESPONSE
  */
@@ -126,9 +125,8 @@ struct User: Codable {
     let email: String
     let primaryAddress: Int
     let created: Int
-    var sales: [Sale] = [Sale]()
     var addresses: [Address] = [Address]()
-    var reviews: [Review] = [Review]()
+    //var reviews: [Review] = [Review]()
     let authorities: [Authority]
 }
 
@@ -385,7 +383,9 @@ struct CustomerSimplified: Codable {
 }
 
 
-struct Review: Codable, Equatable {
+struct Review: Codable, Equatable,Identifiable {
+    var uuid: UUID = UUID()
+
     let id: Int
     let movieId: String
     let customerId: Int
@@ -396,6 +396,20 @@ struct Review: Codable, Equatable {
     let created: Int
     let customer: CustomerSimplified
     let movie: Movie
+    
+    enum CodingKeys: String, CodingKey {
+        
+        case id
+        case movieId
+        case customerId
+        case text
+        case rating
+        case sentiment
+        case title
+        case created
+        case customer
+        case movie
+    }
     
     static func ==(lhs: Review, rhs: Review) -> Bool {
         return lhs.id == rhs.id
@@ -427,8 +441,6 @@ struct Star: Codable {
 /*
     META INFORMATION STRUCTURE
  */
-
-
 
 
 struct Genre: Codable {
@@ -474,13 +486,17 @@ struct MovieMeta: Codable, Equatable, Hashable, Identifiable {
  */
 
 
-struct Checkout: Codable {
-    var defaultId: Int = 0
-    var total: Double = 0.0
+struct Checkout: Codable, Equatable {
     var addresses: [Address] = [Address]()
+    var cart: [Cart] = [Cart]()
+    var defaultId: Int = 0
     var subTotal: Double = 0.0
     var salesTax: Double = 0.0
-    var cart: [Cart] = [Cart]()
+    var total: Double = 0.0
+    
+    static func ==(lhs: Checkout, rhs: Checkout) -> Bool {
+        return lhs.defaultId == rhs.defaultId
+    }
 }
 
 struct ProcessOrder: Codable {
@@ -497,12 +513,6 @@ struct ProcessOrder: Codable {
 /*
     BOOKMARK STRUCTURE
  */
-
-struct BookmarkResponse: Codable {
-    var bookmark: Bookmark?
-    let success: Bool
-    let message: String
-}
 
 struct Bookmark: Codable {
     var id: Int
@@ -996,8 +1006,10 @@ class MovieDecode {
         
         return AnyView(
             Text(status)
-                .padding(.leading,5)
-                .padding(.trailing,5)
+                .padding(.leading,10)
+                .padding(.trailing,10)
+                .padding(.top, 2)
+                .padding(.bottom,2)
                 .foregroundColor(.white)
                 .background(Capsule().fill(color))
             //ZStack{

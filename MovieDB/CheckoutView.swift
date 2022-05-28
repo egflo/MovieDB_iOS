@@ -54,6 +54,7 @@ struct AddressChangeView: View {
     @EnvironmentObject var viewModel: AlertViewModel
     
     @State private var selection: Address?
+    
     @Binding var checkout: Checkout
     @State var addresses = [Address]()
     
@@ -117,6 +118,7 @@ struct AddressChangeView: View {
             }
         }
     }
+    
 }
 
 //https://stackoverflow.com/questions/67681114/weird-error-when-using-stripe-stppaymenthandler-cred-store-error-25300
@@ -140,6 +142,8 @@ struct CheckoutContentView: View {
     @State var loading = false
     @State var PaymentActive = false
     @State var paymentIntentParams: STPPaymentIntentParams?
+    
+    
     @State var paymentMethodParams: STPPaymentMethodParams?
     @State var sale: Sale = Sale(id: 0, customerId: 0, saleDate: 0, salesTax: 0.00, subTotal: 0.00, total: 0.00, stripeId: "", status:"", device:"ios",orders: [Order](), shipping: nil)
 
@@ -155,8 +159,6 @@ struct CheckoutContentView: View {
                         print("Pay")
                         self.loading = true
                         paymentIntent.paymentMethodParams = paymentMethodParams
-                        //pay()
-                        //uploadOrder()
 
                     }) {
                         HStack {
@@ -384,7 +386,6 @@ struct CheckoutContentView: View {
                                 
                                 }
                                 
-                                
                                 Image(systemName: "chevron.right")
                                     .font(Font.system(size: 30))
                                     .foregroundColor(Color.blue)
@@ -405,6 +406,9 @@ struct CheckoutContentView: View {
              .frame(width:width)
              .padding(.top, 10)
              .padding(.bottom, 10)
+             .onChange(of: checkout) { value in
+                 getPaymentIntent()
+             }
             
             VStack{
                 //StripePaymentCardTextField(cardParams: $card, isValid: $validCard)

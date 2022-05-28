@@ -8,6 +8,85 @@ import Stripe
 
 
 //https://medium.nextlevelswift.com/evolution-of-handling-api-response-with-alamofire-d326b211af41
+//https://github.com/exyte/PopupView/blob/master/Example/Common/ContentView.swift
+//https://github.com/callicoder/spring-boot-react-oauth2-social-login-demo/blob/master/react-social/src/app/App.js
+
+struct MyVariables {
+
+
+}
+
+
+class UserData: ObservableObject {
+    @Published var isLoggedin = false
+    @Published var showToolBar = true
+    @Published var id = 0
+    @Published var username = ""
+    @Published var token = ""
+    @Published var qty = 0
+    @Published var accessToken = ""
+    
+    func logout() {
+        let keychain = Keychain(service: "com.dataflix")
+        keychain["id"] = nil
+        keychain["accessToken"] = nil
+        keychain["refreshToken"] = nil
+        
+        self.isLoggedin = false
+    }
+}
+
+enum APIError: Error {
+    case invalidAuthorization
+    case invalidJSON
+    case invalidJSONResponse
+    case invalidResponeCode
+    case invalidQty
+    case invalidURL
+    case invalidCredentials
+    case invalidInventory
+}
+
+
+extension APIError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .invalidAuthorization:
+            return NSLocalizedString("Unauthorized Access", comment: "Invalid Authentication")
+        case .invalidJSON:
+            return NSLocalizedString("Unable to Encode Data Model", comment: "Invalid JSON")
+        case .invalidJSONResponse:
+            return NSLocalizedString("Invalid JSON From Recieved", comment: "Invalid JSON")
+        case .invalidResponeCode:
+            return NSLocalizedString("Invalide Respone Code", comment: "Non 200 Status Code")
+        case .invalidQty:
+            return NSLocalizedString("Invalid Quantity Selected", comment: "Invalid Qty")
+        case .invalidURL:
+            return NSLocalizedString("Invalid URL", comment: "Bad URL")
+        case .invalidCredentials:
+            return NSLocalizedString("Incorrect Email/Password", comment: "Bad Username/Password")
+        case .invalidInventory:
+            return NSLocalizedString("Exceeds Current Inventory", comment: "Quantity exceeds Inventory")
+
+        }
+    }
+}
+
+struct Token: Codable {
+    let accessToken: String
+    let refreshToken: String
+    let tokenType: String
+}
+
+struct RefreshTokenRequest: Codable {
+    let refreshToken: String
+}
+
+enum AuthError:Error {
+    case missingToken
+    case invalidToken
+}
+
 
 class NetworkManagerInterceptor: RequestInterceptor {
     
@@ -62,7 +141,6 @@ class NetworkManagerInterceptor: RequestInterceptor {
     func adapt(_ urlRequest: URLRequest, for session: Session, completion: @escaping (Result<URLRequest, Error>) -> Void) {
         let keychain = Keychain(service: "com.dataflix")
         let accessToken = keychain["accessToken"]!
-        let refreshToken = keychain["refreshToken"]!
 
         guard urlRequest.url?.absoluteString.hasPrefix("\(MyVariables.API_IP)/user/refresh") == true else {
             /// If the request does not require authentication, we can directly return it as unmodified.
@@ -127,27 +205,22 @@ class NetworkManager {
     let session: Session
     let interceptor = NetworkManagerInterceptor()
 
-    var userId: Int
-    var refreshToken: String
-    var accessToken: String
+    var keychain: Keychain
+    
+
     
     init() {
         session = Session(interceptor: interceptor)
-        let keychain = Keychain(service: "com.dataflix")
-        self.refreshToken = keychain["refreshToken"] ?? ""
-        self.accessToken = keychain["accessToken"] ?? ""
-        self.userId = Int(keychain["id"] ?? "0") ?? 0
+        self.keychain = Keychain(service: "com.dataflix")
+
     }
-    
-    
     
     
    //https://forums.swift.org/t/how-to-pass-the-type-to-a-completion-handler-with-a-generic-type/25995
     func getRequest<T: Decodable>(of type: T.Type = T.self, url: String, completion: @escaping (Result<T,Error>) -> Void) {
-        
+        let accessToken = keychain["accessToken"] ?? ""
         let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
 
-        
         let headers: HTTPHeaders = [
            "Authorization": "Bearer \(accessToken)",
             "Accept": "application/json"
@@ -187,8 +260,9 @@ class NetworkManager {
     }
     
     func authUser(username: String, password: String, completion: @escaping (Result<UserToken,Error>) -> Void) {
+        let accessToken = keychain["accessToken"] ?? ""
+
         let url = "\(MyVariables.API_IP)/user/auth"
-        
         
         let parameters: Parameters = [
             "username": username,
@@ -238,8 +312,9 @@ class NetworkManager {
     }
     
     
-    func updateBookmark(id: String, userId: Int, completion: @escaping (Result<BookmarkResponse,Error>) -> Void) {
-        
+    func updateBookmark(id: String, userId: Int, completion: @escaping (Result<ResponseStatus<Bookmark>,Error>) -> Void) {
+        let accessToken = keychain["accessToken"] ?? ""
+
         let url = "\(MyVariables.API_IP)/bookmark/"
         let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
 
@@ -273,7 +348,7 @@ class NetworkManager {
                     switch response.response?.statusCode {
                     case 200:
                         do {
-                            let content = try JSONDecoder().decode(BookmarkResponse.self, from:  data!)
+                            let content = try JSONDecoder().decode(ResponseStatus<Bookmark>.self, from:  data!)
                             completion(.success(content))
                             
                         } catch let error {
@@ -296,115 +371,14 @@ class NetworkManager {
     }
     
     
-    func addCart(movieId: String, qty: Int, completion: @escaping (Result<Cart,Error>) -> Void) {
-        
+    func addCart(movieId: String, qty: Int, completion: @escaping (Result<ResponseStatus<Cart>,Error>) -> Void) {
+        let accessToken = keychain["accessToken"] ?? ""
+        let userId = keychain["id"] ?? ""
+
         let url = "\(MyVariables.API_IP)/cart/"
         let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
 
         let parameters: Parameters = [
-            "movieId": movieId,
-            "userId": userId,
-            "qty": qty
-        ]
-        
-        
-        let headers: HTTPHeaders = [
-            "Authorization": "Bearer \(accessToken)",
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        ]
-        
-        session.request(encoded_url!,
-                   method: .put,
-                   parameters: parameters,
-                   encoding: JSONEncoding.default,
-                   headers: headers
-            )
-        
-            .validate(statusCode: 200..<500)
-            .response(completionHandler: { (response) in
-                switch response.result {
-                    case .success(let data):
-                    switch response.response?.statusCode {
-                    case 200:
-                        do {
-                            let content = try JSONDecoder().decode(Cart.self, from:  data!)
-                            completion(.success(content))
-                            
-                        } catch let error {
-                            completion(.failure(error))
-                        }
-                        
-                    case 400:
-                        completion(.failure(APIError.invalidInventory))
-
-                    default:
-                        completion(.failure(APIError.invalidResponeCode))
-                
-                }
-                case .failure(let error):
-                    completion(.failure(error))
-
-                }
-            })
-    }
-    
-    func deleteCart(id: Int, completion: @escaping (Result<CartResponse,Error>) -> Void) {
-        
-        let url = "\(MyVariables.API_IP)/cart/\(id)"
-        let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
-
-        let headers: HTTPHeaders = [
-            "Authorization": "Bearer \(accessToken)",
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        ]
-        
-        session.request(encoded_url!,
-                   method: .delete,
-                   parameters: nil,
-                   encoding: URLEncoding.default,
-                   headers: headers
-            )
-        
-            .validate(statusCode: 200..<500)
-            .response(completionHandler: { (response) in
-                switch response.result {
-                    case .success(let data):
-                    switch response.response?.statusCode {
-                    case 200:
-                        do {
-                            let content = try JSONDecoder().decode(CartResponse.self, from:  data!)
-                            completion(.success(content))
-                            
-                        } catch let error {
-                            completion(.failure(error))
-                        }
-                        
-                    case 400:
-                        completion(.failure(APIError.invalidInventory))
-
-                    default:
-                        completion(.failure(APIError.invalidResponeCode))
-                
-                }
-                case .failure(let error):
-                    completion(.failure(error))
-
-                }
-            })
-        
-    }
-    
-    
-    
-    func updateCart(id: Int, movieId: String, userId: Int, qty: Int, completion: @escaping (Result<CartResponse,Error>) -> Void) {
-        
-        let url = "\(MyVariables.API_IP)/cart/"
-        let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
-
-        let parameters: Parameters = [
-            "id": id,
             "movieId": movieId,
             "userId": userId,
             "qty": qty
@@ -431,7 +405,112 @@ class NetworkManager {
                     switch response.response?.statusCode {
                     case 200:
                         do {
-                            let content = try JSONDecoder().decode(CartResponse.self, from:  data!)
+                            let content = try JSONDecoder().decode(ResponseStatus<Cart>.self, from:  data!)
+                            completion(.success(content))
+                            
+                        } catch let error {
+                            completion(.failure(error))
+                        }
+                        
+                    case 400:
+                        completion(.failure(APIError.invalidInventory))
+
+                    default:
+                        completion(.failure(APIError.invalidResponeCode))
+                
+                }
+                case .failure(let error):
+                    completion(.failure(error))
+
+                }
+            })
+    }
+    
+    func deleteCart(id: Int, completion: @escaping (Result<ResponseStatus<Cart>,Error>) -> Void) {
+        let accessToken = keychain["accessToken"] ?? ""
+
+        let url = "\(MyVariables.API_IP)/cart/\(id)"
+        let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
+
+        let headers: HTTPHeaders = [
+            "Authorization": "Bearer \(accessToken)",
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        ]
+        
+        session.request(encoded_url!,
+                   method: .delete,
+                   parameters: nil,
+                   encoding: URLEncoding.default,
+                   headers: headers
+            )
+        
+            .validate(statusCode: 200..<500)
+            .response(completionHandler: { (response) in
+                switch response.result {
+                    case .success(let data):
+                    switch response.response?.statusCode {
+                    case 200:
+                        do {
+                            let content = try JSONDecoder().decode(ResponseStatus<Cart>.self, from:  data!)
+                            completion(.success(content))
+                            
+                        } catch let error {
+                            completion(.failure(error))
+                        }
+                        
+                    case 400:
+                        completion(.failure(APIError.invalidInventory))
+
+                    default:
+                        completion(.failure(APIError.invalidResponeCode))
+                
+                }
+                case .failure(let error):
+                    completion(.failure(error))
+
+                }
+            })
+        
+    }
+    
+    
+    
+    func updateCart(id: Int, movieId: String, userId: Int, qty: Int, completion: @escaping (Result<ResponseStatus<Cart>,Error>) -> Void) {
+        let accessToken = keychain["accessToken"] ?? ""
+
+        let url = "\(MyVariables.API_IP)/cart/\(id)"
+        
+        let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
+
+        let parameters: Parameters = [
+            "id": id,
+            "movieId": movieId,
+            "userId": userId,
+            "qty": qty
+        ]
+        
+        let headers: HTTPHeaders = [
+            "Authorization": "Bearer \(accessToken)",
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        ]
+        
+        session.request(encoded_url!,
+                   method: .put,
+                   parameters: parameters,
+                   encoding: JSONEncoding.default,
+                   headers: headers
+            )
+        
+            .validate(statusCode: 200..<500)
+            .response(completionHandler: { (response) in
+                switch response.result {
+                    case .success(let data):
+                    switch response.response?.statusCode {
+                    case 200:
+                        do {
+                            let content = try JSONDecoder().decode(ResponseStatus<Cart>.self, from:  data!)
                             completion(.success(content))
                             
                         } catch let error {
@@ -454,10 +533,9 @@ class NetworkManager {
     }
     
     func deleteAddress(address: Address, completion: @escaping (Result<ResponseStatus<Address>,Error>) -> Void) {
-        
+        let accessToken = keychain["accessToken"] ?? ""
         let url = "\(MyVariables.API_IP)/address/\(address.id)"
 
-        
         let headers: HTTPHeaders = [
             "Authorization": "Bearer \(accessToken)",
             "Content-Type": "application/json",
@@ -500,6 +578,7 @@ class NetworkManager {
     func uploadEmail(email: Email, completion: @escaping (Result<ResponseStatus<User>,Error>) -> Void) {
         
         // Prepare URL
+        let accessToken = keychain["accessToken"] ?? ""
         let url = "\(MyVariables.API_IP)/customer/email"
         let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
 
@@ -557,6 +636,7 @@ class NetworkManager {
     func uploadPassword(password: Password, completion: @escaping (Result<ResponseStatus<User>,Error>) -> Void) {
 
         // Prepare URL
+        let accessToken = keychain["accessToken"] ?? ""
         let url = "\(MyVariables.API_IP)/customer/password"
         let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
 
@@ -614,14 +694,15 @@ class NetworkManager {
     func uploadPrimaryAddressId(userId: Int, primaryId: Int, completion: @escaping (Result<ResponseStatus<User>,Error>) -> Void) {
         
         // Prepare URL
-        let url = "\(MyVariables.API_IP)/customer/update/primary/"
+        let accessToken = keychain["accessToken"] ?? ""
+
+        let url = "\(MyVariables.API_IP)/customer/primary/"
         let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
 
         guard let url = URL(string: encoded_url!) else {
             completion(.failure(APIError.invalidURL))
             return
         }
-        
         
         
         let parameters: Parameters = [
@@ -636,7 +717,7 @@ class NetworkManager {
         ]
         
         session.request(url,
-                   method: .post,
+                   method: .put,
                    parameters: parameters,
                    encoding: JSONEncoding.default,
                    headers: headers
@@ -670,9 +751,9 @@ class NetworkManager {
     
     func uploadCheckoutAddress(address: Address, completion: @escaping (Result<Checkout,Error>) -> Void) {
         // Prepare URL
+        let accessToken = keychain["accessToken"] ?? ""
         let url = "\(MyVariables.API_IP)/checkout/"
-
-                let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
+        let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
 
         guard let url = URL(string: encoded_url!) else {
             completion(.failure(APIError.invalidURL))
@@ -680,6 +761,7 @@ class NetworkManager {
         }
         
         let parameters: Parameters = [
+            "id": address.id,
             "firstname": address.firstname,
             "lastname": address.lastname,
             "street": address.street,
@@ -734,6 +816,7 @@ class NetworkManager {
     
     func uploadAddress(address: Address, insert: Bool, completion: @escaping (Result<ResponseStatus<Address>,Error>) -> Void) {
         // Prepare URL
+        let accessToken = keychain["accessToken"] ?? ""
         let url = "\(MyVariables.API_IP)/address/"
         let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
 
@@ -761,7 +844,7 @@ class NetworkManager {
         
         
         session.request(url,
-                    method: (insert == true) ?.put : .post,
+                   method: (insert == true) ?.post : .put,
                    parameters: parameters,
                    encoding: JSONEncoding.default,
                    headers: headers
@@ -796,10 +879,11 @@ class NetworkManager {
     func uploadOrder(order: ProcessOrder, completion: @escaping (Result<Sale,Error>) -> Void) {
 
         // Prepare URL
+        let accessToken = keychain["accessToken"] ?? ""
         let url = "\(MyVariables.API_IP)/sale/"
 
         var request = URLRequest(url: URL(string: url)!)
-        request.setValue("Bearer \(self.accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         request.httpMethod = "POST"
         request.allHTTPHeaderFields = [
             "Content-Type": "application/json",
@@ -871,6 +955,7 @@ class NetworkManager {
     func preparePaymentIntent(amount: Double, currency: String, description: String, completion: @escaping (Result<STPPaymentIntentParams,Error>) -> Void) {
         
         // Prepare URL
+        let accessToken = keychain["accessToken"] ?? ""
         let url = "\(MyVariables.API_IP)/checkout/charge"
         let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
 
@@ -935,7 +1020,7 @@ class ContentDataSourceTest<T: Codable & Equatable>: ObservableObject {
     
     private var canLoadMorePages = true
     private var currentPage = 0
-    private let pageSize = 20
+    private let pageSize = 25
     
     var cancellable: Set<AnyCancellable> = Set()
     
@@ -946,6 +1031,14 @@ class ContentDataSourceTest<T: Codable & Equatable>: ObservableObject {
         let keychain = Keychain(service: "com.dataflix")
         self.refreshToken = keychain["refreshToken"]!
         self.accessToken = keychain["accessToken"]!
+    }
+    
+    func reset() {
+        items.removeAll()
+        currentPage = 0
+        canLoadMorePages = true
+        isLoadingPage = false
+        endOfList = false
     }
     
     
@@ -969,7 +1062,7 @@ class ContentDataSourceTest<T: Codable & Equatable>: ObservableObject {
         
         isLoadingPage = true
         
-        let url = "\(MyVariables.API_IP)/\(path)?limit=\(pageSize)&page=\(0)"
+        let url = "\(MyVariables.API_IP)/\(path)?limit=\(pageSize)&page=\(currentPage)"
         let encoded_url = url.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
 
         var request = URLRequest(url: URL(string: encoded_url!)!)
@@ -995,6 +1088,8 @@ class ContentDataSourceTest<T: Codable & Equatable>: ObservableObject {
     }
 }
 
+
+/*
 
 class ContentDataSource: ObservableObject {
     
@@ -1072,3 +1167,4 @@ class ContentDataSource: ObservableObject {
     }
 
 }
+*/

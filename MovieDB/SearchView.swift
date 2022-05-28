@@ -13,6 +13,8 @@ import Combine
 import WrappingHStack
 
 
+
+
 struct SearchMovieView: View {
     var width: CGFloat
     var height: CGFloat
@@ -69,14 +71,12 @@ struct SearchMovieView: View {
 
 
 struct SimplifiedMovieView: View {
-    
+
+    @State var isActive = false;
+    @State var movie: Movie
     var width: CGFloat
     var height: CGFloat
-    var user: UserData
-    var meta: MovieMeta
     
-    @State var isActive = false;
-    @State var movie: Movie?
 
     var body: some View {
         VStack {
@@ -106,31 +106,12 @@ struct SimplifiedMovieView: View {
                 }
             }
             
-            else {
-                ProgressView()
-            }
-            
         }
         .frame(width: width, height: height)
         .padding(.bottom, 10)
-        .onAppear(perform: {self.getMovieData()})
             
     }
     
-    func getMovieData() {
-        let URL = "\(MyVariables.API_IP)/movie/\(meta.movieId!)"
-        
-        NetworkManager.shared.getRequest(of: Movie.self, url: URL) { (result) in
-            switch result {
-            case .success(let movie):
-                DispatchQueue.main.async {
-                    self.movie = movie
-                }
-            case .failure(let error):
-                print(error.localizedDescription)
-            }
-        }
-    }
 }
 
 //https://github.com/dkk/WrappingHStack
@@ -161,7 +142,7 @@ struct MostSearchedView: View {
                                 let width = CGFloat(100)
                                 let height = CGFloat(250)
                                 
-                                SimplifiedMovieView(width: width, height: height, user: user, meta: meta)
+                                //SimplifiedMovieView(width: width, height: height, user: user, meta: meta)
                                 
                             }
                             else if horizontalSizeClass == .regular && verticalSizeClass == .compact {
@@ -170,7 +151,7 @@ struct MostSearchedView: View {
                                 let width = CGFloat(100)
                                 let height = CGFloat(250)
                                 
-                                SimplifiedMovieView(width: width, height: height, user: user, meta: meta)
+                                //SimplifiedMovieView(width: width, height: height, user: user, meta: meta)
                                 
 
                             }
@@ -180,7 +161,7 @@ struct MostSearchedView: View {
                                 let width = CGFloat(150)
                                 let height = CGFloat(300)
                                 
-                                SimplifiedMovieView(width: width, height: height, user: user, meta: meta)
+                               // SimplifiedMovieView(width: width, height: height, user: user, meta: meta)
                             }
                         }
 
@@ -409,33 +390,80 @@ struct SearchCastRow: View {
 
 
 struct SearchView: View {
+    
+    @Environment(\.verticalSizeClass) var verticalSizeClass: UserInterfaceSizeClass?
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass: UserInterfaceSizeClass?
+    
     @StateObject private var dataSource = ContentDataSourceTest<Movie>()
     @State private var query = ""
+    
+    
+    @State var columns = [
+        GridItem(.adaptive(minimum: 110, maximum: 250))
+    ]
     
     var body: some View {
         VStack {
             ScrollView{
-                LazyVStack {
+                LazyVGrid(columns: columns, spacing: 20) {
+                    
                     ForEach(dataSource.items, id: \.uuid) { movie in
-                        MovieRow(movie: movie)
-                            .padding(.leading,24)
-                            .padding(.trailing, 20)
-                            .frame(width: (UIScreen.main.bounds.width - 15), height: 80)
-                            .onAppear(perform: {
-                                if !self.dataSource.endOfList && !query.isEmpty {
-                                    if self.dataSource.shouldLoadMore(item: movie) {
-                                        self.dataSource.fetch(path: "movie/title/\(query)")
+                     
+                        VStack {
+                            if horizontalSizeClass == .compact && verticalSizeClass == .regular {
+                                SimplifiedMovieView(movie: movie, width: 100, height: 200)
+                                    .onAppear {
+                                        columns = [
+                                            GridItem(.adaptive(minimum: 100, maximum: 250))
+                                        ]
+                                        
                                     }
-                                }
-                            })
-                }
-            }
 
-        
-        }.searchable(text: $query, prompt: "Search Movies")
+                            }
+                            else if horizontalSizeClass == .regular && verticalSizeClass == .compact {
+                                
+                                SimplifiedMovieView(movie: movie, width: 100, height: 200)
+                                    .onAppear {
+                                        columns = [
+                                            GridItem(.adaptive(minimum: 100, maximum: 250))
+                                        ]
+                                        
+                                    }
+
+                            }
+                            else if horizontalSizeClass == .regular && verticalSizeClass == .regular {
+                                
+                                SimplifiedMovieView(movie: movie, width: 150, height: 250)
+                                    .onAppear {
+                                        columns = [
+                                            GridItem(.adaptive(minimum: 150, maximum: 250))
+                                        ]
+                                        
+                                    }
+                            }
+                            
+                        }
+                        .onAppear(perform: {
+                            if !self.dataSource.endOfList && !query.isEmpty {
+                                if self.dataSource.shouldLoadMore(item: movie) {
+                                    self.dataSource.fetch(path: "movie/title/\(query)")
+                                }
+                            }
+                        })
+            
+                    }
+                    
+                    if(dataSource.isLoadingPage) {
+                        ProgressView()
+                    }
+                    
+            }
+                .border(Color.red)
+
+        }.searchable(text: $query, prompt: "Search")
             .onChange(of: query) { value in
                 if !value.isEmpty && value.count > 2 {
-                    self.dataSource.items.removeAll()
+                    self.dataSource.reset()
                     self.dataSource.fetch(path: "movie/title/\(query)")
                 }
             }
@@ -453,6 +481,7 @@ struct SearchView: View {
 
 
 
+/*
 
 struct SearchViewT: View {
     @Environment(\.verticalSizeClass) var verticalSizeClass: UserInterfaceSizeClass?
@@ -460,12 +489,7 @@ struct SearchViewT: View {
     @EnvironmentObject var user: UserData
     @EnvironmentObject var viewModel: AlertViewModel
     
-    
-    
     @State var query = ""
-    
-    
-    
     
     
     @State var text = ""
@@ -496,7 +520,7 @@ struct SearchViewT: View {
 
                 else {
                     ScrollView{
-                            /*
+                        
                             LazyVStack {
                                 if horizontalSizeClass == .compact && verticalSizeClass == .regular {
                                     ForEach(dataSource.items, id: \.uuid) { movie in
@@ -566,7 +590,7 @@ struct SearchViewT: View {
 
                                 }
                             }
-                        */
+                        
                       }.frame(height: height)
                 }
 
@@ -582,3 +606,4 @@ struct SearchViewT: View {
     }
     
 }
+*/
