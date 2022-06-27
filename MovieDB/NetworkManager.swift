@@ -12,8 +12,9 @@ import Stripe
 //https://github.com/callicoder/spring-boot-react-oauth2-social-login-demo/blob/master/react-social/src/app/App.js
 
 struct MyVariables {
-
-
+    static var API_IP = "http://localhost:8080"
+    static var STRIPE_PUBLIC_KEY = ""
+    
 }
 
 
@@ -92,8 +93,6 @@ class NetworkManagerInterceptor: RequestInterceptor {
     
     let retryLimit = 5
     let retryDelay: TimeInterval = 10
-
-    //private var keychain = Keychain(service: "com.dataflix")
 
     func refresh(completion: @escaping (Result<Token,Error>) -> Void) {
         let keychain = Keychain(service: "com.dataflix")
